@@ -5,7 +5,7 @@
   
 
 
-<html class="theme-next muse use-motion" lang="">
+<html class="theme-next mist use-motion" lang="">
 <head>
   <meta charset="UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -93,7 +93,7 @@
   var NexT = window.NexT || {};
   var CONFIG = {
     root: '/',
-    scheme: 'Muse',
+    scheme: 'Mist',
     version: '5.1.4',
     sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
     fancybox: true,
@@ -187,6 +187,16 @@
         </li>
       
         
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
         <li class="menu-item menu-item-archives">
           <a href="/archives/" rel="section">
             
@@ -232,7 +242,7 @@
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/27/QEMU-GSoC-2018-proposal/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Su Hang">
+      <meta itemprop="name" content="Darcy">
       <meta itemprop="description" content="">
       <meta itemprop="image" content="/images/avatar.gif">
     </span>
@@ -299,99 +309,22 @@
 
       
         
-          
-            <h2 id="Basic-Information"><a href="#Basic-Information" class="headerlink" title="Basic Information"></a>Basic Information</h2><ul>
+          <h2 id="Basic-Information"><a href="#Basic-Information" class="headerlink" title="Basic Information"></a>Basic Information</h2><ul>
 <li><strong>Name:</strong> darcy</li>
 <li><strong>IRC nickname:</strong> darcy</li>
-<li><strong>Email:</strong> </li>
-<li><strong>Telephone number (including international dialling code):</strong> </li>
 <li><strong>Programming languages (fluent):</strong> C, C++</li>
 <li><strong>Past open source contributions:</strong><br>  participating write a open source technical book about ‘OpenResty’<br>  <a href="https://github.com/moonbingbing/openresty-best-practices" target="_blank" rel="noopener">https://github.com/moonbingbing/openresty-best-practices</a></li>
 <li><strong>Sample source code, hobby projects, GitHub, etc URLs:</strong><br>  <a href="https://github.com/DarcySail" target="_blank" rel="noopener">https://github.com/DarcySail</a></li>
 </ul>
 <h2 id="Why-you-are-applying"><a href="#Why-you-are-applying" class="headerlink" title="Why you are applying"></a>Why you are applying</h2><p>There are two reasons for participating in QEMU-GSoC:</p>
 <p>First, I’m an virtualization technology enthusiast. During my junior year at college, I’ve designed and implemented a C programming language based compiler, allowing users to directly convert native C code into a my own designed Stack-Based Instruction Set. Internally, a virtual machine to support byte-code execution is integrated into this compiler. Although this simple virtual machine prototype cannot support the full stack of virtualization technology, it’s actually the starting point for my interest in virtualization. Now, I’m pursuing my PH.D degree in University of Chinese Academy of Sciences. And I focus on low-level system software design，including virtualization technologies and AI operating systems, e.g., QEMU, Docker, etc. Thus, I want to utilize QEMU to implement the emulation of Intelligence Chip after I am familiar enough with QEMU.</p>
-<p>First, I am greatly interested in virtualization. When I was a junior, I designed and implemented a compiler that support the subset of C language, the compiler accepted C code as input, and output Stack-based Instruction Set(also designed by myself). A virtual machine was written in order to run this bytecode.  Now, in my point of view, this amateur virtual machine is far from virtualization, but it’s actually the starting point for my interest in virtualization.  When I came to University of Chinese Academy of Sciences as a master student, most of tasks assigned to me by my school mentor are about low-level system software. And I want to utilize QEMU to implement the emulation of Intelligence Chip after I am familiar enough with QEMU.</p>
-<p>Firstly, I am greatly interested in virtualization. When I was a junior, I designed and implemented a compiler that supports the subset of C language. The compiler accepted C code as input, and output Stack-based Instruction Set(also designed by myself). A virtual machine was written in order to run this bytecode.  Now, in my point of view, this amateur virtual machine is far from virtualization, but it’s actually my starting point of the interest in virtualization.  When I came to University of Chinese Academy of Sciences as a Master student, most tasks of mine assigned by my school mentor are about low-level system software. And I want to utilize QEMU to implement the emulation of Intelligence Chip after I am familiar enough with QEMU.</p>
-<p>Secondly, when I use Linux and various open source software every day, the idea of contributing to Open Source Community naturally emerge in my deep heart. QEMU-GSoC is the best practice I could take part in. Since I have read all project ideas listed in QEMU, I thought the implementation of micro:bit is not only able to satisfy my requirement of learning peripheral emulation, but also within the capability of my skill.</p>
-<p>And I have already contributed to QEMU Community by commit 4 patchs, three of them have been merged into master branch. Here are links:<a href="#1">[1]</a> <a href="#2">[2]</a> <a href="#3">[3]</a> <a href="#4">[4]</a></p>
-<h2 id="Summary-of-your-understanding-of-the-project-idea"><a href="#Summary-of-your-understanding-of-the-project-idea" class="headerlink" title="Summary of your understanding of the project idea"></a>Summary of your understanding of the project idea</h2><p>The Project Idea of implementing micro:bit machine type provides the best testing platform for developers or kids.Besides, the implemented peripherals can be reused as modular components by future devices.</p>
-<p>What I need to do includes:</p>
-<h3 id="Part-I"><a href="#Part-I" class="headerlink" title="Part I."></a>Part I.</h3><ul>
-<li>Implementing ARM Cortex-M0 CPU support based on existing Cortex-M3 support in QEMU.</li>
-</ul>
-<p>Although the architectures are binary instructions upward compatible from Armv6-M to Armv7-M, and most(not all) binary instructions available for the Cortex-M0 can execute without modification on the Cortex-M3.<a href="#4">[4]</a> <a href="#5">[5]</a></p>
-<p>Normally, when porting from the Cortex-M3 to the Cortex-M0, I need to change the peripheral access code, and update system features like clock speed, sleep modes, and so on. And this part of the code in the qemu architecture basically does not belong to implementiion of CPU (./target/arm), but is the work of the implementation of peripherals (./hw/arm).<a href="#6">[6]</a></p>
-<p>However, what I need to do is to use QEMU’s support for cortex-m3 to implement a “true” virtual CPU rather than just using the existing cortex-m3 to implement the microbit machine functionality.</p>
-<p>Except for some functional differences in some of the instructions, the two CPUs still have some differences above features. Some programmers may write some code based on the characteristics of the processor. And some softwares should validate the existence of a feature before attempting to use it. When programmers write such code on Cortex-M0, it is assumed that these features are supported on qemu. In fact, in this case, if we directly replace cortex-m0 with cortex-m3, a series of unpredictable problems will happen. This is why we should trim unnecessary feature from Cortex-M3.<a href="#7">[7]</a></p>
-<h4 id="1-Differences-between-instructions"><a href="#1-Differences-between-instructions" class="headerlink" title="1. Differences between instructions"></a>1. Differences between instructions</h4><p>The Cortex-M0 contains traditional Thumb-1, not including new instructions (CBZ, CBNZ, IT) which were added in Armv7-M architecture, and a minor subset of Thumb-2 instructions (BL, DMB, DSB, ISB, MRS, MSR). The Cortex-M3 have all base Thumb-1 and Thumb-2 instructions.<a href="#8">[8]</a></p>
-<ul>
-<li>The Cortex-M0 only has 32-bit multiply instructions with a lower-32-bit result (32bit × 32bit = lower 32bit), where as the Cortex-M3 / M4 / M7 / M33 includes additional 32-bit multiply instructions with 64-bit results (32bit × 32bit = 64bit).<a href="#8">[8]</a></li>
-</ul>
-<p>All this unsupported instructions should be trimmed from current Cortex-M3 implementation. The specific method is to utilize the following functions provided by QEMU, using <code>UNPREDICTABLE</code> or <code>UNDEFINED</code> to replace the original instructions.</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ENABLE_ARCH_V6     arm_dc_feature(s, ARM_FEATURE_V6)</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">disas_arm_insn</span><span class="params">(DisasContext *s, <span class="keyword">unsigned</span> <span class="keyword">int</span> insn)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    ....</span><br><span class="line">    <span class="comment">/* for different feature that not supported by cotex-m0(armv6);</span></span><br><span class="line"><span class="comment">     * we could raise the INVSTATE UsageFault exception.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (arm_dc_feature(s, ARM_FEATURE_V6)) &#123;</span><br><span class="line">        gen_exception_insn(s, <span class="number">4</span>, EXCP_INVSTATE, syn_uncategorized(),</span><br><span class="line">                           default_exception_el(s));</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    ....</span><br><span class="line">    <span class="comment">/* for Instruction that not supported by cortex-m0(armv6), we</span></span><br><span class="line"><span class="comment">     * choose to UNDEF.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (!arm_dc_feature(s, ARM_FEATURE_NEON)) &#123;</span><br><span class="line">        <span class="keyword">goto</span> illegal_op;</span><br><span class="line">    &#125;</span><br><span class="line">illegal_op:</span><br><span class="line">        gen_exception_insn(s, <span class="number">4</span>, EXCP_UDEF, syn_uncategorized(),</span><br><span class="line">                           default_exception_el(s));</span><br><span class="line">    ....</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="2-Differences-between-features"><a href="#2-Differences-between-features" class="headerlink" title="2. Differences between features"></a>2. Differences between features</h4><p>The following features should be taken into consideration:</p>
-<p>ARM architecture: The Cortex-M0 implement the Armv6-M architecture, and the Cortex-M3 implements the Armv7-M architecture.</p>
-<ul>
-<li>Interrupts: 1 to 32 (Cortex-M0), 1 to 240 (Cortex-M3).</li>
-<li>Vector Table Offset Register: Not available for Cortex-M0.</li>
-<li>Number of watchpoint comparators: 0 to 2 (Cortex M0), 0 to 4 (Cortex-M3).</li>
-<li>Number of breakpoint comparators: 0 to 4 (Cortex M0), 0 to 8 (Cortex-M3).</li>
-<li>The performance efficiency: 0.9 DMIPS/MHz 1.25 DMIPS/MHz(this part won’t affect QEMU)<a href="#8">[8]</a></li>
-</ul>
-<p>Except for listed above, aligned access is another important different feature. An aligned access is an operation where a word-aligned address is used for a word or multiple word access, or where a halfword-aligned address is used for a halfword access. Byte accesses are always aligned.</p>
-<p>There is no support for unaligned accesses on the Cortex-M0 processor. Any attempt to perform an unaligned memory access operation results in a HardFault exception.<a href="#9">[9]</a></p>
-<p>NVIC and SCB (System Control Block) registers in the Cortex-M0 can only be accessed in word-size transfers.  While some registers in the NVIC and the SCB in the Cortex-M3 are not available in the Cortex-M0. These include the Interrupt Active Status Register, the Software Trigger Interrupt Register, the Vector Table Offset Register, and some of the fault status registers.<a href="#6">[6]</a></p>
-<p>The bit-band feature in the Cortex-M3 is not available in the Cortex-M0. If the bit-band alias access is used, it needs to return an error_id.</p>
-<p>In general, Cortex-M0 memory access must always be naturally aligned while Cortex-M3 doesn’t have this limit. The unsupported features should be trimmed to satisfy Cortex-M0.<br>(refered to <a href="#code2">[code]</a>):</p>
-<h3 id="Part-II"><a href="#Part-II" class="headerlink" title="Part II."></a>Part II.</h3><ul>
-<li>Implementing a “microbit” machine type.</li>
-<li>Implementing at least the 5x5 LED display, buttons, and UART.</li>
-<li>Stubbing out other devices as needed for the runtime to start successfully.</li>
-</ul>
-<p>Different from X86 architecture which provides port-mapped I/O, ARM architecture uses memory-mapped I/O to perform input/output (I/O) between CPU and peripheral devices. In programming of kernel module, we control peripherals by read/write I/O registers.  Because of the opposite behaviors, when we try to emulate peripheral device, we should read the value of I/O register to figure out what kind of operations do users want us to achieve so that we can give feedback to users by write corresponding I/O register. In order to specify utilize QEMU to emulate peripherals in ARM architecture, we should add a QEMU data structure named “MemoryRegion” per I/O mapped-memory, then hook the “MemoryRegion” with two callback functions(one for responding reading behavior, one for responding writing behavior), as long as user’s code tries to access this “MemoryRegion”, no matter reading or writing, the right corresponding callback function will be called. And exactly in this callback function should we implement the concrete peripherals feature.<a href="#10">[10]</a></p>
-<p><span id="code2"></span><br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> uint64_t <span class="title">microbit_rom_read_hook</span><span class="params">(<span class="keyword">void</span> *opaque, hwaddr offset, <span class="keyword">unsigned</span> size)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (offset &amp; <span class="number">0x1</span>) &#123;</span><br><span class="line">        qemu_log_mask(LOG_GUEST_ERROR,</span><br><span class="line">                      <span class="string">"ROM: read at bad offset 0x%x\n"</span>, (<span class="keyword">int</span>)offset);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> MemoryRegionOps microbit_rom_ops = &#123;</span><br><span class="line">    .read = microbit_rom_read,</span><br><span class="line">    .write = microbit_rom_write,</span><br><span class="line">    .endianness = DEVICE_NATIVE_ENDIAN,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
-<p>There is no big difference between stubbing a device and actually implementing a device, both of them need to allocate a MemoryRegion, and hook the access to them, expect for stubbed device hooked with almost empty functions.</p>
-<h3 id="Part-III"><a href="#Part-III" class="headerlink" title="Part III."></a>Part III.</h3><ul>
-<li>Test code.</li>
-</ul>
-<p>In order to test the correctness of emulation code, we could use online Python(or Javascript Blocks editors) to generate specific code which controls specific peripheral. According to “nRF51 Series Reference Manual”, we check whether the generated code has written right value of right address.  For example, in the emulation of LED device, we can use Python to generate “.hex” file that only controls one LED light to blink. Then we check whether the corresponding callback function has been called, and whether “.hex” code has written expected value to right I/O registers.</p>
-<p>In addition to using these official compilers, we can also use the runtime environment provided by Lancaster University, to minimize irrelevant variables.</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//This code should blink LED every 500ms.</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"mbed.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="function">DigitalOut <span class="title">led1</span><span class="params">(LED1)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        led1 = !led1;</span><br><span class="line">        wait(<span class="number">0.5</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>Then use the following shell command to compile the source code.<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">yotta init</span><br><span class="line">yotta target bbc-microbit-classic-gcc</span><br><span class="line">yotta install lancaster-university/microbit</span><br><span class="line">yotta build</span><br></pre></td></tr></table></figure></p>
-<p>The hex file we need to burn to flash rom will be found in project <code>LED-Blink/build/bbc-microbit-classic-gcc/source</code> and it will be called <code>LED-Blink-combined.hex</code>.</p>
-<p>In addition, assembly code, which directly controls peripherals, should also be able to test on baremetel virtual machine.</p>
-<h2 id="Project-plan"><a href="#Project-plan" class="headerlink" title="Project plan"></a>Project plan</h2><p><strong>5.15 - 5.22</strong><br>Implementing a micro:bit .hex ROM loader;</p>
-<p>(approximately 500 - 1000 line of c code)</p>
-<p><strong>5.23 - 7.11</strong><br>Implementing a “microbit” machine type;</p>
-<p>Stubbing out other devices as needed for the runtime to start successfully;</p>
-<p>Implementing at least the 5x5 LED display, buttons, and UART;</p>
-<p>(approximately 1000 - 1500 line of c code for these three tasks.)</p>
-<blockquote>
-<p><strong>6.12 - 6.13</strong><br>GSoC middle evaluations.</p>
-</blockquote>
-<p><strong>7.12 - 7.22</strong><br>Implementing ARM Cortex-M0 CPU support based on existing Cortex-M3 support in QEMU;</p>
-<p>(approximately 98 instructions need to be trimmed, approximately 98 * 5 = 490. Include trimming feature code, approximately 500 - 800 line of c code.)</p>
-<blockquote>
-<p><strong>7.10 - 7.11</strong><br>GSoC middle evaluations.</p>
-</blockquote>
-<p><strong>7.23 - 7.31</strong><br>Finish all basic task, completely test code, prepare and start to code other peripherals and GUI;</p>
-<p><strong>8.1 - 8.14</strong><br>Implement basic GUI. Implement other meaningful peripherals;</p>
-<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
-<li><span id="1"> [1] <a href="http://lists.nongnu.org/archive/html/qemu-devel/2018-02/msg06778.html" target="_blank" rel="noopener">http://lists.nongnu.org/archive/html/qemu-devel/2018-02/msg06778.html</a></span></li>
-<li><span id="2"> [2] <a href="http://lists.nongnu.org/archive/html/qemu-devel/2018-03/msg01626.html" target="_blank" rel="noopener">http://lists.nongnu.org/archive/html/qemu-devel/2018-03/msg01626.html</a></span></li>
-<li><span id="3"> [3] <a href="http://lists.nongnu.org/archive/html/qemu-devel/2018-04/msg00899.html" target="_blank" rel="noopener">http://lists.nongnu.org/archive/html/qemu-devel/2018-04/msg00899.html</a></span></li>
-<li><span id="4"> [4] <a href="http://lists.nongnu.org/archive/html/qemu-devel/2018-04/msg03242.html" target="_blank" rel="noopener">http://lists.nongnu.org/archive/html/qemu-devel/2018-04/msg03242.html</a></span></li>
-<li><span id="5"> [4] ARMv6-M Architecture Reference Manual</span></li>
-<li><span id="6"> [5] ARMv7-M Architecture Reference Manual</span></li>
-<li><span id="7"> [6] The Definitive Guide to the ARM Cortex-M0</span></li>
-<li><span id="8"> [7] Cortex-M3 Embedded Software Development</span></li>
-<li><span id="9"> [8] <a href="https://en.wikipedia.org/wiki/ARM_Cortex-M" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/ARM_Cortex-M</a></span></li>
-<li><span id="10"> [9] STM32F0xxx Cortex-M0 programming manual</span></li>
-<li><span id="11"> [10] <a href="https://www.qemu.org/2018/02/09/understanding-qemu-devices/" target="_blank" rel="noopener">https://www.qemu.org/2018/02/09/understanding-qemu-devices/</a></span></li>
-</ul>
-
-          
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/04/27/QEMU-GSoC-2018-proposal/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -441,7 +374,7 @@
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/22/qemu-internals-overall-architecture/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Su Hang">
+      <meta itemprop="name" content="Darcy">
       <meta itemprop="description" content="">
       <meta itemprop="image" content="/images/avatar.gif">
     </span>
@@ -508,8 +441,7 @@
 
       
         
-          
-            <p>原文地址：<a href="http://blog.vmsplice.net/2011/03/qemu-internals-overall-architecture-and.html" target="_blank" rel="noopener">http://blog.vmsplice.net/2011/03/qemu-internals-overall-architecture-and.html</a><br>Author：Stefan Hajnoczi<br>Translator：Su Hang</p>
+          <p>原文地址：<a href="http://blog.vmsplice.net/2011/03/qemu-internals-overall-architecture-and.html" target="_blank" rel="noopener">http://blog.vmsplice.net/2011/03/qemu-internals-overall-architecture-and.html</a><br>Author：Stefan Hajnoczi<br>Translator：Su Hang</p>
 <p>这是针对开发人员的 QEMU 内部原理探析系列中的第一篇文章。它旨在分享 QEMU 工作原理的知识，并使新贡献者更容易了解 QEMU 代码。</p>
 <p>执行 guest 代码涉及到如下任务：处理定时器、处理 I/O 请求、响应虚拟机监视器的命令，等等。要想设计一个良好的、能够解决这些问题的架构，需要安全地一次性地解决所有这些资源的分发问题。尤其是当某些请求，譬如 I/O 请求、来自用户的命令，需要大量的时间去执行的话。</p>
 <p>一个 guest 的运行包括执行 guest 代码，处理定时器，处理 I / O 以及响应监视器命令。要想一次性地安排好所有这些事情需要一个能够以安全的方式调解资源的体系结构，而且最好不会暂停 guest 代码的执行。如果磁盘 I / O 或监视器命令需要很长时间才能完成，对于需要响应来自多个来源的事件的程序，有两种流行体系结构：</p>
@@ -524,38 +456,13 @@
 <li>运行会定时过期的定时器。定时器可以使用<code>qemu_mod_timer()</code>添加。</li>
 <li>运行下半部机制 (BHs)（译者注：所谓 bottom-halves 机制，是指在允许中断的情况下，将中断处理程序延迟执行），就像立即过期的定时器一样。BH（译者注：原文中 BH 是 bottom halves 的缩写，下同）用于避免重入和溢出调用堆栈。使用<code>qemu_bh_schedule()</code>添加 BHs。</li>
 </ul>
-<blockquote>
-<p>Linux 将一些中断处理分成两部分，第一部分是在关中断的条件下执行的，具有”原子”性，而且是中断发生以后一般要立即执行的，第二部分，就是 bottom half 了，是在开中断的条件下执行，这部分是可以延迟一段时间再做的，而且有可能将多个中断的 bottom half 合并起来一起做。</p>
-</blockquote>
-<p>当文件描述符准备就绪，计时器到期或调度 BH 时，事件循环会调用相应该事件的回调函数。关于回调函数的执行场景，有两条简单规则：</p>
-<ol>
-<li>没有其他核心代码正在同时执行，因此不需要考虑同步问题。回调函数相对于其他核心代码是顺序的，并且以原子的方式执行。在任何时候只有一个控制线程执行核心代码。</li>
-<li>回调函数不应阻塞系统调用或进行长时间运行的运算。由于事件循环会在回调函数返回之前等待，所以其他想要被执行的事件就因此被阻塞，避免在回调中花费大量时间非常重要。打破此规则会导致 guest 虚拟机暂停并且监视器无法再响应用户。</li>
-</ol>
-<p>第二条规则有时在 QEMU 的某些代码中其实是难以实现的。事实上，<code>qemu_aio_wait()</code>中甚至有一个嵌套事件循环等待顶层事件循环处理的事件子集。希望在未来重构代码时，可以消除这些违背了第二天规则的代码。新代码几乎从来没有合法的理由阻止，一种解决方案是使用专用工作线程来卸载长时间运行或阻塞的代码。</p>
-<h3 id="将特定任务分配到工作线程"><a href="#将特定任务分配到工作线程" class="headerlink" title="将特定任务分配到工作线程"></a>将特定任务分配到工作线程</h3><p>虽然许多 I / O 操作可以以非阻塞方式执行，但是有些系统调用没有非阻塞版本。此外，有时候长时运行的计算任务会影响 CPU，并且很难将其分解成多个小的回调函数。在这些情况下，可以谨慎地通过分配专用工作线程的方式，将这些任务移出 QEMU 核心函数。</p>
-<p>一个工作线程的用户示例是<code>posix-aio-compat.c</code>，一个异步文件 I / O 实现。当 QEMU 核心代码发出 aio 请求时，该请求将被放置在一个队列中。工作线程将从队列中取出该 aio 请求并在 QEMU 核心函数之外去执行。这时就可以执行阻塞操作了，因为这些任务在自己的线程中执行并且不会阻塞 QEMU 的其余部分。通过这种方式需要注意在工作线程和 QEMU 核心函数之间执行必要的同步和通信。</p>
-<p>另一个例子是<code>ui/vnc-jobs-async.c</code>，它在工作线程中进行密集的图像压缩和编码计算。</p>
-<p>由于大多数 QEMU 核心代码不是线程安全的，所以工作线程不能调用 QEMU 核心代码代码。对于简单的实用程序——如<code>qemu_malloc()</code>——是线程安全的，但这算是例外而非规则。这种特性使得将工作线程事件传回 QEMU 核心函数变成了一个难题。</p>
-<p>当工作线程需要通知 QEMU 核心代码时，会在事件循环中添加管道或<code>qemu_eventfd()</code>文件描述符。工作线程可以写入文件描述符，并且当文件描述符的状态变为可读时，事件循环将调用回调函数。另外，必须有一个信号来确保事件循环能够在任何情况下运行。在了解 guest 代码的执行方式后，<code>posix-aio-compat.c</code>使用的这种方法更加自然。</p>
-<h3 id="执行-guest-代码"><a href="#执行-guest-代码" class="headerlink" title="执行 guest 代码"></a>执行 guest 代码</h3><p>到目前为止，我们主要关注的是事件循环及其在 QEMU 中所扮演的的核心角色。但同样重要的是执行 guest 代码的能力，如果没有可执行的 guest 代码，QEMU 即使可以对事件做出响应，但这并没有太大意义。</p>
-<p>执行 guest 代码有两种机制：微型代码生成器 (TCG) 和 KVM。TCG 使用动态二进制翻译（也称为即时 (JIT) 编译）模拟 guest。KVM 利用现代英特尔和 AMD CPU 中的硬件虚拟化扩展技术，直接在主机 CPU 上安全地执行 guest 代码。对于本文来说，在使用中实际使用哪种技术并不重要，但重要的是 TCG 和 KVM 都允许我们跳入 guest 代码并执行。</p>
-<p>跳入 guest 代码会将执行的控制权转移给 guest。当线程正在运行 guest 代码时，它不能同时处于事件循环中，因为 guest 端对 CPU 具有（安全的）控制权。通常来说，在 guest 代码中花费的时间是有限的，因为对模拟设备寄存器的读写和其他异常处理都将导致我们离开 guest 并将控制权交还给 QEMU。但在极端情况下，guest 可以花费无限的时间去执行某段代码，而且不放弃其控制权限，在这种情况下 QEMU 会无法响应外界信息。</p>
-<p>为了解决 guest 代码占用 QEMU 的控制线程的问题，信号被用来打破 guest 的控制权限。一个 UNIX 信号会将控制权限拉离 (yank) 当前的执行流程，并调用信号处理函数。这使 QEMU 得以采取一系列步骤脱离 guest 代码，并返回到其主循环中，其中事件循环可以有机会处理被持续推入到队列中的事件。</p>
-<p>这样做的结果是，如果 QEMU 当前处于 guest 代码中，则可能无法立即检测到新事件。当然，大多数时候 QEMU 最终都会处理事件，但这种额外的延迟本身就是一个需要克服的性能问题。由于这个原因，定时器、I / O 完成 (completion) 和从工作线程到 QEMU 核心代码的通知 (notification)，使用信号机制来确保事件循环将立即运行。</p>
-<p>你可能想知道事件循环与具有多个 vcpus 的 SMP guest 虚拟机之间的整体情况。在已经讨论了线程模型和执行 guest 代码之后，我们可以讨论它的整体架构。</p>
-<h3 id="iothread-和-non-iothread-架构"><a href="#iothread-和-non-iothread-架构" class="headerlink" title="iothread 和 non-iothread 架构"></a>iothread 和 non-iothread 架构</h3><p>传统的体系结构是单个 QEMU 线程来执行 guest 代码和事件循环。这个模型也被称为非 iothread 或<code>!CONFIG_IOTHREAD</code>，并且在使用<code>./configure
-&amp;&amp;
-make</code>编译 QEMU 源码时是默认的。QEMU 线程执行 guest 代码，直到异常或信号产生一次回退控制。然后在<code>select(2)</code>中以非阻塞的方式运行事件循环的一次迭代。之后，它回到 guest 代码并重复这一过程，直到 QEMU 进程退出。</p>
-<p>如果 guest 虚拟机使用<code>-smp 2</code>的方式启动多个 vcpus，在这种情况下，就不会创建额外的 QEMU 线程。而是单个 QEMU 线程以多路复用的方式，在两个 vcpus 的 guest 代码和事件循环之间执行。因此，non-iothread 无法利用多核主机，并可能导致 SMP guest 机性能不佳。</p>
-<p>请注意，尽管只有一个 QEMU 线程，但可能有零个或多个工作线程。这些线程既可能是暂时的有可能是永久的。请记住，它们执行特定的任务，而不执行 guest 代码或处理事件。我想强调一下，因为在监视 host 上面的线程，并将它们解释为 vcpu 线程时，工作线程很容易被 vcpu 线程所混淆。请记住，non-iothread 线程只有一个 QEMU 线程。</p>
-<p>较新的体系结构是每个 vcpu 一个 QEMU 线程以及一个专用的事件循环线程。这种模式被称为 iothread 或 CONFIG_IOTHREAD，可以在构建时使用<code>./configure --enable-io-thread</code>启用。每个 vcpu 线程可以并行执行 guest 代码，提供真正的 SMP 支持，而 iothread 负责运行事件循环。通过全局互斥体来维护，QEMU 核心代码代码永远不会同时运行的规则是。该全局互斥体通过 vcpus 和 iothread 同步 QEMU 核心代码。大多数情况下，vcpus 将执行 guest 代码，并且不需要保存全局互斥锁。大多数情况下，<code>select(2)</code>中的线程被阻塞，并且不需要保持全局互斥。</p>
-<p>请注意，TCG 不是线程安全的，因此即使在 iothread 模型下，它也是以单个 QEMU 线程来实现多路复用 vcpus。只有 KVM 可以利用 per-vcpu 线程。</p>
-<h3 id="结论和展望"><a href="#结论和展望" class="headerlink" title="结论和展望"></a>结论和展望</h3><p>希望这有助于交流 QEMU 的整体架构 (KVM 继承）。欢迎在下面的评论中留下问题。</p>
-<p>在将来，上面讨论到的细节可能会改变，我希望我们会默认使用 CONFIG_IOTHREAD，甚至可能会删除！CONFIG_IOTHREAD。</p>
-<p>当 qemu 的 master 分支做出更改时，我会尝试更新此帖。</p>
-
-          
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/04/22/qemu-internals-overall-architecture/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -605,7 +512,7 @@ make</code>编译 QEMU 源码时是默认的。QEMU 线程执行 guest 代码，
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/22/understanding-qemu-devices/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Su Hang">
+      <meta itemprop="name" content="Darcy">
       <meta itemprop="description" content="">
       <meta itemprop="image" content="/images/avatar.gif">
     </span>
@@ -672,27 +579,19 @@ make</code>编译 QEMU 源码时是默认的。QEMU 线程执行 guest 代码，
 
       
         
-          
-            <p>原文地址：<a href="https://www.qemu.org/2018/02/09/understanding-qemu-devices/" target="_blank" rel="noopener">https://www.qemu.org/2018/02/09/understanding-qemu-devices/</a><br>Author：Eric Blake<br>Translator：Su Hang</p>
+          <p>原文地址：<a href="https://www.qemu.org/2018/02/09/understanding-qemu-devices/" target="_blank" rel="noopener">https://www.qemu.org/2018/02/09/understanding-qemu-devices/</a><br>Author：Eric Blake<br>Translator：Su Hang</p>
 <p>以下是一些可帮助新手了解 QEMU 设备实际原理的笔记：</p>
 <p>在使用 QEMU 时，需要记住的一件事就是：以操作系统的视角来说，当其运行于我们试图模拟的裸机硬件之上时，操作系统在裸机硬件上会看到什么。大多数裸机的模拟实现仅仅是简单的内存映射，在特定地址上的软件戳（software poking) 会产生特定的边际效应（side effect）（最常见的边际效应当然是访问内存；但是内存中的其他常见区域还包括用于控制寄存器组特定的硬件，如硬盘或网卡，甚至 CPU 本身）。模拟的最终目标是允许只使用普通 ring3 内存访问（译者注：这里的普通内存访问与操作系统的 ring0 特权访问相对应）的用户空间程序来管理 guest 操作系统所期望的所有边际效应。</p>
 <p>从实现细节上来说，一些硬件（如 x86）实际上有两个内存空间，其中 I / O 空间使用与普通内存访问（译者注：例如 mov a， b) 不同的汇编代码（译者注：这里指 in a，out a 等等 x86 架构特有汇编指令）； QEMU 必须模拟这些特殊访问。同样，许多现代 CPU 在内存地址映射范围中，也为提供了一组 CPU 本地寄存器，例如中断控制寄存器。</p>
 <p>对于在某些特定硬件，我们通过虚拟化挂钩技术（virtualization hooks)，使得 CPU 本身可以很容易地捕获非正常存储器访问的汇编指令（那些访问 I / O 空间或 CPU 内部寄存器的指令，因此需要不同于正常存储器访问的边际效应），所以 guest 机只是执行与裸机相同的汇编指令序列，但是执行之后会导致陷入到 trap 中，让运行于用户空间的 QEMU 在对控制权返回 guest 代码之前使用普通的用户空间内存访问对指令作出反应。QEMU 通过“加速器”实现了这个功能。</p>
 <p>虚拟化加速器（如 KVM）可以使 guest 代码运行在 QEMU 虚拟机中的速度几乎与裸机一样快。其中速度减慢的部分是由来自 guest 代码的每个 trap 都会返回至 QEMU（vmexit）执行，以处理非正常的汇编指令或内存地址引起的。除此之外，QEMU 还支持其他虚拟化加速器（例如 HAXM 或 macOS 的 Hypervisor.framework）。</p>
-<p>QEMU 还拥有一个 TCG 加速器，该加速器在运行期（译者注：可视为一种 Just in time 技术）将 guest 汇编指令编译为相应的主机指令或调用主机帮助例程。TCG 技术虽然速度不及硬件加速，但它允许跨硬件模拟，例如在 x86 上运行 ARM 代码。</p>
-<p>接下来要弄清楚的是当操作系统访问各种硬件资源时都发生了些什么。例如，大多数操作系统都附带了管理 IDE 磁盘的驱动程序 - 驱动程序仅仅是一种软件，它被编程为对特定的内存映射子集（译者注：简单来说就是某一片内存区域）（IDE 总线所在的任何位置）发出特定的 I / O 请求，与不同的硬件相绑定）。当 IDE 控制器硬件接收到这些 I / O 请求时，它会执行相应的操作（通过 DMA 传输或其他硬件操作）将数据从内存复制到永久存储器（写入磁盘）或从永久存储器复制到内存（从磁盘读取）。</p>
-<p>当我们购买一个包含未初始化磁盘的裸机硬件时，我们安装使用操作系统中相应驱动程序，对 IDE 硬件映射到内存的部分进行访问，然后将磁盘格式化为一系列分区和文件系统。</p>
-<p>那么，QEMU 如何模拟这个功能呢？在 QEMU 提供给 guest 代码的内存映射中，它在与裸机相同的地址处（译者注：具体地址得查阅相应的硬件手册）模拟 IDE 磁盘。当 guest 操作系统驱动程序向 IDE 控制寄存器发出特定的内存写入操作以便将数据从内存复制到永久存储器时，QEMU 加速器会陷入该内存区域（译者注：通过 Hook 技术实现），并将请求传递到 QEMU IDE 控制器设备模型。设备模型会解析 I / O 请求，并通过发出主机系统调用来模拟它们。这一系列行为的结果是 guest 内存被复制到 host 机器的存储中。</p>
-<p>在 host 端，模拟永久存储的最简单方法是将主机文件系统中的文件视为不包含任何结构信息的原始数据（raw data）（也就是说，host 文件中的偏移量与 guest 驱动程序访问的磁盘偏移量，以 1：1 比例映射）. 但 QEMU 实际上能够将许多不同主机格式（raw， qcow2，qed， vhdx，…）和协议（文件系统，块设备， NBD， Ceph，gluster 等）的任意组合粘合在一起作为后端，然后在 QEMU 对硬件的模拟中绑定到提供服务的 guest 设备。</p>
-<p>因此，当您告诉 QEMU 使用主机 qcow2 文件时，guest 虚拟机不必对 qcow2 文件格式有任何了解，仅仅只需要 guest 的驱动程序执行与裸机相同的寄存器读写操作，从而触发 vmexits 进入 QEMU 代码，然后 QEMU 将这些访问映射到 qcow2 文件的相应偏移量中来进行读写。在首次安装 guest 虚拟机时，所有 guest 虚拟机都会看到一个空白未初始化的线性磁盘（无论该磁盘在主机中是线性的——如原始数据（raw format）；还是针对随机访问进行了优化，如 qcow2 格式）；guest 操作系统决定如何划分其硬盘并在其上安装文件系统，而 QEMU 不关心 guest 代码正在使用什么文件系统，只关心原始磁盘（raw disk）I / O 寄存器控制序列的模式。</p>
-<p>接下来要意识到的是，模拟 IDE 并不总是最高效的。每次 guest 试图写入控制寄存器时，都必须经过特殊处理，并且 vmexits 会减慢模拟速度。当然，不同的硬件模型在虚拟化时具有不同的性能特征。然而，一般来说，对真实硬件最有效实现方法并不一定适用于其在虚拟化之中的实现，直到最近，硬件并没有被设计成当通过 QEMU 等软件进行模拟时运行得更快。因此，QEMU 包含专为此目的而设计的半虚拟化设备（paravirtualized device）。</p>
-<p>在 QEMU 这里的“半虚拟化”的含义，与半虚拟化的原始含义：“通过 guest 和主机之间的合作实现虚拟化”略有不同。QEMU 开发人员已经制定了一套硬件寄存器规范，并规定了这些寄存器的行为，这些寄存器旨在尽可能减少 vmexits 的数量，同时仍然完成硬盘必须做的事情，即实现 guest 内存和持久存储设备之间的传输。这个规范被称为 virtio；使用它需要在 guest 虚拟机中安装 virtio 驱动程序。尽管不存在与 virtio 具有相同的寄存器布局的物理设备，但其理念是相通的：virtio 磁盘的行为类似于内存映射寄存器组，guest 操作系统驱动程序知道将哪些操作硬件的寄存器值的写入该存储体，以使数据被复制进出其他 guest 内存。virtio 中的大部分加速功能都是通过它的如下设计实现的：guest 虚拟机为其大部分硬件命令序列设置了一部分常规内存，只需启动一个寄存器即可告知 QEMU 读取命令序列（较少的映射寄存器访问意味着更少的 vmexits），通过握手机制（handshaking）来保证 QEMU 处理这些命令序列时 guest 端驱动程序在不会改变正常内存。</p>
-<p>顺带一提，就像最新的硬件在实现虚拟化时效率十分高效一样，virtio 也在演进为通过硬件来实现变得更加高效，当然不会以牺牲模拟或虚拟化的性能来达到此目的。因此，将来你也可能会偶然发现实现了物理 virtio 的高性能设备。</p>
-<p>同样，许多操作系统都支持多个网卡，一个常见的例子就是 PCI 总线上的 e1000 板卡。在裸机上，操作系统将检测 PCI 空间，当看到具有 e1000 签名的寄存器组被填充时，就加载驱动程序，然后该驱动程序知道要写入的寄存器命令序列，以便让硬件传输网络流量。因此，QEMU 拥有一台 e1000 设备——作为众多网卡模拟实现之一——映射到同一个内存区域（译者注：这里的 guest 内存区域指的是 host 上面的用户内存区域），而真正的 guest 内存区域将裸露在被模拟的裸机内存上。</p>
-<p>其次，e1000 寄存器布局往往需要大量的寄存器写入（并因此需要 vmexits）来满足硬件的工作需求，因此 QEMU 开发人员添加了 virtio-net 卡（PCI 硬件规范，尽管现在还没有实现它的真实物理硬件），因此在 guest 操作系统中安装 virtio-net 驱动程序可以最大限度地减少 vmexits 的数量，同时还能获得与发送网络流量的相同边际效应。如果您告诉 QEMU 使用 virtio-net 卡启动 guest 虚拟机，则 guest 虚拟机操作系统将探测 PCI 空间，并使用 virtio-net 签名查看一系列寄存器，并加载适用于任何其他 PCI 硬件的适当驱动程序。</p>
-<p>总结一下，尽管 QEMU 最初是为了虚拟化 guest 操作系统而模拟硬件内存映射，但事实证明，最快的虚拟化还是取决于虚拟硬件：具有特定边际效应的寄存器内存映射的效率没有任何物理硬件能够匹敌。所有的硬件设备虚拟化实际上意味着运行一组特定的汇编指令（guest 操作系统）来处理映射到内存中的地址，以产生一组特定的边际效应，其中 QEMU 仅仅是一个提供内存映射，并模仿在裸机硬件上执行这些 guest 指令时所获得的相同边际效应的用户空间应用程序。</p>
-
-          
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/04/22/understanding-qemu-devices/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -761,7 +660,7 @@ make</code>编译 QEMU 源码时是默认的。QEMU 线程执行 guest 代码，
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
-              <p class="site-author-name" itemprop="name">Su Hang</p>
+              <p class="site-author-name" itemprop="name">Darcy</p>
               <p class="site-description motion-element" itemprop="description"></p>
           </div>
 
@@ -826,7 +725,7 @@ make</code>编译 QEMU 源码时是默认的。QEMU 线程执行 guest 代码，
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">Su Hang</span>
+  <span class="author" itemprop="copyrightHolder">Darcy</span>
 
   
 </div>
@@ -840,7 +739,7 @@ make</code>编译 QEMU 源码时是默认的。QEMU 线程执行 guest 代码，
 
 
 
-  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
 
 
 

@@ -5,7 +5,7 @@
   
 
 
-<html class="theme-next muse use-motion" lang="">
+<html class="theme-next mist use-motion" lang="">
 <head>
   <meta charset="UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="Valyria">
 <meta property="og:description" content="原文地址：https://www.qemu.org/2018/02/09/understanding-qemu-devices/Author：Eric BlakeTranslator：Su Hang 以下是一些可帮助新手了解 QEMU 设备实际原理的笔记： 在使用 QEMU 时，需要记住的一件事就是：以操作系统的视角来说，当其运行于我们试图模拟的裸机硬件之上时，操作系统在裸机硬件上会看到什么。大多">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2018-04-27T14:32:32.472Z">
+<meta property="og:updated_time" content="2018-04-28T04:36:30.577Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="了解 QEMU 设备模拟原理『译』">
 <meta name="twitter:description" content="原文地址：https://www.qemu.org/2018/02/09/understanding-qemu-devices/Author：Eric BlakeTranslator：Su Hang 以下是一些可帮助新手了解 QEMU 设备实际原理的笔记： 在使用 QEMU 时，需要记住的一件事就是：以操作系统的视角来说，当其运行于我们试图模拟的裸机硬件之上时，操作系统在裸机硬件上会看到什么。大多">
@@ -98,7 +98,7 @@
   var NexT = window.NexT || {};
   var CONFIG = {
     root: '/',
-    scheme: 'Muse',
+    scheme: 'Mist',
     version: '5.1.4',
     sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
     fancybox: true,
@@ -191,6 +191,16 @@
         </li>
       
         
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
         <li class="menu-item menu-item-archives">
           <a href="/archives/" rel="section">
             
@@ -236,7 +246,7 @@
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/22/understanding-qemu-devices/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Su Hang">
+      <meta itemprop="name" content="Darcy">
       <meta itemprop="description" content="">
       <meta itemprop="image" content="/images/avatar.gif">
     </span>
@@ -306,6 +316,7 @@
 <p>从实现细节上来说，一些硬件（如 x86）实际上有两个内存空间，其中 I / O 空间使用与普通内存访问（译者注：例如 mov a， b) 不同的汇编代码（译者注：这里指 in a，out a 等等 x86 架构特有汇编指令）； QEMU 必须模拟这些特殊访问。同样，许多现代 CPU 在内存地址映射范围中，也为提供了一组 CPU 本地寄存器，例如中断控制寄存器。</p>
 <p>对于在某些特定硬件，我们通过虚拟化挂钩技术（virtualization hooks)，使得 CPU 本身可以很容易地捕获非正常存储器访问的汇编指令（那些访问 I / O 空间或 CPU 内部寄存器的指令，因此需要不同于正常存储器访问的边际效应），所以 guest 机只是执行与裸机相同的汇编指令序列，但是执行之后会导致陷入到 trap 中，让运行于用户空间的 QEMU 在对控制权返回 guest 代码之前使用普通的用户空间内存访问对指令作出反应。QEMU 通过“加速器”实现了这个功能。</p>
 <p>虚拟化加速器（如 KVM）可以使 guest 代码运行在 QEMU 虚拟机中的速度几乎与裸机一样快。其中速度减慢的部分是由来自 guest 代码的每个 trap 都会返回至 QEMU（vmexit）执行，以处理非正常的汇编指令或内存地址引起的。除此之外，QEMU 还支持其他虚拟化加速器（例如 HAXM 或 macOS 的 Hypervisor.framework）。</p>
+<a id="more"></a>
 <p>QEMU 还拥有一个 TCG 加速器，该加速器在运行期（译者注：可视为一种 Just in time 技术）将 guest 汇编指令编译为相应的主机指令或调用主机帮助例程。TCG 技术虽然速度不及硬件加速，但它允许跨硬件模拟，例如在 x86 上运行 ARM 代码。</p>
 <p>接下来要弄清楚的是当操作系统访问各种硬件资源时都发生了些什么。例如，大多数操作系统都附带了管理 IDE 磁盘的驱动程序 - 驱动程序仅仅是一种软件，它被编程为对特定的内存映射子集（译者注：简单来说就是某一片内存区域）（IDE 总线所在的任何位置）发出特定的 I / O 请求，与不同的硬件相绑定）。当 IDE 控制器硬件接收到这些 I / O 请求时，它会执行相应的操作（通过 DMA 传输或其他硬件操作）将数据从内存复制到永久存储器（写入磁盘）或从永久存储器复制到内存（从磁盘读取）。</p>
 <p>当我们购买一个包含未初始化磁盘的裸机硬件时，我们安装使用操作系统中相应驱动程序，对 IDE 硬件映射到内存的部分进行访问，然后将磁盘格式化为一系列分区和文件系统。</p>
@@ -415,7 +426,7 @@
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
-              <p class="site-author-name" itemprop="name">Su Hang</p>
+              <p class="site-author-name" itemprop="name">Darcy</p>
               <p class="site-description motion-element" itemprop="description"></p>
           </div>
 
@@ -480,7 +491,7 @@
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">Su Hang</span>
+  <span class="author" itemprop="copyrightHolder">Darcy</span>
 
   
 </div>
@@ -494,7 +505,7 @@
 
 
 
-  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
 
 
 

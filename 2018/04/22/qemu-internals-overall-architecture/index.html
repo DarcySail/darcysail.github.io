@@ -5,7 +5,7 @@
   
 
 
-<html class="theme-next muse use-motion" lang="">
+<html class="theme-next mist use-motion" lang="">
 <head>
   <meta charset="UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="Valyria">
 <meta property="og:description" content="原文地址：http://blog.vmsplice.net/2011/03/qemu-internals-overall-architecture-and.htmlAuthor：Stefan HajnocziTranslator：Su Hang 这是针对开发人员的 QEMU 内部原理探析系列中的第一篇文章。它旨在分享 QEMU 工作原理的知识，并使新贡献者更容易了解 QEMU 代码。 执行 gue">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2018-04-27T14:29:31.783Z">
+<meta property="og:updated_time" content="2018-04-28T04:36:03.698Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="QEMU 内部原理：整体架构和线程模型『译』">
 <meta name="twitter:description" content="原文地址：http://blog.vmsplice.net/2011/03/qemu-internals-overall-architecture-and.htmlAuthor：Stefan HajnocziTranslator：Su Hang 这是针对开发人员的 QEMU 内部原理探析系列中的第一篇文章。它旨在分享 QEMU 工作原理的知识，并使新贡献者更容易了解 QEMU 代码。 执行 gue">
@@ -98,7 +98,7 @@
   var NexT = window.NexT || {};
   var CONFIG = {
     root: '/',
-    scheme: 'Muse',
+    scheme: 'Mist',
     version: '5.1.4',
     sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
     fancybox: true,
@@ -191,6 +191,16 @@
         </li>
       
         
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
         <li class="menu-item menu-item-archives">
           <a href="/archives/" rel="section">
             
@@ -236,7 +246,7 @@
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/22/qemu-internals-overall-architecture/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Su Hang">
+      <meta itemprop="name" content="Darcy">
       <meta itemprop="description" content="">
       <meta itemprop="image" content="/images/avatar.gif">
     </span>
@@ -315,6 +325,7 @@
 <li>运行会定时过期的定时器。定时器可以使用<code>qemu_mod_timer()</code>添加。</li>
 <li>运行下半部机制 (BHs)（译者注：所谓 bottom-halves 机制，是指在允许中断的情况下，将中断处理程序延迟执行），就像立即过期的定时器一样。BH（译者注：原文中 BH 是 bottom halves 的缩写，下同）用于避免重入和溢出调用堆栈。使用<code>qemu_bh_schedule()</code>添加 BHs。</li>
 </ul>
+<a id="more"></a>
 <blockquote>
 <p>Linux 将一些中断处理分成两部分，第一部分是在关中断的条件下执行的，具有”原子”性，而且是中断发生以后一般要立即执行的，第二部分，就是 bottom half 了，是在开中断的条件下执行，这部分是可以延迟一段时间再做的，而且有可能将多个中断的 bottom half 合并起来一起做。</p>
 </blockquote>
@@ -455,7 +466,7 @@ make</code>编译 QEMU 源码时是默认的。QEMU 线程执行 guest 代码，
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
-              <p class="site-author-name" itemprop="name">Su Hang</p>
+              <p class="site-author-name" itemprop="name">Darcy</p>
               <p class="site-description motion-element" itemprop="description"></p>
           </div>
 
@@ -536,7 +547,7 @@ make</code>编译 QEMU 源码时是默认的。QEMU 线程执行 guest 代码，
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">Su Hang</span>
+  <span class="author" itemprop="copyrightHolder">Darcy</span>
 
   
 </div>
@@ -550,7 +561,7 @@ make</code>编译 QEMU 源码时是默认的。QEMU 线程执行 guest 代码，
 
 
 
-  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
 
 
 
