@@ -307,7 +307,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/05/10/tmux-close-panal-without-confirm/" itemprop="url">关闭tmux panel无需确认</a></h1>
+                <a class="post-title-link" href="/2018/05/10/tmux-close-panal-without-confirm/" itemprop="url">关闭 tmux panel 无需确认</a></h1>
         
 
         <div class="post-meta">
@@ -358,9 +358,9 @@
 
       
         
-          <p>使用tmux时经常开启关闭临时面板（panel），每次关闭时tmux都会让你确认是否真的要关闭，有些繁琐。<br>将如下配置加入你的<code>.tmux.conf</code>文件来避免繁琐的确认步骤：</p>
+          <p>使用 tmux 时经常开启关闭临时面板（panel），每次关闭时 tmux 都会让你确认是否真的要关闭，有些繁琐。<br>将如下配置加入你的<code>.tmux.conf</code>文件来避免繁琐的确认步骤：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">bind-key &amp; kill-window</span><br><span class="line">bind-key x kill-pane</span><br></pre></td></tr></table></figure>
-<p>重启tmux 服务，或者重新加载tmux配置文件（<code>.tmux.conf</code>）后生效。</p>
+<p>重启 tmux 服务，或者重新加载 tmux 配置文件（<code>.tmux.conf</code>）后生效。</p>
 <p>参考链接：<br><a href="https://unix.stackexchange.com/questions/30270/tmux-disable-confirmation-prompt-on-kill-window" target="_blank" rel="noopener">https://unix.stackexchange.com/questions/30270/tmux-disable-confirmation-prompt-on-kill-window</a></p>
           <!--noindex-->
           <div class="post-button text-center">
