@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="原文地址：http://blog.vmsplice.net/2011/03/qemu-internals-overall-architecture-and.htmlAuthor：Stefan HajnocziTranslator：Su Hang 这是针对开发人员的 QEMU 内部原理探析系列中的第一篇文章。它旨在分享 QEMU 工作原理的知识，并使新贡献者更容易了解 QEMU 代码。 执行 gue">
+<meta name="description" content="原文地址：http://blog.vmsplice.net/2011/03/qemu-internals-overall-architecture-and.htmlAuthor：Stefan HajnocziTranslator：Su Hang本文经原作者Stefan Hajnoczi授权翻译 这是针对开发人员的 QEMU 内部原理探析系列中的第一篇文章。它旨在分享 QEMU 工作原理的知识，并使">
 <meta name="keywords" content="QEMU,Translation">
 <meta property="og:type" content="article">
 <meta property="og:title" content="QEMU 内部原理：整体架构和线程模型『译』">
 <meta property="og:url" content="http://darcysail.com/2018/04/22/qemu-internals-overall-architecture/index.html">
 <meta property="og:site_name" content="Valyria">
-<meta property="og:description" content="原文地址：http://blog.vmsplice.net/2011/03/qemu-internals-overall-architecture-and.htmlAuthor：Stefan HajnocziTranslator：Su Hang 这是针对开发人员的 QEMU 内部原理探析系列中的第一篇文章。它旨在分享 QEMU 工作原理的知识，并使新贡献者更容易了解 QEMU 代码。 执行 gue">
+<meta property="og:description" content="原文地址：http://blog.vmsplice.net/2011/03/qemu-internals-overall-architecture-and.htmlAuthor：Stefan HajnocziTranslator：Su Hang本文经原作者Stefan Hajnoczi授权翻译 这是针对开发人员的 QEMU 内部原理探析系列中的第一篇文章。它旨在分享 QEMU 工作原理的知识，并使">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2018-04-28T04:36:03.697Z">
+<meta property="og:updated_time" content="2018-05-16T14:39:11.696Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="QEMU 内部原理：整体架构和线程模型『译』">
-<meta name="twitter:description" content="原文地址：http://blog.vmsplice.net/2011/03/qemu-internals-overall-architecture-and.htmlAuthor：Stefan HajnocziTranslator：Su Hang 这是针对开发人员的 QEMU 内部原理探析系列中的第一篇文章。它旨在分享 QEMU 工作原理的知识，并使新贡献者更容易了解 QEMU 代码。 执行 gue">
+<meta name="twitter:description" content="原文地址：http://blog.vmsplice.net/2011/03/qemu-internals-overall-architecture-and.htmlAuthor：Stefan HajnocziTranslator：Su Hang本文经原作者Stefan Hajnoczi授权翻译 这是针对开发人员的 QEMU 内部原理探析系列中的第一篇文章。它旨在分享 QEMU 工作原理的知识，并使">
 
 
 
@@ -357,7 +357,7 @@
       
 
       
-        <p>原文地址：<a href="http://blog.vmsplice.net/2011/03/qemu-internals-overall-architecture-and.html" target="_blank" rel="noopener">http://blog.vmsplice.net/2011/03/qemu-internals-overall-architecture-and.html</a><br>Author：Stefan Hajnoczi<br>Translator：Su Hang</p>
+        <p>原文地址：<a href="http://blog.vmsplice.net/2011/03/qemu-internals-overall-architecture-and.html" target="_blank" rel="noopener">http://blog.vmsplice.net/2011/03/qemu-internals-overall-architecture-and.html</a><br>Author：Stefan Hajnoczi<br>Translator：Su Hang<br><em>本文经原作者Stefan Hajnoczi授权翻译</em></p>
 <p>这是针对开发人员的 QEMU 内部原理探析系列中的第一篇文章。它旨在分享 QEMU 工作原理的知识，并使新贡献者更容易了解 QEMU 代码。</p>
 <p>执行 guest 代码涉及到如下任务：处理定时器、处理 I/O 请求、响应虚拟机监视器的命令，等等。要想设计一个良好的、能够解决这些问题的架构，需要安全地一次性地解决所有这些资源的分发问题。尤其是当某些请求，譬如 I/O 请求、来自用户的命令，需要大量的时间去执行的话。</p>
 <p>一个 guest 的运行包括执行 guest 代码，处理定时器，处理 I / O 以及响应监视器命令。要想一次性地安排好所有这些事情需要一个能够以安全的方式调解资源的体系结构，而且最好不会暂停 guest 代码的执行。如果磁盘 I / O 或监视器命令需要很长时间才能完成，对于需要响应来自多个来源的事件的程序，有两种流行体系结构：</p>
