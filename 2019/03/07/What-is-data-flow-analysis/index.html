@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+<link href="//cdn.bootcss.com/pace/1.0.2/themes/pink/pace-theme-flash.css" rel="stylesheet">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-48x48-fox.ico?v=5.1.4">
+
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="数据流分析是一项编译时使用的技术，它能从程序代码中收集程序的语义信息，并通过代数的方法在编译时确定变量的定义和使用。通过数据流分析，可以不必实际运行程序就能够发现程序运行时的行为，这样可以帮助大家理解程序。数据流分析被用于解决编译优化、程序验证、调试、测试、并行、向量化和并行编程环境等问题。简单地说：所谓的数据流分析，就是对程序中数据的使用、定义及其之间的依赖关系等各方面的信息进行收集的过程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="What is data flow analysis?">
+<meta property="og:url" content="https://darcysail.com/2019/03/07/What-is-data-flow-analysis/index.html">
+<meta property="og:site_name" content="Valyria">
+<meta property="og:description" content="数据流分析是一项编译时使用的技术，它能从程序代码中收集程序的语义信息，并通过代数的方法在编译时确定变量的定义和使用。通过数据流分析，可以不必实际运行程序就能够发现程序运行时的行为，这样可以帮助大家理解程序。数据流分析被用于解决编译优化、程序验证、调试、测试、并行、向量化和并行编程环境等问题。简单地说：所谓的数据流分析，就是对程序中数据的使用、定义及其之间的依赖关系等各方面的信息进行收集的过程。">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-03-07T06:19:40.620Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="What is data flow analysis?">
+<meta name="twitter:description" content="数据流分析是一项编译时使用的技术，它能从程序代码中收集程序的语义信息，并通过代数的方法在编译时确定变量的定义和使用。通过数据流分析，可以不必实际运行程序就能够发现程序运行时的行为，这样可以帮助大家理解程序。数据流分析被用于解决编译优化、程序验证、调试、测试、并行、向量化和并行编程环境等问题。简单地说：所谓的数据流分析，就是对程序中数据的使用、定义及其之间的依赖关系等各方面的信息进行收集的过程。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://darcysail.com/2019/03/07/What-is-data-flow-analysis/"/>
+
+
+
+
+
+  <title>What is data flow analysis? | Valyria</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Valyria</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+
+
+<div class="top-scroll-bar"></div>
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://darcysail.com/2019/03/07/What-is-data-flow-analysis/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Darcy">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Valyria">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">What is data flow analysis?</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-03-07T14:15:01+08:00">
+                2019-03-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>数据流分析是一项编译时使用的技术，它能从程序代码中收集程序的语义信息，并通过代数的方法在编译时确定变量的定义和使用。通过数据流分析，可以不必实际运行程序就能够发现程序运行时的行为，这样可以帮助大家理解程序。数据流分析被用于解决编译优化、程序验证、调试、测试、并行、向量化和并行编程环境等问题。简单地说：所谓的数据流分析，就是对程序中数据的使用、定义及其之间的依赖关系等各方面的信息进行收集的过程。</p>
+<a id="more"></a>
+<h4 id="数据流分析基本概念"><a href="#数据流分析基本概念" class="headerlink" title="数据流分析基本概念"></a>数据流分析基本概念</h4><p><strong>基本块与控制流程图</strong> 进行数据流分析首先要搞清楚什么是基本块和控制流程图 (Control flow)，这是进行数据流分析的基础。所谓基本块就是一个连续的线性代码的语句序列，程序控制流从它的开始处进人，并从它的结尾处离开，不可能有中断或者是分支（末尾除外）。简单地说就是一个单入单出的区域。</p>
+<p>对一个给定的程序，我们都可以把它划分为一系列的基本块。我们将每一个基本块都蜕化成一个节点，这样就产生了该程序（或该函数）的控制流程图。<br>只有在划分了程序的基本块和构造程序的控制流程图以后，我们才能进行数据流分析和进一步的编译优化。</p>
+<p><strong>数据流方程</strong> 为了优化代码，编译器需要把程序作为一个整体来收集信息，并把这些信息分配给流图的各个基本块。通过在程序的各个点建立和求解与信息有关的方程系统即可收集数据流信息。典型的方程形式如下：<br><code>$out [S]=gen [S] \cup (in [S] - kill [S])$</code></p>
+<p>这个方程的意思是：当控制流通过一个语句（或基本块）时，在语句（或基本块）末尾得到的信息或者是在该语句（或基本块〉中产生的信息，或者是进人语句（或基本块）开始点时携带的并且没有被这个语句注销的那些信息。这样的方程就叫做数据流方程。</p>
+<p>利用数据流方程，我们可以得到一种解决数据流问题的重要方法。我们首先建立流图，然后同时计算每个节点（大多是以基本块为节点）的 in 和 out 集合。</p>
+<h4 id="数据流问題的分类"><a href="#数据流问題的分类" class="headerlink" title="数据流问題的分类"></a>数据流问題的分类</h4><p>对于编译优化来说：涉及的数据流分析问题都是属性无关的类型，即，它们对感兴趣的每一个对象指定一个格元素，这个对象可以是变童定值，表达式计算，或其它的任何东西。<br>同样编译优化考虑的几乎所有问题都是一个方向的，或者是向前的 (forward)，或者是向后的 (backward〉。双向（bi-directional) 问题要求 同时向前和向后传播，并且一般情况下将其公式化和求解都比单向问题要复杂。不过，在优化中双向问题非常少见。而且也已可以被更为现代的只使用单向分析的形式所替代。</p>
+<p>与程序优化有关的最重要的数据流分析信息包括：</p>
+<p><strong>到达定义（readching definitions)</strong> 到达定义问题确定过程中一个变童的哪些定义可以到达该变量的每一个使用。到达定义是使用位向量的格的向前问题，其中位向量的每一位对应变量的一个定义。</p>
+<p><strong>可用表达式 (available expressions)</strong> 可用表达式问题确定在过程的每个点上哪些表达式是可用的，在某点可用的含义是指：从人口到该点的每一条路径上存在着该表达式的一个计算，并且在此路径上的这个计算之后到该点之间，出现在该表达式中的所有变量都没有被重新賦值。可用表达式是位向貴上的格的向前问题，其中位向量的每一位对应表达式的—个定义。</p>
+<p><strong>活跃变量 (live variables)</strong> 对于给定的变量和程序中给定的点，活跃变董问题确定沿着此点到出口的路径上是否存在对该变量的使用。这是一个使用位向量的向后问题，其中变置的每一个使用在位向量中有一个位置。</p>
+<p><strong>向上暴露使用（upwards exposed uses)</strong>  此问题确定在特定点上哪些变量的使用可以由特定的定义而到达。这是一种使用位向量的向后问题，一个变量的每一个使用在位向置中相应地有一位。它是到达定义的对偶问题，到达定义连接定义到使用，而向上暴露使用连接使用到定义。注意这两者是有所不同的。</p>
+<p><strong>复写传播分析 (copy’propagation analysis)</strong><br>复写传播分析确定从一个复写賦值，比如说 <code>T—y</code>, 到变董 <code>z</code> 的使用的每—条路径上都不存在对 ^ 的賦值。这是一个使用位向量的向前问题，位向量的每一位表示一个賦值。</p>
+<p><strong>常數传播分析（constant-propagation analysis)</strong><br>常数传播分析确定从对一个变量的常数賦值，比如说 <code>$x \leftarrow const$</code>, 到 <code>x</code><br>的使用的每一条路径上，对 <code>x</code> 的賦值都只是此常数值 <code>const</code>。这是一个向前问题。</p>
+<p><strong>部分冗余消除（partial-redundancy analysis)</strong> 部分冗余消除确定在某条执行路径上被执行了两次（或多次），而其操作数在这些计算之间没有修改过的那些计算。</p>
+<p>在优化中遇到的不仅仅是上面列出的这些数据流问题，但它们是其中最重要的一些问题。</p>
+<h4 id="数据流分析使用的方法"><a href="#数据流分析使用的方法" class="headerlink" title="数据流分析使用的方法"></a>数据流分析使用的方法</h4><p>解数据流问题有下面列出的多种方法：</p>
+<ol>
+<li>强连通区域方法；</li>
+<li>迭代算法；</li>
+<li>TK - T2 分析；</li>
+<li>结点列表算法；</li>
+<li>图形文法方法；</li>
+<li>消去法，例如，区间分析；</li>
+<li>髙级语法制导的方法；</li>
+<li>结构分析；</li>
+<li>位置式 (slotwise) 分析。</li>
+</ol>
+<p>我们主要来看一个最常用也是最实用的迭代法。</p>
+<p>数据流信息的求解方法有两种，对于结构化的程序可采用语法制导的求解方法，对于任意控制流的程序可采用数据流方程的迭代求解方法。语法制导的方法比较简单和快速，但有其一定的局限性，所以，大部分情况下我们最多使用的方法还是数据流方程的迭代求解方法。</p>
+<p>以到达定义的迭代算法为例，我们来看看它的具体实现算法：</p>
+<p>我们为每个基本块 B 定义 <code>$out [B]$</code>, <code>$gen [B]$</code> ,<code>$kill [B]$</code> 和 <code>$in [B]$</code>, 在这里，每个块 B 可以看作是一个或多个賦值语句的串联。假设已经计算出了每一个块的 <code>$gen$</code> 和 <code>$kill$</code>, 我们可以创建两组和 $in$ 与 $out$ 有关的方程。定义 P 为 B 的前驱。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$in[B]= \cup out[P]$</span><br><span class="line"></span><br><span class="line">$out [B]=gen [B] \cup (in [B]—kill [B])$</span><br></pre></td></tr></table></figure></p>
+<p>第一组方程是基于这样的观察得来的，即 <code>$in [B]$</code> 是从 B 的所有前驱到达定义的并。第二组方程则是我们的对所有语句都成立的数据流方程。如果流图有 n 个基本块，我们将得到 2n 个方程。通过循环计算 in 和 out 集合即可对这 2n 个方程进行求解。从上面的方程可以看出，作为 out 集合的并，in 集合在 out 集合为空时亦为空，因此，我们可以从空的 in 集合开始。具体的算法如下：</p>
+<p>输入：已经算出每个块 B 的 <code>$kill [B]$</code> 和 <code>$gen [B]$</code> 的流图。</p>
+<p>输出：每个块 B 的 <code>$in [B]$</code> 和 <code>$out [B]$</code>。</p>
+<p>方法：我们使用迭代法，对所有的 B，从 <code>$in [B] = 空 $</code> 开始，然后逐步收敛到 in 和 out 的期望值。因为我们必须重复迭代一直到 in(out) 收敛，我们利用一个布尔变量 change 来记录在对块的每一遍扫描中 in 是否发生了变化。算法框架如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">/*初始化 out, 假设对所有的 B，m[B]= 空*/</span><br><span class="line">(1) for 每个块 B do out[B]: =gen [B];</span><br><span class="line">(2) change := ture; /* while 循坏继续下去 * /</span><br><span class="line">(3)while change do begin:</span><br><span class="line">(4)    change： = false;</span><br><span class="line">(5)    for 每个块 B do begin:</span><br><span class="line">(6)        in[B] = $\cup$ out[P];</span><br><span class="line">(7)        oldout := out[B];</span><br><span class="line">(8)        out[B] := gen[B] $\cup $ (in[B] - kill[B]);</span><br><span class="line">(9)        if out[B] != oldout then change := true;</span><br><span class="line">(10)   end</span><br><span class="line">(11)end</span><br></pre></td></tr></table></figure>
+<p>直观上，算法传播定义到尽可能远的地方，只要它们没有被注销，在某种意义上说，模拟程序所有可能的执行。可以看出该算法最终总会停止，因为任何控制流图结点 N 的 out[N] 的大小不会减小。一旦加人一个定值，它便永远留在这个集合中。因为所有定值集合是有限的，最终总有一遍 while 循环的结果使得第 (9) 行每个 N 的<code>oldout = out [N]</code>, change 仍为 false, 算法终止。算法的终止是安全的，因为 out 没有改变，那么下一遍的 in 也不会改变。如果 in 不变，那么 out 也不变，所有以后的遍都不会有任何改变。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Darcy
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="https://darcysail.com/2019/03/07/What-is-data-flow-analysis/" title="What is data flow analysis?">https://darcysail.com/2019/03/07/What-is-data-flow-analysis/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/01/29/杂念/" rel="next" title="杂念">
+                <i class="fa fa-chevron-left"></i> 杂念
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Darcy</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/DarcySail" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+              </a>
+            </div>
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#数据流分析基本概念"><span class="nav-number">1.</span> <span class="nav-text">数据流分析基本概念</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#数据流问題的分类"><span class="nav-number">2.</span> <span class="nav-text">数据流问題的分类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#数据流分析使用的方法"><span class="nav-number">3.</span> <span class="nav-text">数据流分析使用的方法</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Darcy</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_sphere.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/custom/custom.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
