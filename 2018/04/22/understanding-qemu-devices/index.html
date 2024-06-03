@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
-<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.2.0">
 
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
@@ -14,31 +14,31 @@
 
 
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha256-XOqroi11tY4EFQMR9ZYwZWKj5ZXiftSx36RRuC3anlA=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"darcysail.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.14.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"darcysail.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.20.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="原文地址：https:&#x2F;&#x2F;www.qemu.org&#x2F;2018&#x2F;02&#x2F;09&#x2F;understanding-qemu-devices&#x2F;Author：Eric BlakeTranslator：Su Hang 以下是一些可帮助新手了解 QEMU 设备实际原理的笔记： 在使用 QEMU 时，需要记住的一件事就是：以操作系统的视角来说，当其运行于我们试图模拟的裸机硬件之上时，操作系统在裸机硬件上会看到什么。大多">
 <meta property="og:type" content="article">
 <meta property="og:title" content="了解 QEMU 设备模拟原理『译』">
-<meta property="og:url" content="https://darcysail.github.io/2018/04/22/understanding-qemu-devices/index.html">
+<meta property="og:url" content="https://darcysail.com/2018/04/22/understanding-qemu-devices/index.html">
 <meta property="og:site_name" content="Valyria">
 <meta property="og:description" content="原文地址：https:&#x2F;&#x2F;www.qemu.org&#x2F;2018&#x2F;02&#x2F;09&#x2F;understanding-qemu-devices&#x2F;Author：Eric BlakeTranslator：Su Hang 以下是一些可帮助新手了解 QEMU 设备实际原理的笔记： 在使用 QEMU 时，需要记住的一件事就是：以操作系统的视角来说，当其运行于我们试图模拟的裸机硬件之上时，操作系统在裸机硬件上会看到什么。大多">
 <meta property="og:locale">
 <meta property="article:published_time" content="2018-04-22T03:24:39.000Z">
-<meta property="article:modified_time" content="2022-12-24T19:06:05.830Z">
+<meta property="article:modified_time" content="2022-12-24T15:56:02.000Z">
 <meta property="article:author" content="Darcy">
 <meta property="article:tag" content="QEMU">
 <meta property="article:tag" content="Translation">
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://darcysail.github.io/2018/04/22/understanding-qemu-devices/">
+<link rel="canonical" href="https://darcysail.com/2018/04/22/understanding-qemu-devices/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"default","comments":true,"permalink":"https://darcysail.github.io/2018/04/22/understanding-qemu-devices/","path":"2018/04/22/understanding-qemu-devices/","title":"了解 QEMU 设备模拟原理『译』"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"default","comments":true,"permalink":"https://darcysail.com/2018/04/22/understanding-qemu-devices/","path":"2018/04/22/understanding-qemu-devices/","title":"了解 QEMU 设备模拟原理『译』"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>了解 QEMU 设备模拟原理『译』 | Valyria</title>
@@ -49,9 +49,7 @@
 
 
 
-  <script async defer data-website-id="" src=""></script>
 
-  <script defer data-domain="" src=""></script>
 
   <noscript>
     <link rel="stylesheet" href="/css/noscript.css">
@@ -66,9 +64,6 @@
       <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
   <div class="site-nav-toggle">
     <div class="toggle" aria-label="Toggle navigation bar" role="button">
-        <span class="toggle-line"></span>
-        <span class="toggle-line"></span>
-        <span class="toggle-line"></span>
     </div>
   </div>
 
@@ -89,10 +84,6 @@
 
 
 
-<nav class="site-nav">
-  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li>
-  </ul>
-</nav>
 
 
 
@@ -127,7 +118,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-count">19</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -160,7 +151,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
-    <link itemprop="mainEntityOfPage" href="https://darcysail.github.io/2018/04/22/understanding-qemu-devices/">
+    <link itemprop="mainEntityOfPage" href="https://darcysail.com/2018/04/22/understanding-qemu-devices/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -196,7 +187,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2022-12-25 03:06:05" itemprop="dateModified" datetime="2022-12-25T03:06:05+08:00">2022-12-25</time>
+      <time title="Modified: 2022-12-24 23:56:02" itemprop="dateModified" datetime="2022-12-24T23:56:02+08:00">2022-12-24</time>
     </span>
 
   
@@ -208,8 +199,7 @@
     
     
     
-    <div class="post-body" itemprop="articleBody">
-        <p>原文地址：<a target="_blank" rel="noopener" href="https://www.qemu.org/2018/02/09/understanding-qemu-devices/">https://www.qemu.org/2018/02/09/understanding-qemu-devices/</a><br>Author：Eric Blake<br>Translator：Su Hang</p>
+    <div class="post-body" itemprop="articleBody"><p>原文地址：<a href="https://www.qemu.org/2018/02/09/understanding-qemu-devices/">https://www.qemu.org/2018/02/09/understanding-qemu-devices/</a><br>Author：Eric Blake<br>Translator：Su Hang</p>
 <p>以下是一些可帮助新手了解 QEMU 设备实际原理的笔记：</p>
 <p>在使用 QEMU 时，需要记住的一件事就是：以操作系统的视角来说，当其运行于我们试图模拟的裸机硬件之上时，操作系统在裸机硬件上会看到什么。大多数裸机的模拟实现仅仅是简单的内存映射，在特定地址上的软件戳（software poking) 会产生特定的边际效应（side effect）（最常见的边际效应当然是访问内存；但是内存中的其他常见区域还包括用于控制寄存器组特定的硬件，如硬盘或网卡，甚至 CPU 本身）。模拟的最终目标是允许只使用普通 ring3 内存访问（译者注：这里的普通内存访问与操作系统的 ring0 特权访问相对应）的用户空间程序来管理 guest 操作系统所期望的所有边际效应。</p>
 <p>从实现细节上来说，一些硬件（如 x86）实际上有两个内存空间，其中 I &#x2F; O 空间使用与普通内存访问（译者注：例如 mov a， b) 不同的汇编代码（译者注：这里指 in a，out a 等等 x86 架构特有汇编指令）； QEMU 必须模拟这些特殊访问。同样，许多现代 CPU 在内存地址映射范围中，也为提供了一组 CPU 本地寄存器，例如中断控制寄存器。</p>
@@ -247,12 +237,12 @@
           <div class="post-nav">
             <div class="post-nav-item">
                 <a href="/2016/08/29/%E6%97%B6%E9%97%B4%E9%A1%BA%E5%BA%8F/" rel="prev" title="时间顺序">
-                  <i class="fa fa-chevron-left"></i> 时间顺序
+                  <i class="fa fa-angle-left"></i> 时间顺序
                 </a>
             </div>
             <div class="post-nav-item">
                 <a href="/2018/04/22/qemu-internals-overall-architecture/" rel="next" title="QEMU 内部原理：整体架构和线程模型『译』">
-                  QEMU 内部原理：整体架构和线程模型『译』 <i class="fa fa-chevron-right"></i>
+                  QEMU 内部原理：整体架构和线程模型『译』 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>
@@ -271,15 +261,14 @@
   <footer class="footer">
     <div class="footer-inner">
 
-
-<div class="copyright">
-  &copy; 
-  <span itemprop="copyrightYear">2022</span>
-  <span class="with-love">
-    <i class="fa fa-heart"></i>
-  </span>
-  <span class="author" itemprop="copyrightHolder">Darcy</span>
-</div>
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Darcy</span>
+  </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
   </div>
 
@@ -305,9 +294,11 @@
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
-<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
 
   
+
+
 
 
 
