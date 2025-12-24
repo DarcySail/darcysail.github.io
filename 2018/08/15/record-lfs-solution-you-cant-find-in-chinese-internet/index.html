@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"darcysail.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.26.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":"default"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="本文记录一些在尝试 LFS 8.2 时遇到的一些问题的解决方案。这些解决方案被我选录的标准是，英文网络中有，但中文网络目前还没有。以飨后来人。   在为 LFS 编译 Glibc 库的时候，会在 .&#x2F;configure期间遇到如下问题：  123456LD_LIBRARY_PATH shouldn&amp;#x27;t contain the current directorychecking LD_LI">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LFS 部分问题的解决方案">
+<meta property="og:url" content="https://darcysail.github.io/2018/08/15/record-lfs-solution-you-cant-find-in-chinese-internet/index.html">
+<meta property="og:site_name" content="Valyria">
+<meta property="og:description" content="本文记录一些在尝试 LFS 8.2 时遇到的一些问题的解决方案。这些解决方案被我选录的标准是，英文网络中有，但中文网络目前还没有。以飨后来人。   在为 LFS 编译 Glibc 库的时候，会在 .&#x2F;configure期间遇到如下问题：  123456LD_LIBRARY_PATH shouldn&amp;#x27;t contain the current directorychecking LD_LI">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-08-15T08:04:18.000Z">
+<meta property="article:modified_time" content="2025-12-24T05:50:11.606Z">
+<meta property="article:author" content="Darcy">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="LFS">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://darcysail.github.io/2018/08/15/record-lfs-solution-you-cant-find-in-chinese-internet/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"default","comments":true,"permalink":"https://darcysail.github.io/2018/08/15/record-lfs-solution-you-cant-find-in-chinese-internet/","path":"2018/08/15/record-lfs-solution-you-cant-find-in-chinese-internet/","title":"LFS 部分问题的解决方案"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>LFS 部分问题的解决方案 | Valyria</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Valyria</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Darcy</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="https://darcysail.github.io/2018/08/15/record-lfs-solution-you-cant-find-in-chinese-internet/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Darcy">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Valyria">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="LFS 部分问题的解决方案 | Valyria">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          LFS 部分问题的解决方案
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2018-08-15 16:04:18" itemprop="dateCreated datePublished" datetime="2018-08-15T16:04:18+08:00">2018-08-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-12-24 13:50:11" itemprop="dateModified" datetime="2025-12-24T13:50:11+08:00">2025-12-24</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>本文记录一些在尝试 LFS 8.2 时遇到的一些问题的解决方案。<br>这些解决方案被我选录的标准是，英文网络中有，但中文网络目前还没有。以飨后来人。</p>
+<hr>
+<ol>
+<li>在为 LFS 编译 Glibc 库的时候，会在 <code>./configure</code>期间遇到如下问题：</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">LD_LIBRARY_PATH shouldn<span class="string">&#x27;t contain the current directory</span></span><br><span class="line"><span class="string">checking LD_LIBRARY_PATH variable... contains current directory</span></span><br><span class="line"><span class="string">configure: error:</span></span><br><span class="line"><span class="string">*** LD_LIBRARY_PATH shouldn&#x27;</span>t contain the current directory when</span><br><span class="line">*** building glibc. Please change the environment variable</span><br><span class="line">*** and run configure again.</span><br></pre></td></tr></table></figure>
+
+<p>出现这个错误的原因是由于环境变量的 <code>LD_LIBRARY_PATH</code> 中出现了当前目录。通常我们修改环境变量时会这么写：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> LD_LIBRARY_PATH = <span class="variable">$LD_LIBRARY_PATH</span>:/foo/bar:/hello/world:/a/b</span><br></pre></td></tr></table></figure>
+
+<p>如果一开始 <code>LD_LIBRARY_PATH</code> 不存在的话，这个上面这串环境变量开头就是冒号，这就把当前文件夹包含进去了。一般来说我们挺需要这种效果，因为在编译的时候可以 include 某些东西，但是对于编译 glibc 来说这个是多余的。</p>
+<span id="more"></span>
+
+<p>最简单的解决方法就是 <code>unset LD_LIBRARY_PATH</code>。但这个解决方案会在接下来 LFS 的一系列步骤中，产生一些问题。</p>
+<blockquote>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://github.com/Linuxbrew/legacy-linuxbrew/issues/807">https://github.com/Linuxbrew/legacy-linuxbrew/issues/807</a></li>
+<li><code>LIBRARY_PATH</code> 用于在链接过程中查找库。<code>LD_LIBRARY_PATH</code> 用于在程序执行期间查找库。</li>
+</ol>
+</blockquote>
+<hr>
+<ol start="2">
+<li>在为 LFS 第二遍编译 Binutils-2.25 的时候，会在 <code>./configure</code>期间遇到如下问题：</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">no such file or directory: ./a.out</span><br></pre></td></tr></table></figure>
+
+<p>日志如下（注，这段日志并不重要，只是为了增加被搜索引擎索引的准确率，方便后来人查找到这一问题）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">checking <span class="keyword">for</span> C compiler default output file name... a.out</span><br><span class="line">checking whether the C compiler works... configure: error: <span class="keyword">in</span> `/mnt/sources/binutils-build<span class="string">&#x27;:</span></span><br><span class="line"><span class="string">configure: error: cannot run C compiled programs.</span></span><br><span class="line"><span class="string">If you meant to cross compile, use `--host&#x27;</span>.</span><br><span class="line">See `config.log<span class="string">&#x27; for more details.</span></span><br></pre></td></tr></table></figure>
+
+<p>My problem is glibc was in &#x2F;lib and &#x2F;lib64 was not a link to &#x2F;lib. My fix was mv &#x2F;tools&#x2F;lib64&#x2F;* &#x2F;tools&#x2F;lib&#x2F; &amp;&amp; rmdir &#x2F;tools&#x2F;lib64 &amp;&amp; ln -s lib &#x2F;tools&#x2F;lib64<br>翻译：我遇到的问题在于 glic 位于<code>/lib</code>路径下，而<code>/lib64</code>并没有链接（注，指 ln 命令的软链接）到<code>/lib</code>目录。我解决这个问题的办法是运行下面这条命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mv</span> /tools/lib64/* /tools/lib/ &amp;&amp; <span class="built_in">rmdir</span> /tools/lib64 &amp;&amp; <span class="built_in">ln</span> -s lib /tools/lib64</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://www.reddit.com/r/linuxfromscratch/comments/2yd1j5/59_binutils225_pass_2_failing_during_configure/">https://www.reddit.com/r/linuxfromscratch/comments/2yd1j5/59_binutils225_pass_2_failing_during_configure/</a></p>
+</blockquote>
+<hr>
+<ol start="3">
+<li>LFS 书中最坑的一处小细节是，在 <code>chroot</code> 之后，它完成 <code>/mnt/lfs/boot/</code> 到宿主<code>/boot</code>路径的绑定了，就直接让读者对 <code>/boot/grub/grub.cfg</code>文件进行修改。 此刻你可能还沉浸在 <code>chroot</code> 带给你的安全感里，一不留神就中招。</li>
+</ol>
+<p>重启并发现 grub 引导失败之后，大多数用户应该使用的 grub2 而非 grub。这两个程序重新进入引导的方式是不一样的。<br>简单记录 grub2 手动重新引导过程如下，__注意，不要直接输入下面的代码！__：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">grub&gt; <span class="built_in">set</span> root=(hd0,1)</span><br><span class="line">grub&gt; linux /boot/vmlinuz-3.13.0-29-generic root=/dev/sda1</span><br><span class="line">grub&gt; initrd /boot/initrd.img-3.13.0-29-generic</span><br><span class="line">grub&gt; boot</span><br></pre></td></tr></table></figure>
+
+<p>将第一行中的 <code>(hd0,1)</code> 替换为你原本 <code>/mnt/lfs</code> （也就是 <code>chroot</code> 所用到的地址）所挂在的硬盘地址。这里值得一提的是，grub 对于硬盘命名的方式有细微差别，一定要弄清之后再根据你机器的实际情况做修改。<br>将第二行和第三行的路径都需要替换为你编译好的内核路径，第二行中的root路径与第一行的路径相同（只是写法不一样）。</p>
+<blockquote>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://www.linux.com/learn/how-rescue-non-booting-grub-2-linux">https://www.linux.com/learn/how-rescue-non-booting-grub-2-linux</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+              <a href="/tags/LFS/" rel="tag"># LFS</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/07/09/record_LLVM_compile_error_solution/" rel="prev" title="记录一次 LLVM 编译错误的解决">
+                  <i class="fa fa-angle-left"></i> 记录一次 LLVM 编译错误的解决
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/08/20/Atypical-solution-for-Vim-Chinese-garbled/" rel="next" title="Vim 中文乱码的非典型解决方案">
+                  Vim 中文乱码的非典型解决方案 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Darcy</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

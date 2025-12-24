@@ -1,0 +1,1780 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>Vim 中文乱码的非典型解决方案</title>
+    <url>/2018/08/20/Atypical-solution-for-Vim-Chinese-garbled/</url>
+    <content><![CDATA[<h4 id="TLDR"><a href="#TLDR" class="headerlink" title="TLDR"></a>TLDR</h4><ol>
+<li>在.vimrc 或者你的相应 Vim 配置文件中删去<code>set binanry</code></li>
+<li>根据你打开的文件编码（如何查询文件格式编码，可以使用<code>enca -L chinese filename</code>），在 Vim 中输入，譬如<code>:edit ++enc=gb18030</code></li>
+</ol>
+<h4 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h4><p>前些天从用了一年多了 Linux Mint 转投 Arch Linux 门下，然后在Vim里编辑网络上下载下来的字幕文件时，发现了中文乱码的现象。当时心态有点糟，用了这么久的Vim，居然阴沟翻船。<br>我的环境是 Arch + NeoVim，配置文件是从我自己用了很久的没出问题的 .vimrc 拷贝过来的。</p>
+<p>尝试了网上种种乱码解决方案无效之后，决定自行解决问题。</p>
+<span id="more"></span>
+
+<h4 id="Solution-1"><a href="#Solution-1" class="headerlink" title="Solution 1"></a>Solution 1</h4><p>大部分会要求你在 .vimrc中进行如下配置<a href="#1">[1]</a>：</p>
+<figure class="highlight vim"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> encoding=utf-<span class="number">8</span></span><br><span class="line"><span class="keyword">set</span> termencoding=utf-<span class="number">8</span></span><br><span class="line"><span class="keyword">set</span> fileencodings=utf-<span class="number">8</span>,gbk,latin1</span><br></pre></td></tr></table></figure>
+<ul>
+<li><span id = "1"> [1] <a href="https://blog.csdn.net/smstong/article/details/51279810">https://blog.csdn.net/smstong/article/details/51279810</a></span></li>
+</ul>
+<p>这些配置，我当然是有的……扶额……</p>
+<p>经检查发现是 .vimrc中的<code>set binary</code>在作祟。输入<code>:help binary</code>查看说明：</p>
+<blockquote>
+<p>The ‘fileencoding’ and ‘fileencodings’ options will not be used, the file is read without conversion.</p>
+</blockquote>
+<p>binay选项会导致fileencoding 和fileencodings失效，这就是在进行网上大部分的配置之后，仍会失效的原因。</p>
+<blockquote>
+<p><a href="https://superuser.com/questions/663405/consequences-of-vims-binary-mode">https://superuser.com/questions/663405/consequences-of-vims-binary-mode</a></p>
+</blockquote>
+<h4 id="Solution-2"><a href="#Solution-2" class="headerlink" title="Solution 2"></a>Solution 2</h4><p>除了取消binary选项之外，也可以在打开的文件中输入如下命令：（具体参数根据文件编码格式而异）</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">:edit ++enc=gb18030</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><a href="https://blog.csdn.net/cnwzh/article/details/7024427">https://blog.csdn.net/cnwzh/article/details/7024427</a></p>
+</blockquote>
+<h4 id="题外话"><a href="#题外话" class="headerlink" title="题外话"></a>题外话</h4><p>关于我为什么要配置<code>set binary</code>选项，请参看stack overflow问答<br><a href="https://stackoverflow.com/questions/16222530/why-do-i-need-vim-in-binary-mode-for-noeol-to-work">Why do I need vim in binary mode for ‘noeol’ to work?</a></p>
+]]></content>
+      <tags>
+        <tag>Vim</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Build OpenVPN Server on 53 port - The Easiest Way</title>
+    <url>/2018/06/06/Build-OpenVpn-Server-on-53-port-the-easiest-way/</url>
+    <content><![CDATA[<h4 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h4><p>本文旨在教会对 Linux 稍有基础的同学，以__最简单__的方式在拥有__公网 IP__ Ubuntu 主机上搭建一个监听 <strong>UDP 53(67、68) 端口</strong> <strong>OpenVPN</strong> 服务器，并配置好 Linux client 端，以实现绕过__Portal 认证__的目的。</p>
+<blockquote>
+<p>加黑的每个关键词要么可以搜出大量相关资料，要么是接下来的步骤的关键。<br>本文不会告诉你为什么要这么做，上面给出的关键词已经是充足的暗示。</p>
+</blockquote>
+<span id="more"></span>
+
+<h4 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h4><ol>
+<li><p>使用 ssh 登录你的 Ubuntu 服务器，在命令行中输入：<code>netstat -anup | grep 53</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">udp        0      0 0.0.0.0:5355            0.0.0.0:*                           446/systemd-resolve</span><br><span class="line">udp        0      0 127.0.0.1:53            0.0.0.0:*                           543/dnsmasq</span><br><span class="line">udp        0      0 127.0.0.53:53           0.0.0.0:*                           446/systemd-resolve</span><br><span class="line">.</span><br><span class="line">.</span><br><span class="line">udp6       0      0 :::5355                 :::*                                446/systemd-resolve</span><br><span class="line">udp6       0      0 ::1:53                  :::*                                543/dnsmasq</span><br></pre></td></tr></table></figure>
+<p> 倘若上面这条命令输出大量结果，请先暂时离开这篇文章，去调研如何先关闭你机器上监听 53 端口的服务。因为倘若有别的服务占用了 53 端口，会与我们接下来的步骤产生冲突。<br> 倘若没有任何结果输入，恭喜，进入下一步骤。</p>
+</li>
+<li><p>继续在命令行中输入：</p>
+ <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget https://git.io/vpn -O openvpn-install.sh &amp;&amp; bash openvpn-install.sh</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>参考资料：<a href="https://github.com/Nyr/openvpn-install">https://github.com/Nyr/openvpn-install</a></p>
+</blockquote>
+<p> 得到如下结果：</p>
+ <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Welcome to this OpenVPN <span class="string">&quot;road warrior&quot;</span> installer!</span><br><span class="line"></span><br><span class="line">I need to ask you a few questions before starting the setup.</span><br><span class="line">You can leave the default options and just press enter <span class="keyword">if</span> you are ok with them.</span><br><span class="line"></span><br><span class="line">First, provide the IPv4 address of the network interface you want OpenVPN</span><br><span class="line">listening to.</span><br><span class="line">IP address: XX.XX.XX.XX <span class="comment">#此处隐匿的是笔者机器的公网 IP，不用做任何修改，直接回车</span></span><br><span class="line"></span><br><span class="line">Which protocol <span class="keyword">do</span> you want <span class="keyword">for</span> OpenVPN connections?</span><br><span class="line">   1) UDP (recommended)</span><br><span class="line">   2) TCP</span><br><span class="line">Protocol [1-2]: 1</span><br><span class="line"></span><br><span class="line">What port <span class="keyword">do</span> you want OpenVPN listening to?</span><br><span class="line">Port: 53 <span class="comment">#注意此处一定要修改为 53，这是最为关键的一步</span></span><br><span class="line"></span><br><span class="line">Which DNS <span class="keyword">do</span> you want to use with the VPN?</span><br><span class="line">   1) Current system resolvers</span><br><span class="line">   2) 1.1.1.1</span><br><span class="line">   3) Google</span><br><span class="line">   4) OpenDNS</span><br><span class="line">   5) Verisign</span><br><span class="line">DNS [1-5]: 3 <span class="comment">#此处修改为 3</span></span><br><span class="line"></span><br><span class="line">Finally, tell me your name <span class="keyword">for</span> the client certificate.</span><br><span class="line">Please, use one word only, no special characters.</span><br><span class="line">Client name: client</span><br><span class="line"></span><br><span class="line">Okay, that was all I needed. We are ready to <span class="built_in">set</span> up your OpenVPN server now.</span><br><span class="line">Press any key to <span class="built_in">continue</span>...</span><br></pre></td></tr></table></figure></li>
+<li><p>此时耐心等待脚本安装软件包，以及配置服务器 config 文件。根据机器性能不同，等待时间从几十秒到十几分钟不等。所幸不用任何操作，可以去喝杯咖啡再回来。<br>待到看到如下字样时，OpenVPN 安装并配置成功，而且已经默认跑起来了。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Finished!</span><br><span class="line"></span><br><span class="line">Your client configuration is available at: /root/client.ovpn</span><br><span class="line">If you want to add more clients, you simply need to run this script again!</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>注意输出的这一条语句：__&#x2F;root&#x2F;client.ovpn__，使用<code>scp</code>将改文件从服务器拷贝到你的 client 端机器上。<br>由于每个人登录的账户不同，具体的输出路径可能不一样。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp username@XX.XX.XX.XX:yourfilepath .</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>打开你的 Ubuntu client 机器上的网络管理，选择<code>import a saved VPN configuration</code>，选中拷贝下来的__client.ovpn__文件，在弹出窗口中不用做任何修改，直接点击 saved 保存即可。</p>
+</li>
+</ol>
+<h4 id="撤销操作"><a href="#撤销操作" class="headerlink" title="撤销操作"></a>撤销操作</h4><p>如果想要撤销服务器上的操作，再次运行下面这条指令。选择__3__即可。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget https://git.io/vpn -O openvpn-install.sh &amp;&amp; bash openvpn-install.sh</span><br><span class="line"></span><br><span class="line">Looks like OpenVPN is already installed.</span><br><span class="line"></span><br><span class="line">What <span class="keyword">do</span> you want to <span class="keyword">do</span>?</span><br><span class="line">    1) Add a new user</span><br><span class="line">    2) Revoke an existing user</span><br><span class="line">    3) Remove OpenVPN</span><br><span class="line">    4) Exit</span><br><span class="line">Select an option [1-4]: 3</span><br><span class="line"></span><br><span class="line">Do you really want to remove OpenVPN? [y/N]: y</span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>OpenVPN</tag>
+        <tag>crack</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>从印象主义到蒸汽朋克</title>
+    <url>/2018/05/24/From-Impressionism-to-Steampunk/</url>
+    <content><![CDATA[<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>出现于工业革命期间的印象主义与出现于 20 世纪下半叶的蒸汽朋克文化，在审美旨趣的角度有着非常多的相似之处，这些相似之处包括：表现对象的相同，对工业和科技的赞美，对社会传统的反叛，对现实社会的乐观精神。除此之外，这两种截然不同的艺术形式在受众人群上存在着极大的重合，大都是受过高等教育，有一定的艺术修养，对未来充满美好憧憬的群体，他们所持有的往往是一种根植于新维多利亚主义的大众审美。抛开这些纷繁复杂的特征表象，我们会惊讶地发现，无论是印象派还是蒸汽朋克都存在着一个相同的精神内核 —— 一种机械唯物主义的积极乐观的进取精神，对科学的崇拜，相信技术的进步终将解决一切问题。</p>
+<p><strong>关键词：印象派、蒸汽朋克、科学崇拜、工业革命、机械唯物主义、机械美学</strong></p>
+<h3 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h3><p>蒸汽朋克（Steampunk）是一种流行于 20 世纪 80 年代至 90 年代初的科幻题材，显著特征为故事都设定于一个蒸气科技树攀升到巅峰的架空世界。这类故事对距今已较遥远的工业革命时代的科技进行了极大的夸张，创建出一个与当今科技文明不同的、依赖于蒸汽动力装置的机械科技世界。从广义上讲，只要是将某种科技置于图腾地位，并将其力量无限扩大的文化，都可算作蒸汽朋克。<a href="#1">[1]</a></p>
+<p>蒸汽朋克通常以英国的维多利亚时代为背景，威廉·吉布森（William Gibson）的小说《差分机》，就是这个领域的第一本小说。虽然“蒸汽朋克”一词出现于 20 世纪下半叶，但从今天的观点来看，工业革命时代所产生的许多科幻小说其实都可以归入该类别。只不过当年人们的创作多是推崇科技的力量。而今天人们创作这类故事则多以对早期科技文化的怀旧与复古为目的。蒸汽朋克的怀旧风格与现今社会崇尚未来感设计的风尚形成鲜明对比。<a href="#1">[1]</a></p>
+<span id="more"></span>
+
+<p>在后维多利亚时代，以蒸汽机、差分机为代表的工业革命产物以摧枯拉朽之势完成了对传统农业社会的改造；与此同时以透纳、康斯坦勃尔、莫奈等为代表的印象派先驱、创始人，借助当时最新的科技发展，以及伴随工业革命来到的海外殖民地而产生的相关经济结构，开始了在艺术领域对传统的表现手法的革新，在思想上开始追求与“学院派”观点不同的新价值观。（以及这里可以补充的是，价值观的内容）</p>
+<p>蒸汽朋克的主要表现对象为工业革命背景下的种种产物，这一点自不必多提。但值得注意的是，受到第二次工业革命的时代背景的影响，印象派画家往往也热衷于在绘画中描绘能反应当时时代精神的相关社会现象：新兴中产阶级的“闲暇”生活、喷涂着蒸汽快速前行的火车、轮船等等，都是他们所喜爱的题材。除此之外，蒸汽朋克与通常的科幻流派最大的一点不同是，通常的科幻流派在作品中往往警惕科技进步可能会带给我们的危害，这样的担忧在末世、赛博朋克等题材中尤为典型；但在蒸汽朋克中占据主导地位的是一种机械唯物主义的世界观，在那个牛顿和洛克的时代，科学仍然是古典的，世界图景是明晰的，时空还是平直的，上帝是不扔色子的。人们第一次可以不借助自然力量，而单凭借自己创造的机械来改造世界，人们的物质世界、认知的深度和广度都得到极大拓展，充满了对未来的美好遐想。生活在这样的世界中，人们崇拜科学和由科学带来的力量也就不足为奇了。</p>
+<p>在精神层面，蒸汽朋克的“朋克”一词本身就意味着拒绝对传统和权威的妥协，象征着一种标新立异、创造自由乌托邦的精神内核。<a href="#4">[4]</a> 而印象派画家同样也是击碎了学院派传统的种种束缚，才得以产生出能够孕育现代艺术的土壤。从蒸汽朋克作品和印象派绘画的受众群体的角度来看，我们仍能看到一种令人惊异的相似性，他们以受过良好高等教育、并享有一定闲暇时间、对艺术存在一定的鉴赏力的群体为主。</p>
+<p>那么究竟什么是科学崇拜，所谓科学崇拜，是唯科学主义的外在表现形式。唯科学主义思想源自启蒙主义，成于实证主义，其思想内核是由牛顿爵士构建的“机械唯物主义世界观”。其拥护者往往以“知识就是力量”为口号，这里的“知识”通常被他们理解为科学。拥护科学的想法似乎没什么不好，但凡事都有一个度，一旦超过了这个度，想要用科学去解释世间的一切，就不免陷入了自视为真理的泥淖。在科学对世界的解构的过程中，由于其精确性、实用性、强大性，科学逐渐在人们心中接管了宗教曾经具有的那种神性，唯科学主义也因而变成了一种与科学精神推崇的理性怀疑精神相悖的“类宗教”。<a href="#2">[2]</a></p>
+<p>唯科学主义在普遍科学素养不太高的时代，有着其积极的意义。在这个目的论和决定论的机械唯物主义的世界里，世界乃至宇宙的图景都无比清晰，人与人之间的关系也被视作一种“力”的互动，在社会科学上，也有孔德试图用牛顿力学体系来构建“社会动力学”和“社会静力学”体系的尝试。这个世界并非暗淡无光，事实上由于世界图景的清晰，科学向人们承诺了一个科学终将解决一切问题的光明美好的未来。而且由于目的论的影响，各个阶层的人们都安于在庞大的“社会机械”中充当一个运转的齿轮。</p>
+<p>在我们下面的行文中，我们将分别从以上这些角度来论证，印象派和蒸汽朋克在科学崇拜这一精神内核上的共通性。</p>
+<h3 id="对工业和科技的赞美"><a href="#对工业和科技的赞美" class="headerlink" title="对工业和科技的赞美"></a>对工业和科技的赞美</h3><p>蒸汽朋克有着专属于自己的美学形式，这个形式通常被称为新维多利亚美学，其主要的表现对象是多种饱含维多利亚风格的产物，包括交通工具、武器、建筑和服装等等。这些产物通常是第二次工业革命阶段的技术有机组合构造的更复杂更超脱的审美意象，往往造型古朴、体积庞大、结构复杂且暴露在外。以蒸汽锅炉为动力，螺旋桨、齿轮、活塞、轴承、旋钮、管道共同组成眼花缭乱又极具美感的连锁装置，其令人惊异的想象力总让人联想到“阿鲁贝戈德堡机”。因为蒸汽朋克时代所有的动力都是靠纯机械装置将蒸汽产生的动力输送到动力机关来做功的，因为机械自重过大和摩擦力还有热传递等原因，蒸汽产生的动力在机械装置传导的过程中大量损耗，能量转化效率极低，但是也造就了蒸汽朋克世界观当中各种独有暴力美感的巨大机械造型。<a href="#3">[3]</a> 一经启动，锅炉中升起腾腾热气，活塞错落有致地起伏，精准咬合的大小齿轮互相带动旋转，那是一幅大工业时代盛世图景的完美再现。</p>
+<p>这些工艺上具有时代特征的表现对象，在各类文艺作品中都常常见到：从电子游戏《教团 1886》特斯拉电弧枪、宫崎骏的动漫电影《风之谷》中的王虫也可视作一种异化的机械、《天空之城》中的类人机械人和漂浮之城、《哈尔的移动城堡》那座典型的蒸汽朋克风格的移动城堡等，无不洋溢着对机械质感的强烈赞美。<br><img src="/2018/05/24/From-Impressionism-to-Steampunk/TS-23_Resonant_Circuit_Arc_Induction_Lance.jpg" alt="特斯拉电弧枪"></p>
+<blockquote>
+<p>关于《教团 1886》中各种蒸汽朋克风格武器介绍，可参见网友 tekkenman 整理的资料。<br><a href="http://bbs.a9vg.com/thread-4446281-1-1.html">『《教团 1886》中的一些特殊武器装备预热以及与当时现实中科技对比』</a></p>
+</blockquote>
+<p>在一个特殊的科幻迷群体 —— “多炮塔神教”中，还存在着“多铆蒸刚”的说法。所谓“多铆蒸刚”，指的是“多炮塔，铆钉连接，蒸汽动力，刚性悬挂”，在他们眼中“多就是美，大就是好，多属于蒸汽时代浪漫情怀的一种体现。”。<a href="#4">[4]</a><br>总的来说，蒸汽朋克的机器美学集中体现了后现代艺术的精髓，百无禁忌，任想象驰骋，但又有一定规律可循，呈现一望即知的视觉风格。<a href="#5">[5]</a></p>
+<p>印象派画家同样热衷于表现近代工业文明。有三幅画，非常典型地表明了印象派画家的审美取向：透纳的《被拖去解体的战舰无畏号》、《雨，蒸汽和速度》，莫奈的《圣·拉扎尔火车站》。</p>
+<p><img src="/2018/05/24/From-Impressionism-to-Steampunk/The_Fighting_T%C3%A9m%C3%A9raire_tugged_to_her_last_Berth_to_be_broken.jpg" alt="被拖去解体的战舰无畏号"><br>《被拖去解体的战舰无畏号》意在表现一艘巨大的老式木质风帆战舰被对比起来显得渺小的蒸汽动力船拖去船坞解体，这艘战舰正是在奠定英国海上霸权地位的特拉法海战（the Battle of Trafalgar）中，营救了纳尔逊指挥的胜利号旗舰，并俘获了两艘敌舰，立下了赫赫战功的“战舰无畏号”（The Fighting Temeraire）。<br>画家选取的这戏剧性的一幕充分地显示了一个辉煌时代的落幕。远方的太阳看不出是日出还是日落，更像是画家的有意为之，它既是象征着传统社会的木质战船的落日，又是冉冉升起的工业化时代的新日。油画中可以看到，巨大的无畏号在汽轮喷吐出的蒸汽中仿佛在雾霭里一般朦胧，桅杆上的帆紧紧收着，渐渐远离平静的海面，一个时代结束了，古老的荣耀与激情如今被新的一页覆盖。小小汽船拖动巨大的木质战舰去解体，也显示了工业革命和科技的力量。画面整体所使用的暖色调，也又一次强调了画家所想表达的积极乐观的主旨。</p>
+<p><img src="/2018/05/24/From-Impressionism-to-Steampunk/Rain_Steam_and_Speed_the_Great_Western_Railway.jpg" alt="雨、蒸汽和速度"><br>在《雨、蒸汽和速度》中表现出大自然和两大技术发明（铁路和高架桥）之间的强烈对比。铁路和高架桥这两个人造的力量使自然景色大大改观，透纳看到并描绘了它们所有震撼人心的效果。雨水滴落的方向仿佛被机械强大的力量所扭转，这似乎象征着人类通过机械的力量对自然的征服。火车头前方有一只小野兔在奔跑，既象征着速度，又对极尽烘托出了了雨中飞驰的火车那磅礴的气势。</p>
+<p><img src="/2018/05/24/From-Impressionism-to-Steampunk/La_Gare_Saint-Lazare_-_Claude_Monet.jpg" alt="圣·拉扎尔火车站"><br>随着城市化进程的加快，工程师对伦敦、巴黎等大城市进行了大刀阔斧的改造，因而出现了大量全新的城市新景观。莫奈的《圣·拉扎尔火车站》，即成功地表现了现代生活最典型的景象。那巨大的停车场，有玻璃的屋顶，沉重的火车头发出暗沉沉的水蒸汽，进进出出的列车、人群，背景中澄澈的天空和蒸汽腾腾的机器之间的对照———所有这一切供给他以不平常的动人题材，谱写了一首工业文明的赞美诗。可见，当时的印象派画家不仅仅是利用刚出现不久的道路和交通手段外出作画，更是将它们看作是值得去画的创作题材，甚至比传统的作画题材更为重要，将其搬上画面，描绘出由于工业化而“变得更美的风景”，用通俗的画面让人们了解了工业化。</p>
+<h3 id="对现代事物及宗教的反叛"><a href="#对现代事物及宗教的反叛" class="headerlink" title="对现代事物及宗教的反叛"></a>对现代事物及宗教的反叛</h3><p>如果说印象派画家是通过对传统的反叛而通向未来的话，那么蒸汽朋克则是对后现代美学的反叛而回到过去。他们有着不同的起点，不同的手段，但最终却达至了相同的终点。</p>
+<p>朋克精神本质在于超越社会准则，反对除朋克外的一切，有反社会无政府主义的倾向，通常被人视作叛逆的代名词。但蒸汽朋克的反叛情绪显然要温和得多，并没有通常的科幻作品中那种科技发达、物质文明泛滥、世界被机器主宰、人际关系冷漠疏离、精神迷惘空虚的反乌托邦情绪。蒸汽朋克非但罕见阴郁低落的基调，而且往往充满了催人振奋、积极向上的情绪，这与维多利亚时代的科技乐观主义是一脉相承的。<a href="#5">[5]</a></p>
+<p>有人提出了一个蒸汽朋克理念 —— “异质世界”。蒸汽朋克作品中叛逆因素的存在，更多的是为了切合架空世界的后现代表现形式。它常拼凑出一个虚幻，独立、区别于古往今来的任何一个时代的面貌，构成独一无二的异质世界。朋克世界中强调反抗和独立，总有种打破旧世界的味道。再生艺术是思维构成的自我演绎与不断完善，是艺术思维的超越性体现，也是艺术生命力的延续和变革发展。蒸汽朋克同样如此，过去与未来、想象与现实、魔幻与科学的元素互相并存，反抗并独立的延续着。它有极大的想象力，构造的是一个超现实的幻想世界，将蒸汽的力量无限扩大化。蒸汽朋克作品的主要内容就是把第一次工业革命的技术形象有机组合起来，用 19 世纪的科技实现 21 世纪当代科学产物，去构造更复杂更超脱的意象，以及这一事实造成的反差和对比给人带来的震撼力。<a href="#6">[6]</a></p>
+<p>作为后现代艺术的一种，蒸汽朋克同样也质疑传统的元叙事作品的合法性，这种质疑随着元叙事的基础 — 堂皇话语环境 — 的终结而达到顶峰。传统的元叙事作品遵循的总是以英雄为主视角的堂而皇之的叙述模式，而后现代作品倾向于将堂皇叙事的社会的语境（如圣贤英雄、解放拯救、光辉的胜利、壮丽的远景等）散入叙事语言的迷雾中，使观众对堂而皇之的历史言论，或历史上的伟大“推动者”和伟大的“主题”产生怀疑，并以平凡的小人物、平凡的主题、平凡而琐碎的故事取而代之或利用堂皇叙事与平凡话语间的杂揉、拼贴和交替衍生来反衬、嘲弄元叙事的理性偏激。<a href="#7">[7]</a></p>
+<p>文艺复兴时期是一个重要的转折点，达芬奇以及丢勒等艺术家对飞机、潜水艇等人造机械装置的热爱已经远远超过了工具研制的层面，而上升到了审美层面上，他们似乎要穷尽自己的脑力和心力来与上帝抗衡。通过否定上帝，肯定自身，人类对自身的肯定也随之带来了对自身造物的肯定。<a href="#8">[8]</a></p>
+<p>如果说蒸汽朋克是对反直觉的现代事物的反叛（详见下文的古典机械美学），那么印象派的反叛则是多角度、更深刻的。</p>
+<p>科学技术的发展为印象派的诞生产生了巨大的影响：照相技术的出现对传统写实绘画纪实功能的消解；光学研究的新成果促使艺术家重新审视光线对物体色彩的影响；色彩研究的新成果让艺术家在画面色彩表现技巧上有了新突破；交通工具的发展为作画者的出行带来方便；颜料管的发明节约了工时，也使得户外作画成为可能；伴随对日本的经济殖民，日本浮世绘的传入引发了画家技法和思想上的思考。<a href="#9">[9]</a></p>
+<p>传统的写实主义绘画，承担着为贵族记录形象和对宗教、社会事件说教的任务，画面写实技术精湛性的攀比和社会服务功能对一幅作品的好坏起到了决定性的作用。但随着摄影技术的发展和普及，当时的艺术家发现他们在耗尽全部心血完成一幅写实作品的时候，照相机在瞬间就能够记录或超越写实绘画的真实效果，写实绘画失去了记录功能的优势，这种危机感促使艺术家放弃了照片式的古典画法，转而寻找绘画艺术表现形式的新途径。<a href="#9">[9]</a></p>
+<p>过去古典写实主义画家认为任何物体的固有色都是一成不变的，艺术家们完全按照物体的固有色和棕褐色的调子去观察和习惯性表现对象。牛顿、托马斯·杨等科学家建立了新的光学理论，艺术家们吸收并在自己的作品中实践了这些观念———世界万物并没有什么固有色，色彩的根源在于光，于是选取唯一真实的元素———光来诠释自然。<a href="#10">[10]</a></p>
+<p>如今看来毫不起眼的颜料管的发明，事实上从三个方面极大地影响了艺术创作，曾经油画颜料无论是制作还是保存都繁琐异常。耗费在颜色调配的时间，往往数倍于作品的真正绘制的时间。而且这一点往往局限了画家作画的场地只能是在室内。最后一点，颜料管的发明，也为画师尝试使用不加调和的色彩进行作画提供了便利。如我们所知，印象派有两大主张正是“到户外去作画”、“用不加调和的色彩去表现光”。</p>
+<p>色彩的研究也有了一些新的突破，人们发现不同色彩混织一起时，从一定距离的远处看就在人的视觉中形成了这两种颜色的混合色。以及日本浮世绘的传入，使得画家们开始尝试像东方艺术一样使用单一色彩来进行单线平涂，不再追求使用精心调和的色彩来进行绘画。浮世绘带来的另一个影响是，画家用东方绘画中“步步移，面面观”的透视代替了原先的单点透视。</p>
+<p>在此之前的古典画法的主要题材要么是将相王侯、要么是宗教神话，不追求对自然风光的描绘，不需要也不能在室外作画。印象派画家的一个重大主张就是到户外去作画，而铁路交通网的覆盖，为画家们能够便利地到郊区作画提供了便利。新兴的百货商店、林荫大道、公园、咖啡馆等建筑不仅为人们提供了全新的娱乐场所，也激发了艺术家对现实生活的关注，现代景观的出现吸引了印象派画家走出画室，探索户外创作之路。不仅是对“室内作画传统”的反叛，也是对作画主题的反叛。</p>
+<h3 id="乐观精神-人文主义，机械唯物主义"><a href="#乐观精神-人文主义，机械唯物主义" class="headerlink" title="乐观精神 - 人文主义，机械唯物主义"></a>乐观精神 - 人文主义，机械唯物主义</h3><p>蒸汽朋克的作品中弥漫着浪漫主义乐观精神，工业的发展一定程度解放了劳动力，自然科学的发展破除了迷信与宗教集权政治，文化逐渐开明，人们充满了对世界的好奇心。人们对科技的发展持乐观态度。它的这种魅力是人们对乌托邦的向往。人类刚刚拥有接近神的力量，踏出解开自然奥秘的第一步。这种科技带来的神力让人们从数千年以来在繁重的体力劳动和贫乏的物质限制中获得解脱，让人们从束缚思想的封建禁锢中解放出。落后的势力和人类自诞生以来的人性缺陷又同时存在，先进与落后并存，先进与落后抗争，人们开动着巨大而笨拙的机器飞奔在文明发展的道路上，无情的碾压着旧事物，不断的探索，不断的创新，用自己的智慧谱写着工业文明辉煌的篇章，徜徉在探索新世界的浪漫主义思想中。</p>
+<p>如前文所说，蒸汽朋克的哲学本质是一种机械唯物主义。机械唯物主义的世界观之下，自然、社会乃至于组成社会的一个个基本单位 —— 人，都是机械。拉美特利就宣称：“人是机器”。<a href="#11">[11]</a> 通过将世间的一切都视作平等的机械，将曾经高于人类的自然，拉到了与人类平等的地位上，从理论上为征服自然提供了法理依据。在哲学上，牛顿爵士、伏尔泰等人所创立的自然神论，认为上帝创造自然但不干涉自然，只是在自然之外默默观察，通过将上帝置于自然之外的“太上皇”地位，从而架空了上帝的权利，人的意志得以彰显。</p>
+<p>在这个机械的世界当中，所有的一切都如同钟表一般精准。无论身处社会的哪一个阶级，只要你遵从机械说明书一样的程式，那么你的未来也会如同机械一般精准而清晰。而科学承诺将会解决这世界上的一切问题，所以你的未来也会迈向一个光明的未来。</p>
+<p>蒸汽朋克代表的是一种机械之美，代表的是人类在征服自然过程中的一种重大胜利，代表了现代文明的开端，永不放弃的奋斗意志，即使在黑暗中也要等待光明的到来的念头让它的主旨充满了乐观精神。</p>
+<p>印象派作品中的乐观精神并不直接，事实上印象派画家也会描绘当时社会中的不幸事件，例如《运输船遇难》，但这些作品不占印象派作品的主流。印象派画家最喜欢的题材大多与当时中产阶级的生活方式和情趣相关。马奈的《草地上的午餐》、莫奈的阿尔让特伊沿岸（中产阶住宅区）风光、雷诺阿《游艇上的午餐》、德加的芭蕾舞演员、修拉的《大碗岛的星期日下午》等等，无不以中产阶级 “闲暇”，对世俗生活的享乐为主题。</p>
+<p>19 世纪后期的印象主义者们是典型的享乐主义者。19 世纪法国政治的变动、普法战争时期的颠沛流离，这些苦难的经历并没有在印象主义者的笔下留下痕迹，他们画中的场景一如他们眼中的阳光一般灿烂。在他们的手中，绘画不再承载道德说教的任务，只是快乐单纯地享受来自周遭视觉景象的快乐。在《视觉艺术中的现代主义和大众文化》一文中用“闲暇”来形容印象派绘画中所表现的中产阶级的生活，印象派画家通过画面中郊游、赛马、歌舞表演、咖啡厅等题材来表现出中产阶级的闲情逸致。这种有一定程度的文化和固定职业的白领阶层的闲暇生活不同于古典主义的理想式贵族生活，也不同于荷兰小画派的乡村情调的市井生活；印象派笔下的中产阶级闲暇生活与大众消费文化有关，他们的生活、消遣方式是他们在紧张的工作之余处理对通俗文化的消费。<a href="#12">[12]</a></p>
+<p>如果说文艺复兴是人的主体意识（人性）的觉醒的话（在科学上表现为科学作为一支独立的力量而出现和存在，不再是神学的婢女；在艺术上表现为从“以神为中心”转向“以人为中心” ), 那么，印象派和相对论的诞生，则再一次深刻地反思了“神中心”的残存。这在科学上表现为对“独立于人而存在的绝对时间——空间”——这是神的认识能力的范围——的批判；在艺术上表现为对“完全地表现客观物体的样子”——神的认识能力——的批判。因此印象派和相对论进一步大大深化了“人中心”这一主题。<a href="#10">[10]</a> 正是因为由“以神为中心”转向“以人为中心”而招致的人文主义精神，人们重新从基督教那自我指责的赎罪意识中挣脱了出来。人间不再是急于摆脱的不名一文的“尘世”，转而成为了有待于建设的天堂。而且路德和加尔文的新教改革运动，从另一个侧面又加深了这一观点：“天职”描述人们不是要以苦修、超越世俗道德的禁欲主义方式来追求上帝的应许，反而应该在俗世中，完成个人在其所处职业位置上的工作责任和义务。<a href="#13">[13]</a></p>
+<h3 id="受众人群的相似审美观"><a href="#受众人群的相似审美观" class="headerlink" title="受众人群的相似审美观"></a>受众人群的相似审美观</h3><p>蒸汽朋克完美契合了工业社会普通人审美情趣的风格。 这类风格之所以有独特魅力，是因为在技术发展的高速和大众审美观念的惯性之间找到了平衡：新型机械工程师们喜爱的，那种由管道电线煤炉仪表板堆砌出来的，粗糙但准确的美感；上流社会贵族们钟爱的，那种下午茶和舞会组织起来的细密精致的美感；商人市民阶层追求的，普通实用日常生活的朴素美感。</p>
+<p>机器美学，正是这个机器主宰一切的时代的产物。机器之所以美，并不仅仅因为其实用功能，也不只因为其形式结构，更重要的是因为其在心理层面上的人造物意义。古典美学研究的是美的终极意义，那个美是虚幻的，而机器美学所研究的美是实在的，是具象的，它是被人所创造也为人所感知的，这显然是一种更加真实朴素、毫无修饰的美。正如本雅明所言，机械复制时代的艺术和文化是大众文化，而从某种意义上讲，机械美学也是一种大众美学，它几乎无处不在，尤其是在 19 世纪以后纷纷出现的那些蒸汽机、汽车、火车头和巨型轮船乃至于翱翔的飞机，它们一方面以前所未见的奇特外形刺激着人们，另一方面却频频出现在人们身旁并迅速改变着我们的生活方式。<a href="#8">[8]</a></p>
+<p>古典机器美学是符合直觉的。这种直觉是一种机能化的视角，古典式机械的设计，我们想要增加动力就加一个锅炉，想要一个侧向的驱动力，齿轮组，扭杆组可以很直觉的形成模块，我们可以依靠直觉粗暴地构成一个可以运作的有机体。而这种机能主义，就如同这个技术变革刚解体原秩序，新秩序刚形成的社会生态一样，我们在解决一个社会问题，只需要建构一个符合直觉和普遍认识的机制来解决就行了，社会生态还在初期的建设阶段，而这一切是符合直觉的，也是从经验主义学理传承下来对于历史语境的推崇。故而，在这种指导下，社会的前景，科学技术的发展是有序的，可认知的，在我们经验里面也是可以明确的，这里没有人类本身之外的不确定因素，也没有社会结构的离散化，我们可以将一系列自然问题可以归元到我们的经验中和逻辑之中，来做一个判断，最后还原到技术上来解决。整个社会生态就如同一个精密设计的，符合直觉和经验的有机体，各模块（阶级，共同体）之间被分割放置，各司其职，就如同古典式机器一样。<a href="#15">[15]</a> 这就是蒸汽朋克世界观给我们的美感。</p>
+<p>与蒸汽朋克类似，印象派画家同样追求符合人的直觉的视觉感官体验，对于他们来说，美得毫无瑕疵的古典画作并不是真实，那是只存在与柏拉图“理念世界”的产物。真实是你用肉眼看到的亲身体验，是笼罩在牛奶般薄雾中的“日出·印象”，是市民阶级中熟悉的日常生活中点点滴滴。有几位印象派画家比较典型：</p>
+<p>莫奈笔下的巴黎街景记录性强，在风格上类似现在的城市景观派；他所有的描绘巴黎街景的作品都是对巴黎各大街道的一种真实写照。而雷诺阿与他们不同，虽然雷诺阿大部分作品是描绘女人的，描绘巴黎街头的作品很少，但是他描绘的巴黎街头总是带有欢愉的社交氛围。</p>
+<p>印象派画家中比较特殊的一位——卡耶博特，擅于表现和巴黎现代生活息息相关的作品，尤其是表现巴黎街头的景象。虽然受印象派影响，但是他不是完全模仿印象派的创作方法而是进行实验性的探索，形成与众不同的风格。他希望最大限度的表现出这条街道在某一瞬间的真实，所以他对此时街道上的每一个事物包括细节都细致的描绘。卡耶博特的创作风格尤其是在构图上受到摄影的巨大影响，他所表现的这一场景就像摄影师在下雨天的某条巴黎街道偶然拍下的一个场景。<a href="#12">[12]</a></p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>而蒸汽朋克的核心魅力，或者说是比较核心的那部分科幻迷看重的东西，应该是过去时代的科学精神和社会精神。19 世纪是一个机械唯物主义泛滥的时代，不仅自然界是机械性的，人类历史也是线性的，新东西一定比老东西强，明天一定比昨天好，崇拜科学，科学只要无限发展下去就一定会掌握整个宇宙的真理。蒸汽朋克通过把故事背景调整到 19 世纪，来复苏 19 世纪的“纯洁的科学精神”，缓解一下现代科幻迷遇到的信仰危机。而印象派虽然不以科学为表现主体，它对科学的崇拜是隐性的，但受时代背景影响，一脉相承于文艺复兴中的人文主义乐观精神，以及对工业革命将现实社会改造得更加美好的颂扬都得到了充分的体现。</p>
+<h3 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h3><p><span id = "1"> [1] 维基百科 : <a href="https://zh.wikipedia.org/wiki/%E8%92%B8%E6%B1%BD%E6%9C%8B%E5%85%8B">https://zh.wikipedia.org/wiki/%E8%92%B8%E6%B1%BD%E6%9C%8B%E5%85%8B</a> </span><br><span id = "2"> [2] 科学崇拜和合理性怀疑_高知识人群邪教受害者思想根源初探_亓馈言 </span><br><span id = "3"> [3] 知乎 首先说一下蒸汽朋克的时代背景 </span><br><span id = "4"> [4] <a href="https://zh.moegirl.org/%E5%A4%9A%E7%82%AE%E5%A1%94%E7%A5%9E%E6%95%99">https://zh.moegirl.org/%E5%A4%9A%E7%82%AE%E5%A1%94%E7%A5%9E%E6%95%99</a> </span><br><span id = "5"> [5] 果壳 什么是真正的蒸汽朋克？方聿南 </span><br><span id = "6"> [6] 从蒸汽朋克看城市再生创意的必要性_魏安琪 </span><br><span id = "7"> [7] 维基百科 <a href="https://zh.wikipedia.org/wiki/%E5%90%8E%E7%8E%B0%E4%BB%A3%E4%B8%BB%E4%B9%89">https://zh.wikipedia.org/wiki/%E5%90%8E%E7%8E%B0%E4%BB%A3%E4%B8%BB%E4%B9%89</a> </span><br><span id = "8"> [8] 蒸汽朋克电影与机器美学 </span><br><span id = "9"> [9] 自然科学新成果对印象派绘画的影响_曹跻圣 </span><br><span id = "10"> [10] 印象派绘画与狭义相对论物理学比较研究_杨正瓴 </span><br><span id = "11"> [11] 拉美特利 《人是机器》 </span><br><span id = "12"> [12] 印象画派的历史发展及审美特征_李怀鹏 </span><br><span id = "13"> [13] 马克思·韦伯 新教伦理与资本主义精神 </span><br><span id = "14"> [14] 知乎 作者：acel rovsion 链接：<a href="https://www.zhihu.com/question/21722005/answer/34906841">https://www.zhihu.com/question/21722005/answer/34906841</a> </span></p>
+]]></content>
+      <tags>
+        <tag>art</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>How to crack Synergy</title>
+    <url>/2018/05/31/How-to-crack-synergy/</url>
+    <content><![CDATA[<p>Synergy 是一款用于在不同电脑之间共享键盘、鼠标、剪贴板的开源商业软件，支持包括 Linux、Windows、Mac OS 在内的多种主流操作系统，其 Pro 版本甚至支持直接在不同桌面上面拖动文件。</p>
+<p>笔者使用的 Linux 系统有免费的基础版可以使用，但想要使用共享剪贴板功能，则需付费购买 Pro 版。这篇文章简单描述了从源代码逆向其付费序列号的过程。由于实在太败人品了……不会放出序列号，读者可以自行尝试编译笔者提供的代码。</p>
+<span id="more"></span>
+
+<p><img src="/2018/05/31/How-to-crack-synergy/synergy_active_window.png" alt="Synergy 激活窗口"></p>
+<p>观察 Synergy 的激活窗口，注意到存在 “serial key”关键字。<br>从 Github 将 Synergy 源码仓库 clone 下来之后，使用<code>ag &quot;serial key&quot;</code>得到如下结果。从中我们可以定位到 <code>src/lib/shared/SerialKey.cpp</code>文件。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ag <span class="string">&quot;serial key&quot;</span></span><br><span class="line">ChangeLog</span><br><span class="line">7:Bug <span class="comment">#5901 - Stored serial key corrupted on macOS</span></span><br><span class="line">40:Bug <span class="comment">#5722 - Malformed serial key in registry will crash GUI on startup</span></span><br><span class="line">84:Bug <span class="comment">#5471 - Serial key textbox on activation screen overflows on Mac</span></span><br><span class="line">99:Enhancement <span class="comment">#4715 - Activation dialog which also accepts a serial key</span></span><br><span class="line">100:Enhancement <span class="comment">#5020 - Recommend using serial key when online activation fails</span></span><br><span class="line">105:Enhancement <span class="comment">#4716 - Allow software to be time limited with serial key</span></span><br><span class="line"></span><br><span class="line">src/lib/shared/SerialKey.cpp</span><br><span class="line">53:        throw std::runtime_error (<span class="string">&quot;Invalid serial key&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><a href="https://github.com/symless/synergy-core/blob/master/src/lib/shared/SerialKey.cpp">https://github.com/symless/synergy-core/blob/master/src/lib/shared/SerialKey.cpp</a></p>
+</blockquote>
+<p>粗略扫视一眼 SerialKey.cpp 文件，确定如下两个函数可能是对序列号进行解析的关键。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">SerialKey::decode(<span class="type">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; serial);</span><br><span class="line">SerialKey::parse(<span class="built_in">std</span>::<span class="built_in">string</span> plainSerial);</span><br></pre></td></tr></table></figure>
+
+<p>decode 函数并不复杂，就不做分析了。继续跟踪函数逻辑流，发现代码中仅仅对序列号版本（Basic 或者 Pro）以及软件过期时间进行了检验，其余 filed 可以随便乱填。Synergy 毕竟是家小公司，做事可能不太严谨。不过话说回来，既然公司把源码都公布出来，自行编译也实在不是什么难事。所以我做的这事的确是有点败坏人品的，图灵祖师宽恕则个……</p>
+<p>下附简单的 Crack Pro 版本序列号的代码。读者可以自行编译，但请勿传播。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="function">string <span class="title">decode</span><span class="params">(<span class="type">const</span> std::string &amp;serial)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">static</span> <span class="type">const</span> <span class="type">char</span> *<span class="type">const</span> lut = <span class="string">&quot;0123456789ABCDEF&quot;</span>;</span><br><span class="line">    string output;</span><br><span class="line">    <span class="type">int</span> len = serial.<span class="built_in">length</span>();</span><br><span class="line">    <span class="keyword">if</span> ((len &amp; <span class="number">1</span>) != <span class="number">0u</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> output;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    output.<span class="built_in">reserve</span>(len / <span class="number">2</span>);</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; len; i += <span class="number">2</span>) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="type">char</span> a = serial[i];</span><br><span class="line">        <span class="type">char</span> b = serial[i + <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        <span class="type">const</span> <span class="type">char</span> *p = <span class="built_in">lower_bound</span>(lut, lut + <span class="number">16</span>, a);</span><br><span class="line">        <span class="type">const</span> <span class="type">char</span> *q = <span class="built_in">lower_bound</span>(lut, lut + <span class="number">16</span>, b);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (*q != b || *p != a) &#123;</span><br><span class="line">            <span class="keyword">return</span> output;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        output.<span class="built_in">push_back</span>(<span class="built_in">static_cast</span>&lt;<span class="type">char</span>&gt;(((p - lut) &lt;&lt; <span class="number">4</span>) | (q - lut)));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> output;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">string <span class="title">encode</span><span class="params">(string src)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    string result;</span><br><span class="line">    <span class="type">static</span> <span class="type">const</span> <span class="type">char</span> *<span class="type">const</span> lut = <span class="string">&quot;0123456789ABCDEF&quot;</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; src.<span class="built_in">length</span>(); ++i) &#123;</span><br><span class="line">        <span class="type">char</span> a = src[i];</span><br><span class="line">        <span class="type">char</span> p = (a &amp; <span class="number">0xf0</span>) &gt;&gt; <span class="number">4</span>;</span><br><span class="line">        <span class="type">char</span> q = (a &amp; <span class="number">0x0f</span>);</span><br><span class="line">        <span class="comment">//        const char *x = lower_bound(lut, lut + 16, p);</span></span><br><span class="line">        <span class="comment">//        const char *y = lower_bound(lut, lut + 16, q);</span></span><br><span class="line"></span><br><span class="line">        result.<span class="built_in">push_back</span>(lut[p]);</span><br><span class="line">        result.<span class="built_in">push_back</span>(lut[q]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// e.g.: &#123;v1;basic;Bob;1;email;company name;1398297600;1398384000&#125;</span></span><br><span class="line">    cout &lt;&lt; <span class="built_in">encode</span>(<span class="string">&quot;&#123;v1;pro;Bob;1;email;company name;1398297600;1398384000&#125;&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>crack</tag>
+        <tag>tips</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>深入解析 Docker 镜像机制 -- 为何 Docker 镜像 ID 会显示 missing ?『译』</title>
+    <url>/2019/01/09/Inside-Docker-images-and-layers/</url>
+    <content><![CDATA[<p><em>原文地址：<a href="https://windsock.io/explaining-docker-image-ids/">https://windsock.io/explaining-docker-image-ids/</a></em><br><em>Author：Nigel Brown</em><br><em>Translator：SU Hang</em><br><em>经原作者 Nigel Brown 授权翻译 | Translator authorized by the Nigel Brown</em></p>
+<p>当 Docker v1.10 发布时，Docker Engine 处理镜像的方式发生了相当大的变化。虽然这种<a href="https://blog.docker.com/2016/01/docker-1-10-rc/">新的处理机制</a> 被解释得很清楚，并且对 Docker 的常规使用（除了镜像迁移之外）几乎没有影响，但是有一些 UI 变动还是引起了一些<a href="https://github.com/moby/moby/issues/20131">误解</a>。那么这种变化是什么，为什么 <code>docker history</code> 命令会显示一些镜像层的 ID 为 <code>&lt;missing&gt;</code>呢？</p>
+<span id="more"></span>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ docker <span class="built_in">history</span> debian</span><br><span class="line">IMAGE               CREATED             CREATED BY                                      SIZE                COMMENT</span><br><span class="line">1742affe03b5        10 days ago         /bin/sh -c <span class="comment">#(nop) CMD [&quot;/bin/bash&quot;]             0 B</span></span><br><span class="line">&lt;missing&gt;           10 days ago         /bin/sh -c <span class="comment">#(nop) ADD file:5d8521419ad6cfb695   125.1 MB</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>首先交代一些相关背景。docker 镜像是用于创建容器的只读模板，并提供基于多层文件和目录的顺序联合的文件系统，这种<a href="https://en.wikipedia.org/wiki/Union_mount">联合文件系统</a> 使得 Docker 镜像得以复用。Docker 平台提供了”共享镜像层”这一基本组件，通常使用<a href="https://zh.wikipedia.org/wiki/%E5%AF%AB%E5%85%A5%E6%99%82%E8%A4%87%E8%A3%BD">写时复制（COW）</a> 机制来实现。在容器运行的生命周期中，如果容器需要从下层的某个只读镜像中修改文件，则在进行更改之前，它会将文件复制到其自己的专用读写层 - 即容器层。</p>
+<p>在 Docker 镜像构建过程中，会创建一个镜像或’diff’，在容器中运行的命令 - 譬如上面提到的 <code>/bin/bash</code>等等 - 会生成新的或修改过的文件和目录。这些新的或修改过的文件和目录被“提交”到容器层。<code>docker history</code> 输出显示 <code>debian</code> 镜像有两层。</p>
+<h4 id="历史遗留"><a href="#历史遗留" class="headerlink" title="历史遗留"></a>历史遗留</h4><p>历史上（在 Docker v1.10 版本之前），每次由于提交操作（译者注：<code>docker commit</code>) 而创建新镜像时，就会随机生成一个 256 位 <a href="https://en.wikipedia.org/wiki/Universally_unique_identifier">UUID</a> 标识来代表这唯一镜像，通常称为镜像 ID（在 UI 中显示为短 12 位十六进制字符串或长 64 位十六进制字符串）。Docker 将镜像内容存储在名称与镜像 ID 相同的目录中。在该目录内部，包括镜像的配置信息 (configuration object ) 和 镜像 ID 和镜像的父镜像的 ID 和。通过这种方式，Docker 能够为容器构建文件系统，每个镜像依次引用其父镜像内容，直到到达没有父级的基本镜像。每一层镜像也可以用有意义的名称（例如 <code>my_image:1.0</code>）标记（可选，不强制），但这通常保留用于叶子镜像。这在下图中描述：</p>
+<p><img src="/2019/01/09/Inside-Docker-images-and-layers/Historical_Image.png" alt="Historical_Image"></p>
+<p>使用 <code>docker inspect</code> 命令将输出：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ docker inspect my_image:1.0</span><br><span class="line">[</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;Id&quot;</span>: <span class="string">&quot;ca1f5f48ef431c0818d5e8797dfe707557bdc728fe7c3027c75de18f934a3b76&quot;</span>,</span><br><span class="line">        <span class="string">&quot;Parent&quot;</span>: <span class="string">&quot;91bac885982d2d564c0e1869e8b8827c435eead714c06d4c670aaae616c1542c&quot;</span></span><br><span class="line">        ...</span><br><span class="line">        ...</span><br></pre></td></tr></table></figure>
+<p>这种方法在很长一段时间都工作良好，但随着时间的推移，由于各种原因，它被认为是一种次优的选择。驱使作出改变的一个重要原因是：当从 Docker registry（如 <a href="https://hub.docker.com/">Docker Hub</a>）中推送到或拉取时，缺乏检测镜像内容是否在被篡改的方法。这收到了整个社区的<a href="https://github.com/moby/moby/issues/9719">强烈批评</a>，最终促使了内容可寻址 ID (content addressable IDs) 的诞生。</p>
+<h4 id="内容可寻址-ID"><a href="#内容可寻址-ID" class="headerlink" title="内容可寻址 ID"></a>内容可寻址 ID</h4><p>从 Docker v1.10 开始，镜像和层级 (images and layers) 不再是同义词。除此之外，镜像可以直接引用一个或多个层级。</p>
+<p>现在层级通过摘要来进行识别，摘要采用如下形式：<code>algorithm:hex</code> 例如：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sha256:fc92eec5cac70b0c324cec2933cd7db1c0eae7c9e2649e42d02e77eb6da0d15f</span><br></pre></td></tr></table></figure>
+
+<p>通过将 <a href="https://github.com/moby/moby/issues/9719">SHA256</a> 算法应用于镜像的内容之上，来计算十六进制 hash 值。如果内容发生变化，则计算的摘要也将发生变化，这意味着 Docker 可以使用其发布的摘要来检查镜像的内容，以验证其是否被篡改。层级不同于”镜像”这个概念，也不属于”镜像”这个概念的一部分，它只是文件和目录的集合。</p>
+<p>现在的 Docker 镜像由一个配置对象 (configuration object) 组成，配置对象中包含了一个有序层级摘要列表，这使得 Docker Engine 能够根据层级摘要而不是父镜像来组装容器的文件系统。镜像 ID 也是一个摘要，是镜像配置对象的 SHA256 哈希值，镜像配置对象涵盖了组成该镜像文件系统的所有”层级”的 hash 摘要。下图描绘了 Docker v1.10 之后镜像和层级之间的关系：</p>
+<p><img src="/2019/01/09/Inside-Docker-images-and-layers/Content_Addressable_Image.png" alt="Content_Addressable_Image"></p>
+<p>为了便于阅读，镜像和镜像的 SHA256 hash 摘要被缩短了。</p>
+<p>用于存储层级内容的目录 <code>diff</code> , 现在以随机生成的“cache ID”命名，Docker Engine 维护层级与其 cache ID 之间的关联性，以便它在磁盘上定位层级内容的位置。</p>
+<p>因此，当从 registery 中提取 Docker 镜像时，<code>docker history</code> 命令用于显示其内容，其输出类似于这样：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ docker <span class="built_in">history</span> swarm</span><br><span class="line">IMAGE               CREATED             CREATED BY                                      SIZE                COMMENT</span><br><span class="line">c54bba046158        9 days ago          /bin/sh -c <span class="comment">#(nop) CMD [&quot;--help&quot;]                0 B</span></span><br><span class="line">&lt;missing&gt;           9 days ago          /bin/sh -c <span class="comment">#(nop) ENTRYPOINT &amp;&#123;[&quot;/swarm&quot;]&#125;      0 B</span></span><br><span class="line">&lt;missing&gt;           9 days ago          /bin/sh -c <span class="comment">#(nop) VOLUME [/.swarm]              0 B</span></span><br><span class="line">&lt;missing&gt;           9 days ago          /bin/sh -c <span class="comment">#(nop) EXPOSE 2375/tcp               0 B</span></span><br><span class="line">&lt;missing&gt;           9 days ago          /bin/sh -c <span class="comment">#(nop) ENV SWARM_HOST=:2375          0 B</span></span><br><span class="line">&lt;missing&gt;           9 days ago          /bin/sh -c <span class="comment">#(nop) COPY dir:b76b2255a3b423981a   0 B</span></span><br><span class="line">&lt;missing&gt;           9 days ago          /bin/sh -c <span class="comment">#(nop) COPY file:5acf949e76228329d   277.2 kB</span></span><br><span class="line">&lt;missing&gt;           9 days ago          /bin/sh -c <span class="comment">#(nop) COPY file:a2157cec2320f541a   19.06 MB</span></span><br></pre></td></tr></table></figure>
+
+<p>该命令提供具体镜像及其层级的详细组成信息。除了镜像的最上面一个层级之外（译者注：这不一定）, 所有 <code>IMAGE</code> 字段中的值都是<code>&lt;missing&gt;</code>, 很不幸，这个值极具误导性，因为它给人一种错误的暗示。但严格来说这么做没错，因为层级不再与镜像同义。我认为把这个领域留空是更恰当的（译者在这里表示赞同）。此外，镜像 ID 似乎仅仅与最上层相关联，但实际上，镜像 ID 不属于任何层。相反，这些层级共同属于该镜像。</p>
+<h4 id="本地构建镜像"><a href="#本地构建镜像" class="headerlink" title="本地构建镜像"></a>本地构建镜像</h4><p>虽然这个内容可寻址镜像的描述适用于 Docker v1.10 版本 之后的所有 Docker 镜像，但 Docker 主机上的本地构建镜像的方式略有不同。本地构建的镜像保持不变 - 它是包含配置项的配置对象，包括层级摘要的有序列表。</p>
+<p>但是，当本地 Docker 主机上构建的层级提交给镜像时，会同时创建“中间”镜像。与所有其他镜像一样，”中间镜像”也具有配置项，该配置项是组成镜像的层级摘要列表，并且其 ID（或摘要）包含配置对象的 hash 值。中间镜像没有标记名 (tag name)，但是，它们有一个“父”键（译者注：原文这里有点小瑕疵，不是”父”键，在代码中是以对象成员表示的），其中包含父镜像的 ID。</p>
+<p>使用中间镜像和包含对父镜像的引用的目的，是为了便于 Docker <a href="https://docs.docker.com/engine/reference/builder/#from">构建缓存</a> 。构建缓存是 Docker 平台的另一个重要特性，用于帮助 Docker 引擎利用预先存在的层级，以免为相同的构建命令不必要地重复生成内容。它使得构建过程更有效。在本地构建镜像时，该 <code>docker history</code> 命令可能提供类似于以下内容的输出：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ docker <span class="built_in">history</span> jbloggs/my_image:latest</span><br><span class="line">IMAGE               CREATED             CREATED BY                                      SIZE                COMMENT</span><br><span class="line">26cca5b0c787        52 seconds ago      /bin/sh -c <span class="comment">#(nop) CMD [&quot;/bin/sh&quot; &quot;-c&quot; &quot;/bin/b   0 B</span></span><br><span class="line">97e47fb9e0a6        52 seconds ago      /bin/sh -c apt-get update &amp;&amp;     apt-get inst   16.98 MB</span><br><span class="line">1742affe03b5        13 days ago         /bin/sh -c <span class="comment">#(nop) CMD [&quot;/bin/bash&quot;]             0 B</span></span><br><span class="line">&lt;missing&gt;           13 days ago         /bin/sh -c <span class="comment">#(nop) ADD file:5d8521419ad6cfb695   125.1 MB</span></span><br></pre></td></tr></table></figure>
+
+<p>在此示例中，上面两个层级是在本地镜像构建期间创建的，而底层是来自基本镜像（例如 <a href="https://docs.docker.com/engine/reference/builder/#from">Dockerfile 指令</a> <code>FROM debian</code>）。我们可以使用 <code>docker inspect</code> 命令查看与该镜像关联的层级摘要：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ docker inspect jboggs/my_image:latest</span><br><span class="line">[</span><br><span class="line">    &#123;</span><br><span class="line">        ...</span><br><span class="line">        ...</span><br><span class="line">        &quot;RootFS&quot;: &#123;</span><br><span class="line">            &quot;Type&quot;: &quot;layers&quot;,</span><br><span class="line">            &quot;Layers&quot;: [</span><br><span class="line">                &quot;sha256:4dcab49015d47e8f300ec33400a02cebc7b54cadd09c37e49eccbc655279da90&quot;,</span><br><span class="line">                &quot;sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef&quot;,</span><br><span class="line">                &quot;sha256:f22bfbc1df820c465d94215e45bf9b1f0ae0fe3435a90dc5296a4b55712f46e7&quot;</span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p><code>docker history</code> 命令显示镜像具有四个层级，但 <code>docker inspect</code> 显示仅包含三个镜像。这是因为两条 <code>CMD</code> 指令仅为镜像生成元数据，不添加任何实质性内容，因此’diff’为空。摘要 5f70bf18a08a 是空镜像的 SHA256 哈希值，由两个相关层共享。</p>
+<p>被推送到 registry 的本地构建镜像，是仅有的”叶子镜像”, 与它的组成层级一同上传，并随后由另一个 Docker 主机拉取，这过程将不会产生任何中间父镜像。这是因为一旦借助 registry 将镜像提供给不同 Docker 主机上的其他潜在用户时，它的属性将变为只读，并且不再需要构建缓存 (build cache) 组件的支持。所以此时，<code>&lt;missing&gt;</code>值将被插入到其相应位置。</p>
+<p>将镜像推送到 registry 可能会产生如下输出：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ docker push jbloggs/my_image:latest</span><br><span class="line">The push refers to a repository [docker.io/jbloggs/my_image]</span><br><span class="line">f22bfbc1df82: Pushed</span><br><span class="line">5f70bf18a086: Layer already exists</span><br><span class="line">4dcab49015d4: Layer already exists</span><br><span class="line">latest: digest: sha256:7f63e3661b1377e2658e458ac1ff6d5e0079f0cfd9ff2830786d1b45ae1bb820 size: 3147</span><br></pre></td></tr></table></figure>
+
+<p>在此示例中，仅推送了一个层级，因为 registry 中已存在两个层级，这两个层级可能被一个或多个其他镜像引用。</p>
+<h4 id="最后的”小别扭”"><a href="#最后的”小别扭”" class="headerlink" title="最后的”小别扭”"></a>最后的”小别扭”</h4><p>Docker 的层级“diffs”摘要，包含 <code>diff</code>目录 的 tar 包的 sha256 hash 值。在将镜像上传到 registry 之前，会对其进行压缩以提高带宽效率。除此之外，还会创建清单 (manifest) 来描述镜像的内容，它包含压缩层级内容的摘要。因此，清单中的层级摘要与在其未压缩状态下生成的摘要不同。该清单也会被推送到 registry。</p>
+<p>压缩层 diff 的摘要可以被称为“分发摘要”，而未压缩层 diff 的摘要可以被称为“内容摘要”。因此，当我们在不同的 Docker 主机上提取示例镜像时，<code>docker pull</code> 命令会提供以下输出：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ docker pull jbloggs/my_image</span><br><span class="line">Using default tag: latest</span><br><span class="line">latest: Pulling from jbloggs/my_image</span><br><span class="line"></span><br><span class="line">51f5c6a04d83: Pull complete</span><br><span class="line">a3ed95caeb02: Pull complete</span><br><span class="line">9a246d793396: Pull complete</span><br><span class="line">Digest: sha256:7f63e3661b1377e2658e458ac1ff6d5e0079f0cfd9ff2830786d1b45ae1bb820</span><br><span class="line">Status: Downloaded newer image <span class="keyword">for</span> jbloggs/my_image:latest</span><br></pre></td></tr></table></figure>
+
+<p><code>docker pull</code> 命令输出中的分发摘要，与<code>docker push</code>命令输出的摘要非常不同 。但是，pull 将解压缩层级，<code>docker inspect</code> 命令的输出将与我们在构建镜像后看到的内容摘要相同。</p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>在 Docker v1.10 中更改镜像和镜像处理机制之后：</p>
+<ul>
+<li>Docker 镜像基于它存储到层级差异 (diffs) 的引用为派生容器提供文件系统；</li>
+<li>使用摘要引用层级差异 (diffs)，摘要包含差异 (diffs) 内容归档（译者注：就是 tar 包）的 SHA256 hash 值；</li>
+<li>Docker 镜像的 ID 是一个摘要，其中包含镜像的 JSON 配置对象的 SHA256 哈希值；</li>
+<li>为了维护构建缓存，Docker 在本地镜像构建期间会创建中间镜像；</li>
+<li>镜像清单会在推送镜像时一并推送到 Docker registry;</li>
+<li>镜像清单包含镜像层级的摘要，其中包含压缩的归档差异内容的 SHA256 哈希值；</li>
+</ul>
+]]></content>
+      <tags>
+        <tag>Docker</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Using QEMU to implement micro:bit machine type emulation</title>
+    <url>/2018/04/27/QEMU-GSoC-2018-proposal/</url>
+    <content><![CDATA[<h2 id="Basic-Information"><a href="#Basic-Information" class="headerlink" title="Basic Information"></a>Basic Information</h2><ul>
+<li><strong>Name:</strong> darcy</li>
+<li><strong>IRC nickname:</strong> darcy</li>
+<li><strong>Programming languages (fluent):</strong> C, C++</li>
+<li><strong>Past open source contributions:</strong><br>  participating write a open source technical book about ‘OpenResty’<br>  <a href="https://github.com/moonbingbing/openresty-best-practices">https://github.com/moonbingbing/openresty-best-practices</a></li>
+<li><strong>Sample source code, hobby projects, GitHub, etc URLs:</strong><br>  <a href="https://github.com/DarcySail">https://github.com/DarcySail</a></li>
+</ul>
+<h2 id="Why-you-are-applying"><a href="#Why-you-are-applying" class="headerlink" title="Why you are applying"></a>Why you are applying</h2><p>There are two reasons for participating in QEMU-GSoC:</p>
+<p>First, I’m an virtualization technology enthusiast. During my junior year at college, I’ve designed and implemented a C programming language based compiler, allowing users to directly convert native C code into a my own designed Stack-Based Instruction Set. Internally, a virtual machine to support byte-code execution is integrated into this compiler. Although this simple virtual machine prototype cannot support the full stack of virtualization technology, it’s actually the starting point for my interest in virtualization. Now, I’m pursuing my PH.D degree in University of Chinese Academy of Sciences. And I focus on low-level system software design，including virtualization technologies and AI operating systems, e.g., QEMU, Docker, etc. Thus, I want to utilize QEMU to implement the emulation of Intelligence Chip after I am familiar enough with QEMU.</p>
+<span id="more"></span>
+
+<p>First, I am greatly interested in virtualization. When I was a junior, I designed and implemented a compiler that support the subset of C language, the compiler accepted C code as input, and output Stack-based Instruction Set(also designed by myself). A virtual machine was written in order to run this bytecode.  Now, in my point of view, this amateur virtual machine is far from virtualization, but it’s actually the starting point for my interest in virtualization.  When I came to University of Chinese Academy of Sciences as a master student, most of tasks assigned to me by my school mentor are about low-level system software. And I want to utilize QEMU to implement the emulation of Intelligence Chip after I am familiar enough with QEMU.</p>
+<p>Firstly, I am greatly interested in virtualization. When I was a junior, I designed and implemented a compiler that supports the subset of C language. The compiler accepted C code as input, and output Stack-based Instruction Set(also designed by myself). A virtual machine was written in order to run this bytecode.  Now, in my point of view, this amateur virtual machine is far from virtualization, but it’s actually my starting point of the interest in virtualization.  When I came to University of Chinese Academy of Sciences as a Master student, most tasks of mine assigned by my school mentor are about low-level system software. And I want to utilize QEMU to implement the emulation of Intelligence Chip after I am familiar enough with QEMU.</p>
+<p>Secondly, when I use Linux and various open source software every day, the idea of contributing to Open Source Community naturally emerge in my deep heart. QEMU-GSoC is the best practice I could take part in. Since I have read all project ideas listed in QEMU, I thought the implementation of micro:bit is not only able to satisfy my requirement of learning peripheral emulation, but also within the capability of my skill.</p>
+<p>And I have already contributed to QEMU Community by commit 4 patchs, three of them have been merged into master branch. Here are links:<a href="#1">[1]</a> <a href="#2">[2]</a> <a href="#3">[3]</a> <a href="#4">[4]</a></p>
+<h2 id="Summary-of-your-understanding-of-the-project-idea"><a href="#Summary-of-your-understanding-of-the-project-idea" class="headerlink" title="Summary of your understanding of the project idea"></a>Summary of your understanding of the project idea</h2><p>The Project Idea of implementing micro:bit machine type provides the best testing platform for developers or kids.Besides, the implemented peripherals can be reused as modular components by future devices.</p>
+<p>What I need to do includes:</p>
+<h3 id="Part-I"><a href="#Part-I" class="headerlink" title="Part I."></a>Part I.</h3><ul>
+<li>Implementing ARM Cortex-M0 CPU support based on existing Cortex-M3 support in QEMU.</li>
+</ul>
+<p>Although the architectures are binary instructions upward compatible from Armv6-M to Armv7-M, and most(not all) binary instructions available for the Cortex-M0 can execute without modification on the Cortex-M3.<a href="#4">[4]</a> <a href="#5">[5]</a></p>
+<p>Normally, when porting from the Cortex-M3 to the Cortex-M0, I need to change the peripheral access code, and update system features like clock speed, sleep modes, and so on. And this part of the code in the qemu architecture basically does not belong to implementiion of CPU (.&#x2F;target&#x2F;arm), but is the work of the implementation of peripherals (.&#x2F;hw&#x2F;arm).<a href="#6">[6]</a></p>
+<p>However, what I need to do is to use QEMU’s support for cortex-m3 to implement a “true” virtual CPU rather than just using the existing cortex-m3 to implement the microbit machine functionality.</p>
+<p>Except for some functional differences in some of the instructions, the two CPUs still have some differences above features. Some programmers may write some code based on the characteristics of the processor. And some softwares should validate the existence of a feature before attempting to use it. When programmers write such code on Cortex-M0, it is assumed that these features are supported on qemu. In fact, in this case, if we directly replace cortex-m0 with cortex-m3, a series of unpredictable problems will happen. This is why we should trim unnecessary feature from Cortex-M3.<a href="#7">[7]</a></p>
+<h4 id="1-Differences-between-instructions"><a href="#1-Differences-between-instructions" class="headerlink" title="1. Differences between instructions"></a>1. Differences between instructions</h4><p>The Cortex-M0 contains traditional Thumb-1, not including new instructions (CBZ, CBNZ, IT) which were added in Armv7-M architecture, and a minor subset of Thumb-2 instructions (BL, DMB, DSB, ISB, MRS, MSR). The Cortex-M3 have all base Thumb-1 and Thumb-2 instructions.<a href="#8">[8]</a></p>
+<ul>
+<li>The Cortex-M0 only has 32-bit multiply instructions with a lower-32-bit result (32bit × 32bit &#x3D; lower 32bit), where as the Cortex-M3 &#x2F; M4 &#x2F; M7 &#x2F; M33 includes additional 32-bit multiply instructions with 64-bit results (32bit × 32bit &#x3D; 64bit).<a href="#8">[8]</a></li>
+</ul>
+<p>All this unsupported instructions should be trimmed from current Cortex-M3 implementation. The specific method is to utilize the following functions provided by QEMU, using <code>UNPREDICTABLE</code> or <code>UNDEFINED</code> to replace the original instructions.</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> ENABLE_ARCH_V6     arm_dc_feature(s, ARM_FEATURE_V6)</span></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">disas_arm_insn</span><span class="params">(DisasContext *s, <span class="type">unsigned</span> <span class="type">int</span> insn)</span></span><br><span class="line">&#123;</span><br><span class="line">    ....</span><br><span class="line">    <span class="comment">/* for different feature that not supported by cotex-m0(armv6);</span></span><br><span class="line"><span class="comment">     * we could raise the INVSTATE UsageFault exception.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (arm_dc_feature(s, ARM_FEATURE_V6)) &#123;</span><br><span class="line">        gen_exception_insn(s, <span class="number">4</span>, EXCP_INVSTATE, syn_uncategorized(),</span><br><span class="line">                           default_exception_el(s));</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    ....</span><br><span class="line">    <span class="comment">/* for Instruction that not supported by cortex-m0(armv6), we</span></span><br><span class="line"><span class="comment">     * choose to UNDEF.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (!arm_dc_feature(s, ARM_FEATURE_NEON)) &#123;</span><br><span class="line">        <span class="keyword">goto</span> illegal_op;</span><br><span class="line">    &#125;</span><br><span class="line">illegal_op:</span><br><span class="line">        gen_exception_insn(s, <span class="number">4</span>, EXCP_UDEF, syn_uncategorized(),</span><br><span class="line">                           default_exception_el(s));</span><br><span class="line">    ....</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-Differences-between-features"><a href="#2-Differences-between-features" class="headerlink" title="2. Differences between features"></a>2. Differences between features</h4><p>The following features should be taken into consideration:</p>
+<p>ARM architecture: The Cortex-M0 implement the Armv6-M architecture, and the Cortex-M3 implements the Armv7-M architecture.</p>
+<ul>
+<li>Interrupts: 1 to 32 (Cortex-M0), 1 to 240 (Cortex-M3).</li>
+<li>Vector Table Offset Register: Not available for Cortex-M0.</li>
+<li>Number of watchpoint comparators: 0 to 2 (Cortex M0), 0 to 4 (Cortex-M3).</li>
+<li>Number of breakpoint comparators: 0 to 4 (Cortex M0), 0 to 8 (Cortex-M3).</li>
+<li>The performance efficiency: 0.9 DMIPS&#x2F;MHz 1.25 DMIPS&#x2F;MHz(this part won’t affect QEMU)<a href="#8">[8]</a></li>
+</ul>
+<p>Except for listed above, aligned access is another important different feature. An aligned access is an operation where a word-aligned address is used for a word or multiple word access, or where a halfword-aligned address is used for a halfword access. Byte accesses are always aligned.</p>
+<p>There is no support for unaligned accesses on the Cortex-M0 processor. Any attempt to perform an unaligned memory access operation results in a HardFault exception.<a href="#9">[9]</a></p>
+<p>NVIC and SCB (System Control Block) registers in the Cortex-M0 can only be accessed in word-size transfers.  While some registers in the NVIC and the SCB in the Cortex-M3 are not available in the Cortex-M0. These include the Interrupt Active Status Register, the Software Trigger Interrupt Register, the Vector Table Offset Register, and some of the fault status registers.<a href="#6">[6]</a></p>
+<p>The bit-band feature in the Cortex-M3 is not available in the Cortex-M0. If the bit-band alias access is used, it needs to return an error_id.</p>
+<p>In general, Cortex-M0 memory access must always be naturally aligned while Cortex-M3 doesn’t have this limit. The unsupported features should be trimmed to satisfy Cortex-M0.<br>(refered to <a href="#code2">[code]</a>):</p>
+<h3 id="Part-II"><a href="#Part-II" class="headerlink" title="Part II."></a>Part II.</h3><ul>
+<li>Implementing a “microbit” machine type.</li>
+<li>Implementing at least the 5x5 LED display, buttons, and UART.</li>
+<li>Stubbing out other devices as needed for the runtime to start successfully.</li>
+</ul>
+<p>Different from X86 architecture which provides port-mapped I&#x2F;O, ARM architecture uses memory-mapped I&#x2F;O to perform input&#x2F;output (I&#x2F;O) between CPU and peripheral devices. In programming of kernel module, we control peripherals by read&#x2F;write I&#x2F;O registers.  Because of the opposite behaviors, when we try to emulate peripheral device, we should read the value of I&#x2F;O register to figure out what kind of operations do users want us to achieve so that we can give feedback to users by write corresponding I&#x2F;O register. In order to specify utilize QEMU to emulate peripherals in ARM architecture, we should add a QEMU data structure named “MemoryRegion” per I&#x2F;O mapped-memory, then hook the “MemoryRegion” with two callback functions(one for responding reading behavior, one for responding writing behavior), as long as user’s code tries to access this “MemoryRegion”, no matter reading or writing, the right corresponding callback function will be called. And exactly in this callback function should we implement the concrete peripherals feature.<a href="#10">[10]</a></p>
+<p><span id = "code2"></span></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">uint64_t</span> <span class="title function_">microbit_rom_read_hook</span><span class="params">(<span class="type">void</span> *opaque, hwaddr offset, <span class="type">unsigned</span> size)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (offset &amp; <span class="number">0x1</span>) &#123;</span><br><span class="line">        qemu_log_mask(LOG_GUEST_ERROR,</span><br><span class="line">                      <span class="string">&quot;ROM: read at bad offset 0x%x\n&quot;</span>, (<span class="type">int</span>)offset);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">const</span> MemoryRegionOps microbit_rom_ops = &#123;</span><br><span class="line">    .read = microbit_rom_read,</span><br><span class="line">    .write = microbit_rom_write,</span><br><span class="line">    .endianness = DEVICE_NATIVE_ENDIAN,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>There is no big difference between stubbing a device and actually implementing a device, both of them need to allocate a MemoryRegion, and hook the access to them, expect for stubbed device hooked with almost empty functions.</p>
+<h3 id="Part-III"><a href="#Part-III" class="headerlink" title="Part III."></a>Part III.</h3><ul>
+<li>Test code.</li>
+</ul>
+<p>In order to test the correctness of emulation code, we could use online Python(or Javascript Blocks editors) to generate specific code which controls specific peripheral. According to “nRF51 Series Reference Manual”, we check whether the generated code has written right value of right address.  For example, in the emulation of LED device, we can use Python to generate “.hex” file that only controls one LED light to blink. Then we check whether the corresponding callback function has been called, and whether “.hex” code has written expected value to right I&#x2F;O registers.</p>
+<p>In addition to using these official compilers, we can also use the runtime environment provided by Lancaster University, to minimize irrelevant variables.</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//This code should blink LED every 500ms.</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;mbed.h&quot;</span></span></span><br><span class="line"></span><br><span class="line">DigitalOut <span class="title function_">led1</span><span class="params">(LED1)</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        led1 = !led1;</span><br><span class="line">        wait(<span class="number">0.5</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Then use the following shell command to compile the source code.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">yotta init</span><br><span class="line">yotta target bbc-microbit-classic-gcc</span><br><span class="line">yotta install lancaster-university/microbit</span><br><span class="line">yotta build</span><br></pre></td></tr></table></figure>
+
+<p>The hex file we need to burn to flash rom will be found in project <code>LED-Blink/build/bbc-microbit-classic-gcc/source</code> and it will be called <code>LED-Blink-combined.hex</code>.</p>
+<p>In addition, assembly code, which directly controls peripherals, should also be able to test on baremetel virtual machine.</p>
+<h2 id="Project-plan"><a href="#Project-plan" class="headerlink" title="Project plan"></a>Project plan</h2><p><strong>5.15 - 5.22</strong><br>Implementing a micro:bit .hex ROM loader;</p>
+<p>(approximately 500 - 1000 line of c code)</p>
+<p><strong>5.23 - 7.11</strong><br>Implementing a “microbit” machine type;</p>
+<p>Stubbing out other devices as needed for the runtime to start successfully;</p>
+<p>Implementing at least the 5x5 LED display, buttons, and UART;</p>
+<p>(approximately 1000 - 1500 line of c code for these three tasks.)</p>
+<blockquote>
+<p><strong>6.12 - 6.13</strong><br>GSoC middle evaluations.</p>
+</blockquote>
+<p><strong>7.12 - 7.22</strong><br>Implementing ARM Cortex-M0 CPU support based on existing Cortex-M3 support in QEMU;</p>
+<p>(approximately 98 instructions need to be trimmed, approximately 98 * 5 &#x3D; 490. Include trimming feature code, approximately 500 - 800 line of c code.)</p>
+<blockquote>
+<p><strong>7.10 - 7.11</strong><br>GSoC middle evaluations.</p>
+</blockquote>
+<p><strong>7.23 - 7.31</strong><br>Finish all basic task, completely test code, prepare and start to code other peripherals and GUI;</p>
+<p><strong>8.1 - 8.14</strong><br>Implement basic GUI. Implement other meaningful peripherals;</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><span id = "1"> [1] <a href="http://lists.nongnu.org/archive/html/qemu-devel/2018-02/msg06778.html">http://lists.nongnu.org/archive/html/qemu-devel/2018-02/msg06778.html</a></span></li>
+<li><span id = "2"> [2] <a href="http://lists.nongnu.org/archive/html/qemu-devel/2018-03/msg01626.html">http://lists.nongnu.org/archive/html/qemu-devel/2018-03/msg01626.html</a></span></li>
+<li><span id = "3"> [3] <a href="http://lists.nongnu.org/archive/html/qemu-devel/2018-04/msg00899.html">http://lists.nongnu.org/archive/html/qemu-devel/2018-04/msg00899.html</a></span></li>
+<li><span id = "4"> [4] <a href="http://lists.nongnu.org/archive/html/qemu-devel/2018-04/msg03242.html">http://lists.nongnu.org/archive/html/qemu-devel/2018-04/msg03242.html</a></span></li>
+<li><span id = "5"> [4] ARMv6-M Architecture Reference Manual</span></li>
+<li><span id = "6"> [5] ARMv7-M Architecture Reference Manual</span></li>
+<li><span id = "7"> [6] The Definitive Guide to the ARM Cortex-M0</span></li>
+<li><span id = "8"> [7] Cortex-M3 Embedded Software Development</span></li>
+<li><span id = "9"> [8] <a href="https://en.wikipedia.org/wiki/ARM_Cortex-M">https://en.wikipedia.org/wiki/ARM_Cortex-M</a></span></li>
+<li><span id = "10"> [9] STM32F0xxx Cortex-M0 programming manual</span></li>
+<li><span id = "11"> [10] <a href="https://www.qemu.org/2018/02/09/understanding-qemu-devices/">https://www.qemu.org/2018/02/09/understanding-qemu-devices/</a></span></li>
+</ul>
+]]></content>
+      <tags>
+        <tag>QEMU</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Share my dotfile</title>
+    <url>/2018/05/31/Share-my-dotfile/</url>
+    <content><![CDATA[<h4 id="工作环境推荐"><a href="#工作环境推荐" class="headerlink" title="工作环境推荐"></a>工作环境推荐</h4><p>笔者的工作环境是<code>Ubuntu-16.04.1 + Neovim + zsh + oh-my-zsh + tmux + oh-my-tmux</code>，使用到图形界面的时候主要是阅读 pdf 文档以及浏览网页。</p>
+<p>身为一个重度 Vim 使用者，我交换了 ESC 键和 Caps Lock 键，使用 zsh 的 <code>Vi</code> 模式，并尝试在一切可能的地方使用<code>Vim-like</code>的方式来操控机器。</p>
+<ul>
+<li>网页浏览：Chrome + cVim(Chrome 插件）</li>
+<li>PDF 阅读： Evince（测试过所有 <code>Vim-like</code> 的阅读器之后，发现或多或少存在问题，Evince 只能算是差强人意的选择） (2018.12.09 更新：配置好 Zathura 后挺好用的）</li>
+<li>PDF 制作： Neovim + Typora</li>
+<li>PPT 制作： Neovim + nodePPT</li>
+<li>Overwall： VPS + Shadowsocks</li>
+<li>文件管理： VPS + Git（这里强烈批评坚果云，居然能 24 小时吃掉我 100% 的 CPU 资源，对富文本格式文件解析能力非常差）</li>
+<li>文件共享： VPS + Git</li>
+<li>下载： VPS + aria2c</li>
+<li>终端模拟器： Tilix</li>
+<li>键鼠 + 剪贴板共享： Synergy</li>
+</ul>
+<p>折腾过很久的 Vim 插件，所走的这些路，应该是大多数被 Vim 哲学所吸引的人都走过的。<br>在这里分享 dotfile，以飨后来人。希望或多或少能帮到你。</p>
+<span id="more"></span>
+
+<blockquote>
+<p><a href="https://github.com/DarcySail/dotfile">https://github.com/DarcySail/dotfile</a><br><a href="https://xaizek.github.io/2016-08-13/big-list-of-vim-like-software/">https://xaizek.github.io/2016-08-13/big-list-of-vim-like-software/</a></p>
+</blockquote>
+<p>本仓库会持续更新，除了去掉敏感的隐私内容之外，会尽量与我实际使用的 dotfile 保持一致。</p>
+<h4 id="To-be-tested"><a href="#To-be-tested" class="headerlink" title="To be tested"></a>To be tested</h4><ul>
+<li>文件浏览： 的确有 <code>Vim-like</code> 的文件系统管理器，但我对此心存疑虑，zsh 组合拳似乎对我已经非常够用了</li>
+</ul>
+<h4 id="未来目标"><a href="#未来目标" class="headerlink" title="未来目标"></a>未来目标</h4><ul>
+<li>将 dotfile 中的所有英文整理为中文（本博客的定位是创造价值以及帮助后来者，所以会照顾大多数 newcomer）；</li>
+<li>测试完所有 Github 上面排名前十的 dotfile 仓库，整合到我自己的内容中来；</li>
+<li>排版格式</li>
+</ul>
+]]></content>
+      <tags>
+        <tag>vim</tag>
+        <tag>zsh</tag>
+        <tag>terminal</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>杂念-2</title>
+    <url>/2019/05/24/Thought-2/</url>
+    <content><![CDATA[<p>当然，我是一个男人，我自然会觉得“爱人”要比“被爱”更快乐一些。也许我是一个女人的话，就会有完全相反的想法了。</p>
+<p>我得警惕我这个念头里面性别不平等的气味。</p>
+<hr>
+<p>不小心看到过去自己写的一些话，觉得自己那时浑身都是刺，脸红不已，不敢再看下去。<br>话说回来，我怎么知道自己现在就不是浑身都是刺呢？</p>
+<span id="more"></span>
+
+<hr>
+<p>“荒诞主义的旗手加缪对其他存在主义哲学家试图在生活中重建一种意义的做法进行了批判：在这个无意义的世界中创造意义实际上是一种逃避，一种哲学意义上的自杀。一个清醒的人的正确做法应当是直面世界的荒诞本质，并以最大的热情去对抗它。”</p>
+<hr>
+<p>“都想被爱，可这世界哪里凭空来这么多太阳。<br>满眼都是等爱的黑洞，空无一个发光的太阳。” —— 某网友</p>
+<p>很多领域都和这相似呀，永远是一群人围观为数不多的、有能力创造价值的人。<br>回到爱的话题上，我真的很乐意做一个太阳，做一个太阳是一件很快乐的事。<br>爱与被爱都是好的，但我还是更乐意爱人一些，因为给予爱是主动的，而接受爱是被动的。</p>
+<p>之前不明白她的创作的意义是什么，现在在我的视角里，也许就是分享一些爱吧。尽管是虚假的，但也勉强提供一些慰藉了。</p>
+<hr>
+<p>学界干预政治似乎是佳话，政治干预学界则被视作不择不扣的暴政了。说到底，谁干预谁，有本质上的区别吗？</p>
+<hr>
+<p>严格而怜悯：严格地判断这些恶，不要觉得恶小就不是恶；没有人能够完全纯洁，要理解人都有软弱的时候。<br>“为求赎罪，避免通奸。未能生而自制的众生，应当结婚，仍为我主的纯洁儿女”</p>
+<hr>
+<p>当奥丁将此枪掷出时，会发出划越空际的亮光，地上的人称之为“闪电”，另一说法是“流星”。神话中记载，对着这一把枪发誓的人，他的誓言必将实现。这也许就是对着流星许愿的由来。</p>
+<hr>
+<p>撒旦具有耳语能力，而影响人的决定。</p>
+<hr>
+<p>身生智未生，智生身已老。身恨智生迟，智恨身生早。身智不相逢，曾经几度老。身智若相逢，即得成佛道。</p>
+<p>保国者，其君其臣肉食者谋之；保天下者，匹夫之贱与有责焉耳矣。</p>
+<hr>
+<p>候人兮猗</p>
+<hr>
+<p>“而最严重的问题是高人口密度造成的高压力，而造成少子化问题。” —— 某人</p>
+<hr>
+<p>“真正的女权运动到底是要做什么？<br>让女人能承担一半的责任，能有一半的议会席位，以及，有一半的工作机会。” —— 某观点</p>
+<hr>
+<p>醉后不知天在水，满船清梦压星河。</p>
+<hr>
+<p>“25 岁了，但我觉得跟 5 年前的自己相比也没有长进。”<br>在我十几岁的时候，我是带着一丝优越感听雪野小姐说这话的，那时候的我，未来仍有无限可能。我很优秀，未来看起来似乎很光明。<br>真是讨厌。这个讨厌的名为██的自己。</p>
+<hr>
+<p>『前天我看見了一隻兔子』，女孩說，『昨天看見了一頭鹿，而今天則遇見了你。』</p>
+<hr>
+<p>人类像孤岛也像冰山，冰山下面有很多东西没表达出来。也不适合向所有人、不恰当的时间去表达。</p>
+<hr>
+<p>我完全认同”人在保留一定的底线的情况下，拥有选择过自己想要的生活的自由”，这个观点不知道你是否认同。<br>我也完全认同“我们要有争取<strong>有一定限制的</strong>自由的意识并为之努力”。</p>
+<p>但这本书在这个故事中，过于强调子女忤逆父母的行为，所以我认为这本书没有选对最合适的例子。<br>我的理由是：“父母不仅仅是因为子女不按照自己的想法做而不高兴，而是在他们所信仰的基督教认知中，以及他们所认同的社会价值观中，同性恋是一件有悖道德的事。”这就不仅仅是个人选择，而且牵涉到社会价值观的问题了。所以我觉得书里这个例子本意是为了“强调父母对子女的控制”，但这个例子没有很好的表达这个观点，有点打偏了。</p>
+<p>具体到同性恋这件事上，我是认同可以选择过同性恋生活的自由。尽管我的这个想法甚至可能在世界上大多数国家都不合法。</p>
+<p>具体到吸毒这件事上，他们可能是这样，比如认为毒品违法，但大麻、酒精、烟草不是毒品，所以这些东西不违法。无论对毒品的定义是什么，是没有一个国家认为吸毒合法的。<br>我们是否该去争取想吸毒就吸毒的自由呢？</p>
+<p>这同样很难说，一项东西也许现在人们没有意识到他的危害，现在不违法，但以后可能违法。<br>同样的，宋朝时（甚至现代的印度）吃牛肉都违法，但如今并不违法。<br>法律也只是反映了现阶段人类的认知，甚至即使反映了认知，也没有及时动态更新。<br>我的想法是，在保留一定的底线的情况下，人拥有选择过自己生活的自由。但这个底线具体该是什么，我不知道，甚至我想，哲学家、法学家他们也不一定真正拥有这个问题的答案。<br>只要人生活在社会群体中，既受到社会的影响，同时也在影响着这个社会。除非过着完全不与任何人进行任何程度的交流的生活，但这样，人之所以为人也不成立了。<br>我下面的回复没有任何恶意啊，只是陈述我想到的东西：<br>假设子女认为吸毒是好的，同样没有影响到任何人（其实这很难说，就像同性恋也很难说没有影响到他人一样）。那这种情况，外人是否应该干涉呢？<br>我认同可以选择自由选择保持何种价值观，但我同时也觉得这种权利也该保留最低底线的限制才行。<br>比如他认同多杀人就是好的，这种不应该限制一下吗？抱歉，不是有意抬杠，写代码总要考虑各种极端情况，这让我养成了这种思维习惯。</p>
+<p>如果认为法律是底线的话。我不能生活在以色列就认为这个可以，去日本旅游了一下就认为不可以吧。这价值观也变化得太快了……</p>
+<hr>
+<p><strong>《To 妹妹》</strong></p>
+<p><strong>幸福</strong><br>“幸福美满的家庭”，关于幸福，无论是哲学家的论证，还是我自己的经验，它们都告诉我幸福感来源于人的意志本身。读完一本好书，看完一部引我深思的电影，与喜欢的人的简单交流，与朋友深刻而坦诚的讨论，这些都让我感到无比幸福。</p>
+<p>但幸福的家庭，却是有些难的，这不仅需要家庭中的每一个成员清晰的认知，也需要经年累月对抗自己内心的努力。我想说的是，也许不能有幸福的家庭，但平淡的而普通的家庭才是人世间的常态呀。而且就算不能有幸福的家庭，但却可以有幸福的个人呀。</p>
+<p><strong>能力</strong><br>什么叫做有能力呢？在视野中的所有可行的选择中，能够实现自己想要达成的目标，以我的认知来说，这就是有能力了。</p>
+<p>但无论你现阶段作出怎样的选择，都逃脱不了“高考”或是“考取国外高校”这一框架，你的选择是有限的。<br><del>但无论我们现阶段作出怎样的选择，都逃脱不了认知以及某种框架的制约，我们的选择是有限的。</del></p>
+<p>你的选择有限，单纯只是年龄阶段、以及社会条件的制约，跟你本人的身体、心理素质没有任何关系。举一个极端但更方便你理解的例子，我就难以想象一个刚出生的婴儿能为他的家庭带来多少物质上的改变。但我们能说这个婴儿“无能”吗？不，甚至用“能力”去对他做这样的评价都是不合适的，不仅仅因为他没有任何行动力，更因为他没有任何选择的余地。</p>
+<p>具体到家庭，一个尚在读书时的学生，同样也没有多少作出帮助家庭减轻物质负担的余地。具体到学生工作来说，虽然我们是班长（或是别的什么职务），我们手中的权能和职责也真的很有限，“巧妇难为无米之炊”呀。</p>
+<p>怎样在有限的选择中锻炼能力呢？有两条可以同时进行的路径，这是具体的“方法论”：</p>
+<ol>
+<li>作出一个选择的前提是你首先要知道这个选择的存在，倘若都完全不知道还能作出这样的选择，那么想去实现它更是无从谈起。如何知晓更多的可能性，很简单，扩宽视野。有些老生常谈的一句话：“读万卷书，行万里路”，书籍是个人人生经历的延伸，别人记录下自己的生活，我们从中探知他的生活方式的可能性。当你面临一个未曾经历的事件时，问自己，这事违法吗？这件事可能会对我造成无法承受的伤害吗？如果答案都是否定的，那就勇敢的去尝试吧。</li>
+<li>已经知晓了一个选择的存在，去实现它，需要行动力和意志力的支撑。而行动力和意志力都是我们通过锻炼能够不断提升的。这里我不展开说了，只简单给几个特别有效的建议：<ul>
+<li>每天做 2 件自己不想做的事情。比如原本想要赖床，那就至少今天绝对不要赖床。今天特别想喝一瓶可乐，那就今天坚决不要喝可乐，哪怕明天报复性地喝 3 瓶都可以，但重要的是今天一定不要做。每天只做两件就够了，因为意志力其实是会被消耗的，消耗过后需要时间去恢复。</li>
+<li>把目标拆分成更小的目标，然后尝试“欺骗”自己。比如原本 1 点想喝可乐了，告诉自己，你如果坚持到 2 点，我就允许你喝。到了两点之后，又不断地把这个目标往前延伸。</li>
+</ul>
+</li>
+</ol>
+<p><strong>浮躁</strong><br>不要在意他人眼光。</p>
+<p>我想跟妹妹探讨一下，人的价值由什么定义。妹妹完全可以有不同的想法，毕竟这只是我的一家之言。</p>
+<p>对于我来说，我的价值完全由我这个人本身的内在所定义。而与外界对我的评价看法，甚至于我有哪些成就、哪些奖项、做过哪些事情都完全无关。举例来说，世人常说的一句话，“是金子总会发光”，隐含的意思似乎是“金子的发光”才体现了它的价值，换句话来说，是它对外的展现种种属性体现了它的价值。但我并不这么认为，金子就是金子，哪怕把它永远埋在暗无天日的矿井之中永不发光，它也仍然是金子，它是金子这一客观事实不需要任何外界视角的承认和定义。反之如果金子是因为外界的定义而存在，那么定义反而会因为外界视角往往会不那么全面而发生扭曲。</p>
+<p>维持一个人设，往往是做给<em><strong>包括自己在内的“他者”</strong></em>来看的，注意，“包括自己在内的他者”。但何必囿于一个人物设定呢，你的价值并不由外界决定。即使没有任何第三者在场，刻意去维护一个人设的行为，实际上自己既是观众也是扮演者，“观众”的视角使得原本是率真的自己也演变成了他者。</p>
+<p>“我”可以在好友面前没心没肺的嬉戏打闹、不用顾及淑女形象；也可以在课堂上、在老师面前严肃认真；更可以在公众面前发怒、落泪，但“我”还是我，我想这样做于是我就做了。行事或许跟之前从表象上看没有任何区别，但在此之前“我”是出于压力，而现在我只是在做我自己。即使做同一件事情，指导思想上的不同，会导致结果上的巨大差异。</p>
+<p>除此之外，从上面的逻辑出发，他人的眼光和期待对“我”有任何意义吗？似乎有点小骄傲，但“我”的价值并不由他人的定义而决定，无论他人是否理解我、甚至贬损“我”，都对于我本身的价值不会产生任何影响。但我不是教你不要尊重别人哦，我只是在说他人无法影响你本身的价值。我们永远都应该尊重他人，但这是另外一个话题了，我会放在下面。</p>
+<p>但我们是否可以有（不止一个）人设呢？其实可以有，只不过这样的人设不应该是刻意地去维持，而应该发自本心，换言之“我”只是在做我自己。坚强的人也会有脆弱的时候可以流泪，懦弱的人在面对想要守护的东西也可以变得勇敢（不过“懦弱”不是什么好人设就是了），这样就无所谓是否“打破人设”了，因为对外人来说他眼中“我”的人设不过是出自他脑海中的幻想，对我来说我只不过是在做我自己罢了。</p>
+<blockquote>
+<p>关于尊重，以前写的一点文字：</p>
+<p>我们不仅热衷于给别人贴标签，也热衷于给自己贴标签。贴标签这一行为本质是通过符号来认识并理解这个世界。</p>
+<p>通过给别人贴标签，可以节省大量去了解别人的时间成本，而且如果是面对攻击对象，可以竖起很好的靶子；通过给自己贴标签，不仅强化自我认知，而且让人在群体中找到安全感和归属感。</p>
+<p>但我希望你记住，世界以及人都是复杂的，人脑无力承担这种复杂，所以借助符号化以抽象来简化复杂，在抽象的过程中不可避免会损失大量信息。</p>
+<p>要将每一个人当做值得尊重的人，避免符号化带来的认知偏差。</p>
+</blockquote>
+<hr>
+<p>4.29:<br>跟年轻人接触，他们的一些想法来源是因为他们还未曾经历过一些他们终将经历的事情，因为过去的我想法跟他们一样。<br>这事实无可争辩地告诉我，我已经老了。我又羡慕又悲哀。<br>我羡慕他们初雪般的单纯，也悲哀自己的老去。</p>
+<p>小时候做语文题，题目中经常会有“言之成理即可”，现在经历的世事越多，逐渐明白那是因为世界上很难说有什么绝对的对错，但年轻的时候总是最喜欢那些最纯粹炽烈的东西，当然这无可厚非，我直到现在也喜欢。我只能像这样小布尔乔亚式地哀叹年华老去吧。<br>可笑的是，我小时候总以为自己明白这些，回过头来，我哪里真正明白呢。书中读的再多，也远不如亲身经历来的感受深刻。</p>
+<p>我的话有可能会被理解成“我也堕落了”，“我也向这个世界妥协了”。但我丝毫没有这种意思，我只是说我懂得了一些我过去不认同的事情背后的逻辑。</p>
+<hr>
+<p>我完全支持多样性这个理由，但我也害怕多样性成为权贵的新遮羞布。事实上，已经成为了。</p>
+<hr>
+<p>秦，这个字让我感受到一种古拙、冷硬、机械、强力。</p>
+<hr>
+<p>每次面对一个新领域的知识时，心里都有一种绝望感，这些知识太过浩瀚深奥了，我穷尽一生可能也无法窥其全貌。<br>但忍住恐惧慢慢学下去，发现自己没必要学得面面俱到，只学习自己感兴趣、对自己有用的知识就行。而这是可以做到的。</p>
+<hr>
+<p>信息差就像能量差一样客观存在。</p>
+<hr>
+<p>我不是学生了，这个念头在我脑海中轰然作响，<br>我要失去学生身份了，我最熟悉的学生身份，<br>不，我仍然是学生，人生路上，我会不断求索，不断学习，不会终止。<br>感受类似于审判，但接受谁的审判呢？</p>
+<hr>
+<p>『只求你别忘了<br>倘若我从梦中哭着醒来<br>那是因为我梦见自己是迷途的孩子<br>穿过黑暗的森林<br>去寻找你的手』</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>QEMU 内部原理：整体架构和线程模型『译』</title>
+    <url>/2018/04/22/qemu-internals-overall-architecture/</url>
+    <content><![CDATA[<p>原文地址：<a href="http://blog.vmsplice.net/2011/03/qemu-internals-overall-architecture-and.html">http://blog.vmsplice.net/2011/03/qemu-internals-overall-architecture-and.html</a><br>Author：Stefan Hajnoczi<br>Translator：Su Hang<br><em>本文经原作者Stefan Hajnoczi授权翻译</em></p>
+<p>这是针对开发人员的 QEMU 内部原理探析系列中的第一篇文章。它旨在分享 QEMU 工作原理的知识，并使新贡献者更容易了解 QEMU 代码。</p>
+<p>执行 guest 代码涉及到如下任务：处理定时器、处理 I&#x2F;O 请求、响应虚拟机监视器的命令，等等。要想设计一个良好的、能够解决这些问题的架构，需要安全地一次性地解决所有这些资源的分发问题。尤其是当某些请求，譬如 I&#x2F;O 请求、来自用户的命令，需要大量的时间去执行的话。</p>
+<p>一个 guest 的运行包括执行 guest 代码，处理定时器，处理 I &#x2F; O 以及响应监视器命令。要想一次性地安排好所有这些事情需要一个能够以安全的方式调解资源的体系结构，而且最好不会暂停 guest 代码的执行。如果磁盘 I &#x2F; O 或监视器命令需要很长时间才能完成，对于需要响应来自多个来源的事件的程序，有两种流行体系结构：</p>
+<ol>
+<li>并行体系架构，将工作分解为可同时执行的进程或线程。我将称之为线程架构。</li>
+<li>事件驱动架构，通过在一个主循环分派各个事件到与之对应的事件处理函数。这通常使用<code>select(2)</code>或<code>poll(2)</code>系列调用系列来实现，以等待多个文件描述符。</li>
+</ol>
+<p>但 QEMU 实际上使用了一种将事件驱动编程与多线程相结合的混合架构。这样做是有道理的，因为事件循环不能利用多个 CPU 内核的特性，因为它只有一个执行线程。另外，有时编写专用线程来处理一个特定的任务，而不是将其集成到事件驱动的体系结构，在编程实现中更为简单。尽管如此，QEMU 的核心还是事件驱动的，大多数代码在这种环境中执行。</p>
+<h3 id="QEMU-的事件驱动核心"><a href="#QEMU-的事件驱动核心" class="headerlink" title="QEMU 的事件驱动核心"></a>QEMU 的事件驱动核心</h3><p>事件驱动的架构以事件循环为中心，该事件循环将事件分派给处理函数。QEMU 的主要事件循环是<code>main_loop_wait()</code>，它执行以下任务：</p>
+<ul>
+<li>等待文件描述符变为可读或可写。文件描述符起着至关重要的作用，因为无论是文件、套接字、管道还是各种其他资源都是通过文件描述符来控制的。文件描述符可以使用<code>qemu_set_fd_handler()</code>来添加。</li>
+<li>运行会定时过期的定时器。定时器可以使用<code>qemu_mod_timer()</code>添加。</li>
+<li>运行下半部机制 (BHs)（译者注：所谓 bottom-halves 机制，是指在允许中断的情况下，将中断处理程序延迟执行），就像立即过期的定时器一样。BH（译者注：原文中 BH 是 bottom halves 的缩写，下同）用于避免重入和溢出调用堆栈。使用<code>qemu_bh_schedule()</code>添加 BHs。</li>
+</ul>
+<span id="more"></span>
+
+<blockquote>
+<p>Linux 将一些中断处理分成两部分，第一部分是在关中断的条件下执行的，具有”原子”性，而且是中断发生以后一般要立即执行的，第二部分，就是 bottom half 了，是在开中断的条件下执行，这部分是可以延迟一段时间再做的，而且有可能将多个中断的 bottom half 合并起来一起做。</p>
+</blockquote>
+<p>当文件描述符准备就绪，计时器到期或调度 BH 时，事件循环会调用相应该事件的回调函数。关于回调函数的执行场景，有两条简单规则：</p>
+<ol>
+<li>没有其他核心代码正在同时执行，因此不需要考虑同步问题。回调函数相对于其他核心代码是顺序的，并且以原子的方式执行。在任何时候只有一个控制线程执行核心代码。</li>
+<li>回调函数不应阻塞系统调用或进行长时间运行的运算。由于事件循环会在回调函数返回之前等待，所以其他想要被执行的事件就因此被阻塞，避免在回调中花费大量时间非常重要。打破此规则会导致 guest 虚拟机暂停并且监视器无法再响应用户。</li>
+</ol>
+<p>第二条规则有时在 QEMU 的某些代码中其实是难以实现的。事实上，<code>qemu_aio_wait()</code>中甚至有一个嵌套事件循环等待顶层事件循环处理的事件子集。希望在未来重构代码时，可以消除这些违背了第二天规则的代码。新代码几乎从来没有合法的理由阻止，一种解决方案是使用专用工作线程来卸载长时间运行或阻塞的代码。</p>
+<h3 id="将特定任务分配到工作线程"><a href="#将特定任务分配到工作线程" class="headerlink" title="将特定任务分配到工作线程"></a>将特定任务分配到工作线程</h3><p>虽然许多 I &#x2F; O 操作可以以非阻塞方式执行，但是有些系统调用没有非阻塞版本。此外，有时候长时运行的计算任务会影响 CPU，并且很难将其分解成多个小的回调函数。在这些情况下，可以谨慎地通过分配专用工作线程的方式，将这些任务移出 QEMU 核心函数。</p>
+<p>一个工作线程的用户示例是<code>posix-aio-compat.c</code>，一个异步文件 I &#x2F; O 实现。当 QEMU 核心代码发出 aio 请求时，该请求将被放置在一个队列中。工作线程将从队列中取出该 aio 请求并在 QEMU 核心函数之外去执行。这时就可以执行阻塞操作了，因为这些任务在自己的线程中执行并且不会阻塞 QEMU 的其余部分。通过这种方式需要注意在工作线程和 QEMU 核心函数之间执行必要的同步和通信。</p>
+<p>另一个例子是<code>ui/vnc-jobs-async.c</code>，它在工作线程中进行密集的图像压缩和编码计算。</p>
+<p>由于大多数 QEMU 核心代码不是线程安全的，所以工作线程不能调用 QEMU 核心代码代码。对于简单的实用程序——如<code>qemu_malloc()</code>——是线程安全的，但这算是例外而非规则。这种特性使得将工作线程事件传回 QEMU 核心函数变成了一个难题。</p>
+<p>当工作线程需要通知 QEMU 核心代码时，会在事件循环中添加管道或<code>qemu_eventfd()</code>文件描述符。工作线程可以写入文件描述符，并且当文件描述符的状态变为可读时，事件循环将调用回调函数。另外，必须有一个信号来确保事件循环能够在任何情况下运行。在了解 guest 代码的执行方式后，<code>posix-aio-compat.c</code>使用的这种方法更加自然。</p>
+<h3 id="执行-guest-代码"><a href="#执行-guest-代码" class="headerlink" title="执行 guest 代码"></a>执行 guest 代码</h3><p>到目前为止，我们主要关注的是事件循环及其在 QEMU 中所扮演的的核心角色。但同样重要的是执行 guest 代码的能力，如果没有可执行的 guest 代码，QEMU 即使可以对事件做出响应，但这并没有太大意义。</p>
+<p>执行 guest 代码有两种机制：微型代码生成器 (TCG) 和 KVM。TCG 使用动态二进制翻译（也称为即时 (JIT) 编译）模拟 guest。KVM 利用现代英特尔和 AMD CPU 中的硬件虚拟化扩展技术，直接在主机 CPU 上安全地执行 guest 代码。对于本文来说，在使用中实际使用哪种技术并不重要，但重要的是 TCG 和 KVM 都允许我们跳入 guest 代码并执行。</p>
+<p>跳入 guest 代码会将执行的控制权转移给 guest。当线程正在运行 guest 代码时，它不能同时处于事件循环中，因为 guest 端对 CPU 具有（安全的）控制权。通常来说，在 guest 代码中花费的时间是有限的，因为对模拟设备寄存器的读写和其他异常处理都将导致我们离开 guest 并将控制权交还给 QEMU。但在极端情况下，guest 可以花费无限的时间去执行某段代码，而且不放弃其控制权限，在这种情况下 QEMU 会无法响应外界信息。</p>
+<p>为了解决 guest 代码占用 QEMU 的控制线程的问题，信号被用来打破 guest 的控制权限。一个 UNIX 信号会将控制权限拉离 (yank) 当前的执行流程，并调用信号处理函数。这使 QEMU 得以采取一系列步骤脱离 guest 代码，并返回到其主循环中，其中事件循环可以有机会处理被持续推入到队列中的事件。</p>
+<p>这样做的结果是，如果 QEMU 当前处于 guest 代码中，则可能无法立即检测到新事件。当然，大多数时候 QEMU 最终都会处理事件，但这种额外的延迟本身就是一个需要克服的性能问题。由于这个原因，定时器、I &#x2F; O 完成 (completion) 和从工作线程到 QEMU 核心代码的通知 (notification)，使用信号机制来确保事件循环将立即运行。</p>
+<p>你可能想知道事件循环与具有多个 vcpus 的 SMP guest 虚拟机之间的整体情况。在已经讨论了线程模型和执行 guest 代码之后，我们可以讨论它的整体架构。</p>
+<h3 id="iothread-和-non-iothread-架构"><a href="#iothread-和-non-iothread-架构" class="headerlink" title="iothread 和 non-iothread 架构"></a>iothread 和 non-iothread 架构</h3><p>传统的体系结构是单个 QEMU 线程来执行 guest 代码和事件循环。这个模型也被称为非 iothread 或<code>!CONFIG_IOTHREAD</code>，并且在使用<code>./configure &amp;&amp; make</code>编译 QEMU 源码时是默认的。QEMU 线程执行 guest 代码，直到异常或信号产生一次回退控制。然后在<code>select(2)</code>中以非阻塞的方式运行事件循环的一次迭代。之后，它回到 guest 代码并重复这一过程，直到 QEMU 进程退出。</p>
+<p>如果 guest 虚拟机使用<code>-smp 2</code>的方式启动多个 vcpus，在这种情况下，就不会创建额外的 QEMU 线程。而是单个 QEMU 线程以多路复用的方式，在两个 vcpus 的 guest 代码和事件循环之间执行。因此，non-iothread 无法利用多核主机，并可能导致 SMP guest 机性能不佳。</p>
+<p>请注意，尽管只有一个 QEMU 线程，但可能有零个或多个工作线程。这些线程既可能是暂时的有可能是永久的。请记住，它们执行特定的任务，而不执行 guest 代码或处理事件。我想强调一下，因为在监视 host 上面的线程，并将它们解释为 vcpu 线程时，工作线程很容易被 vcpu 线程所混淆。请记住，non-iothread 线程只有一个 QEMU 线程。</p>
+<p>较新的体系结构是每个 vcpu 一个 QEMU 线程以及一个专用的事件循环线程。这种模式被称为 iothread 或 CONFIG_IOTHREAD，可以在构建时使用<code>./configure --enable-io-thread</code>启用。每个 vcpu 线程可以并行执行 guest 代码，提供真正的 SMP 支持，而 iothread 负责运行事件循环。通过全局互斥体来维护，QEMU 核心代码代码永远不会同时运行的规则是。该全局互斥体通过 vcpus 和 iothread 同步 QEMU 核心代码。大多数情况下，vcpus 将执行 guest 代码，并且不需要保存全局互斥锁。大多数情况下，<code>select(2)</code>中的线程被阻塞，并且不需要保持全局互斥。</p>
+<p>请注意，TCG 不是线程安全的，因此即使在 iothread 模型下，它也是以单个 QEMU 线程来实现多路复用 vcpus。只有 KVM 可以利用 per-vcpu 线程。</p>
+<h3 id="结论和展望"><a href="#结论和展望" class="headerlink" title="结论和展望"></a>结论和展望</h3><p>希望这有助于交流 QEMU 的整体架构 (KVM 继承）。欢迎在下面的评论中留下问题。</p>
+<p>在将来，上面讨论到的细节可能会改变，我希望我们会默认使用 CONFIG_IOTHREAD，甚至可能会删除！CONFIG_IOTHREAD。</p>
+<p>当 qemu 的 master 分支做出更改时，我会尝试更新此帖。</p>
+]]></content>
+      <tags>
+        <tag>QEMU</tag>
+        <tag>Translation</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>LFS 部分问题的解决方案</title>
+    <url>/2018/08/15/record-lfs-solution-you-cant-find-in-chinese-internet/</url>
+    <content><![CDATA[<p>本文记录一些在尝试 LFS 8.2 时遇到的一些问题的解决方案。<br>这些解决方案被我选录的标准是，英文网络中有，但中文网络目前还没有。以飨后来人。</p>
+<hr>
+<ol>
+<li>在为 LFS 编译 Glibc 库的时候，会在 <code>./configure</code>期间遇到如下问题：</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">LD_LIBRARY_PATH shouldn<span class="string">&#x27;t contain the current directory</span></span><br><span class="line"><span class="string">checking LD_LIBRARY_PATH variable... contains current directory</span></span><br><span class="line"><span class="string">configure: error:</span></span><br><span class="line"><span class="string">*** LD_LIBRARY_PATH shouldn&#x27;</span>t contain the current directory when</span><br><span class="line">*** building glibc. Please change the environment variable</span><br><span class="line">*** and run configure again.</span><br></pre></td></tr></table></figure>
+
+<p>出现这个错误的原因是由于环境变量的 <code>LD_LIBRARY_PATH</code> 中出现了当前目录。通常我们修改环境变量时会这么写：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> LD_LIBRARY_PATH = <span class="variable">$LD_LIBRARY_PATH</span>:/foo/bar:/hello/world:/a/b</span><br></pre></td></tr></table></figure>
+
+<p>如果一开始 <code>LD_LIBRARY_PATH</code> 不存在的话，这个上面这串环境变量开头就是冒号，这就把当前文件夹包含进去了。一般来说我们挺需要这种效果，因为在编译的时候可以 include 某些东西，但是对于编译 glibc 来说这个是多余的。</p>
+<span id="more"></span>
+
+<p>最简单的解决方法就是 <code>unset LD_LIBRARY_PATH</code>。但这个解决方案会在接下来 LFS 的一系列步骤中，产生一些问题。</p>
+<blockquote>
+<ol>
+<li><a href="https://github.com/Linuxbrew/legacy-linuxbrew/issues/807">https://github.com/Linuxbrew/legacy-linuxbrew/issues/807</a></li>
+<li><code>LIBRARY_PATH</code> 用于在链接过程中查找库。<code>LD_LIBRARY_PATH</code> 用于在程序执行期间查找库。</li>
+</ol>
+</blockquote>
+<hr>
+<ol start="2">
+<li>在为 LFS 第二遍编译 Binutils-2.25 的时候，会在 <code>./configure</code>期间遇到如下问题：</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">no such file or directory: ./a.out</span><br></pre></td></tr></table></figure>
+
+<p>日志如下（注，这段日志并不重要，只是为了增加被搜索引擎索引的准确率，方便后来人查找到这一问题）：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">checking <span class="keyword">for</span> C compiler default output file name... a.out</span><br><span class="line">checking whether the C compiler works... configure: error: <span class="keyword">in</span> `/mnt/sources/binutils-build<span class="string">&#x27;:</span></span><br><span class="line"><span class="string">configure: error: cannot run C compiled programs.</span></span><br><span class="line"><span class="string">If you meant to cross compile, use `--host&#x27;</span>.</span><br><span class="line">See `config.log<span class="string">&#x27; for more details.</span></span><br></pre></td></tr></table></figure>
+
+<p>My problem is glibc was in &#x2F;lib and &#x2F;lib64 was not a link to &#x2F;lib. My fix was mv &#x2F;tools&#x2F;lib64&#x2F;* &#x2F;tools&#x2F;lib&#x2F; &amp;&amp; rmdir &#x2F;tools&#x2F;lib64 &amp;&amp; ln -s lib &#x2F;tools&#x2F;lib64<br>翻译：我遇到的问题在于 glic 位于<code>/lib</code>路径下，而<code>/lib64</code>并没有链接（注，指 ln 命令的软链接）到<code>/lib</code>目录。我解决这个问题的办法是运行下面这条命令：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">mv</span> /tools/lib64/* /tools/lib/ &amp;&amp; <span class="built_in">rmdir</span> /tools/lib64 &amp;&amp; <span class="built_in">ln</span> -s lib /tools/lib64</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>参考链接：<a href="https://www.reddit.com/r/linuxfromscratch/comments/2yd1j5/59_binutils225_pass_2_failing_during_configure/">https://www.reddit.com/r/linuxfromscratch/comments/2yd1j5/59_binutils225_pass_2_failing_during_configure/</a></p>
+</blockquote>
+<hr>
+<ol start="3">
+<li>LFS 书中最坑的一处小细节是，在 <code>chroot</code> 之后，它完成 <code>/mnt/lfs/boot/</code> 到宿主<code>/boot</code>路径的绑定了，就直接让读者对 <code>/boot/grub/grub.cfg</code>文件进行修改。 此刻你可能还沉浸在 <code>chroot</code> 带给你的安全感里，一不留神就中招。</li>
+</ol>
+<p>重启并发现 grub 引导失败之后，大多数用户应该使用的 grub2 而非 grub。这两个程序重新进入引导的方式是不一样的。<br>简单记录 grub2 手动重新引导过程如下，__注意，不要直接输入下面的代码！__：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">grub&gt; <span class="built_in">set</span> root=(hd0,1)</span><br><span class="line">grub&gt; linux /boot/vmlinuz-3.13.0-29-generic root=/dev/sda1</span><br><span class="line">grub&gt; initrd /boot/initrd.img-3.13.0-29-generic</span><br><span class="line">grub&gt; boot</span><br></pre></td></tr></table></figure>
+
+<p>将第一行中的 <code>(hd0,1)</code> 替换为你原本 <code>/mnt/lfs</code> （也就是 <code>chroot</code> 所用到的地址）所挂在的硬盘地址。这里值得一提的是，grub 对于硬盘命名的方式有细微差别，一定要弄清之后再根据你机器的实际情况做修改。<br>将第二行和第三行的路径都需要替换为你编译好的内核路径，第二行中的root路径与第一行的路径相同（只是写法不一样）。</p>
+<blockquote>
+<p>参考链接：<a href="https://www.linux.com/learn/how-rescue-non-booting-grub-2-linux">https://www.linux.com/learn/how-rescue-non-booting-grub-2-linux</a></p>
+</blockquote>
+]]></content>
+      <tags>
+        <tag>Linux</tag>
+        <tag>LFS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>杂念-3</title>
+    <url>/2022/12/25/Thought-3/</url>
+    <content><![CDATA[<p>溪柴火软蛮毡暖，我与狸奴不出门。</p>
+<hr>
+<p>“吾道不孤”对于很多人来说也许挺重要，但我觉得，我们去探索世界，本身就是一个孤独的过程。倘若不感到孤独，反而说明这条道路很可能早已被探索过了，除了学习、仿古的意义之外，求新的价值不那么高。</p>
+<hr>
+<p>能否在如同复印一样的日子里产生一些新东西：可以是见到不同的风景、人；可以是多学到一些新知识；可以是产生新的想法；可以是写下新的句子；可以是阅读到新的文字；可以是接触到新的思想；可以是有新的感官体验。<br>不要停止这一切，否则这就是生命的终结。</p>
+<hr>
+<p>最近总是五点半无需闹钟准时醒来，想来是因为我没拉窗帘而此时北方天色已然大亮的缘故。淡蓝天空，绿意层次丰富的山，淡金阳光，风在旗杆上划出道道律动，浅灰蓝色阴影下的凉亭，我的窗口面对大美而我尚不自知。</p>
+<span id="more"></span>
+
+<hr>
+<p>还能够迷茫是一件好事，放弃思考则是彻头彻尾的堕落。</p>
+<p>如果我没有（时常）批判自我的勇气，如何叫人相信我的言行是对真理的维护而不是对立场的维护？</p>
+<hr>
+<p>为什么大家有时候会放弃长远的目标而选择短期的目标，因为长期的目标可能具有一定的不确定性，而短期的选择则是比较确定的。<br>让我们放弃确定的东西而选择不确定的东西，这是有些违反人性的。但我们有没有办法，用团队的力量或是制度的力量，将对于每个个人的不确定转为确定，让大家更加勇于选择长远目标。<br>比如挖矿，对于每个挖矿的个体而言，是否出矿完全看运气。但每个矿工可以加入矿池，挖到的矿整个矿池共享。降低个人风险。</p>
+<hr>
+<p>真理掌握在多数人手里还是少数人手里？<br>这个问题让我觉得非常可笑，（其潜台词似乎是）真理是因为掌握在多数人或者少数人手里而成为真理吗？<br>真理就是真理，不需要被人承认它也是真理。充其量我们可以说，在某个时候某个人发现了某种相对更加接近真理的规律，此时关于这个规律的信息还未向全世界扩散，勉强可以说少数人此时持有关于此规律的信息。随着时间流逝，信息不断向外界扩散，这时候此规律的信息被大多数人获悉。</p>
+<p>说到底，人们只是想创造出一种自己与众不同的优越感。很遗憾，不少人只是被动地获取被工业成批量生产的信息，也缺乏自己的思考（哪怕你思考的模式也是工业文化灌输的产物呢），这样的”与众不同“是一种虚妄的幻觉。</p>
+<p>这个提问的另一个问题是，它将一个动态的事物用两个静态的状态就概况了，这是不符合实际情况的。</p>
+<hr>
+<p>我在思考一个问题：如果美感无法量化，是否说明感性的某些领域将永远把理性隔离在外？<br>美感无法量化，似乎并不等同于美感无法逻辑化，但其中的逻辑性并非基于数理逻辑，而是一种基于经验性的、神秘主义的、甚至是神性的逻辑，也许无法为人类所创造的数理逻辑所理解。<br>然后我试图去找寻量化美感的资料，发现确实有人在尝试做相关工作，其方法基于统计学。他们的努力仅仅只能说一种尝试，一种想要将”美”囊括到理性领域的尝试。他们的努力因其仍未从理论高度建立美与数字之间的联系，所以仍然未脱离中世纪炼金术的范式。</p>
+<hr>
+<p>今天第一次产生了一个想法，公平和正义是人类基于感性而不是理性的的价值追求。<br>第一次开始怀疑公平和正义这种几乎不会有人去质疑的东西的合理性……<br>我并不是说公平和正义不好，不该追求，我还没有那么极端。我只是想说，公平这种连猴子（生物学定义上的猴子）都拥有的朴素情感，作为人类的价值基石，够稳固吗……亦或是，公平这种价值追求，其实是后天塑造的，因为在动物界里，公平其实是非常罕见的社会架构。</p>
+<hr>
+<p>计算机科学家和工程师都是从行动上来说都是极度悲观主义者，他们的考虑甚至不是为灾难的发生做准备，而是假定灾难已经发生我们该如何降低影响。</p>
+<hr>
+<p>荆极：<br>己所不欲勿施于人，但己所欲就该施于人吗？<br>如果你真的为这个人着想，自己的欲与不欲都不是施于人的关键。<br>向提供他人无偏差、无虚假的充足信息，并抱有充分的同理心。这是真诚待人的基础。<br>但每个个体的经历和耐受程度都不一样，经历和立场的不同，已经足以让同理心在人与人的沟通中失去了绝大部分作用。<br>人该如何做到相互理解呢，宗教？脑机接口？社会架构？<br>充分的沟通就能够让人相互包容了吗？我并不看好这个想法，这个想法忽视了资源的有限性。<br>沟通的前提是双方相信彼此还有最低程度的“善意”，当这种最低程度的“善意”都不存在时，便是“发现即消灭”的世界了。</p>
+<p>核心观点是这句：向提供他人无偏差、无虚假的充足信息，并抱有充分的同理心。这是真诚待人的基础。<br>但后面又表明了我其实不看好同理心能够发挥的作用。</p>
+<p>原因是我觉得，能做到这点能打 60 分，但这个方法从理论上就没法打 100 分。但现实距离 60 分还有差距呢，先达到 60 分在说吧。</p>
+<p>子瑞：<br>不过我觉得相互理解的前提就是人类社会的存在，人类社会的存在必然是建立在一定的价值基础上的，基于这种价值基础就会有一些基本的同理心。当然越复杂的理解，肯定需要越复杂的同理心，也就需要越复杂的类似经历或者价值观，这也决定了人和人之间的关系是知己还是熟人还是陌生人。不同等级的互相理解是必然存在的，导致了人们对陌生人基本的尊重，以及对好朋友的珍惜。</p>
+<hr>
+<p>荆极：<br>问你个问题，你觉得应该把人当做人对待，还是把人当做一个有一定规律可循的 object 对待呢？<br>真正把人当做人对待，我一直想要摒弃自己理性的那部分，用自己感性的那一面而不是机器的那一面去对待 ta。但这样就会做错事，说错话。<br>但如果在人的交往中应用理性，那些人际关系技巧和套路可以让对方很舒服，但实质却是把对方视作一个 object 了。</p>
+<p>小贱：<br>我觉得人和人交往的过程中理性和感性同样重要，并不是说理性就不真诚，而是基于对方真实的需求选择最能让他安定或者给予帮助的方案。<br>当然缺乏感性上真诚的理性就会变成纯粹的套路和利用，但如果缺乏理性的话，那你几乎完全不可能对对方有所帮助，反而让自己陷入麻烦。</p>
+<hr>
+<p>“优越感、尊严、尊敬、自信”随想之一：<br>我一直不明白人为什么进化出“优越感”这种在我看来没有丝毫益处的情感，我想了很久，只能归结于生物的求偶本能，通过彰显自己占有资源多、能力强、外表靓丽来增强求偶优势。</p>
+<p>将尊敬和优越感等同，一个很大的错误在于，这相当于将自我尊严建立在别人对自己的看法之上。换言之持有这种看法的人的人格是不独立的。</p>
+<p>刚跟智鹏聊了一下这个话题，他给我讲了黑猩猩社会的例子:<br>黑猩猩社会里，他们通过打架来决出首领，确实是打赢的当首领没错，但并不一定是最强壮的获胜。<br>而是更自信的那一方获胜，自信的来源则是自身跟其他黑猩猩的关系。</p>
+<blockquote>
+<p>自信的来源则是自身跟其他黑猩猩的关系</p>
+</blockquote>
+<p>这里逻辑关系的递进是，是通过与其他黑猩猩的比较来建立自信，通过自信来与其他黑猩猩建立同盟获得势力和支持。</p>
+<p>但上面的论述里面混淆了自信和优越感，这是2个不同的概念，自信从定义上就该是筑基于自身内心，而优越感则是相对于他人的概念。</p>
+<p>自信的根源在于对自身的了解。<br>非要说优越感有什么好处的话，我们可以将“优越感”拗口地定义成，借由与他人的比较而增进了对自身的了解。这是一种“他信”。</p>
+<hr>
+<p>“优越感、尊严、尊敬、自信”随想之二：<br>“优越感是由心理治疗师阿尔弗雷德·阿德勒在20世纪初创造的名词，也是其个体心理学理论的一部分。优越感是一种心理防卫机制，在一个人应对痛苦的自卑感时会产生并发展。有优越感情结的人通常会展现出自大、傲慢和蔑视他人的性格特征，他们也可能会建立起以专横、霸道甚至有攻击性的行为模式来对待他人。[1][2]</p>
+<p>阿尔弗雷德·阿德勒是第一个使用并在其个体心理学理论专著中探讨“优越感”一词的人[3][4]在阿德勒的书中，自卑感和优越感作为因果关系交织在一起。[5][6]。阿德勒认为，优越感本质来源于人需要克服潜在自卑情结。优越感是一种补偿自卑感的过度矫正[3]，而这是一种消极的、有害的心里观念[7]。某些人在面对有自卑感带来的困难时，会发出一种优越感来克服前者，而克服的形式主要是通过夸大自身的重要性。有优越感的人往往抱有英雄主义的幻想，或对成功与失败有着错误的认知[8][9]。阿德勒认为，追求优越是人类的天性[3]，然而理智的人不会将优越情结投射到他人之上或是瞧不起他人，而是将精力放在自我突破和脚踏实地的工作中。相比之下，那些拥有优越感的人却充满了自负的幻想并妄想着属于自己的霸权。[10]”</p>
+<blockquote>
+<p>refs: <a href="https://zh.wikipedia.org/wiki/%E5%84%AA%E8%B6%8A%E6%84%9F">https://zh.wikipedia.org/wiki/%E5%84%AA%E8%B6%8A%E6%84%9F</a></p>
+</blockquote>
+<p>“尊严概念常用于道德、伦理、法学和政治学学说的讨论中，用以表明人本固有的价值属性和拥有受到他人的尊重的权利。<br>尊严更多的意义体现在人类价值的维度，尽管并未就此给予明确一致的定义。<br>尊严是他者对我们自身价值的意见，这种关于尊严的主观性定义正是我们对他者意见恐惧的体现。”</p>
+<blockquote>
+<p>refs: <a href="https://zh.wikipedia.org/wiki/%E5%B0%8A%E4%B8%A5">https://zh.wikipedia.org/wiki/%E5%B0%8A%E4%B8%A5</a></p>
+</blockquote>
+<p>我的个人看法，尊严的本质乃是生存权。<br>尊严也指向了对虚无的恐惧。</p>
+<p>价值是否虚无？价值的本质是什么？<br>价值最终指向如何活，如何更好的活。</p>
+<hr>
+<p>我有一个想法，你看有没有值得批驳的地方：<br>一个健康的系统，是该一定程度容忍负面的东西存在的，理由有三：</p>
+<ol>
+<li>这些负面的东西并不会因为我们不喜欢、不认同而不存在（消极、被动容忍）</li>
+<li>随着时代变化，当初认为错误、不可容忍的思想，也许会变得不是那么不可接受，甚至成为主流（积极、主动容忍）</li>
+<li>我们需要这些负面的东西来激活抵抗这些负面东西的机制，而这些机制能帮助我们抵抗更大的破坏力（积极、主动容忍）</li>
+</ol>
+<hr>
+<p>topic 1：<br>不要表白的意思不是说你不能向对方释放善意乃至喜爱的感觉，你当然可以向对方表达你的喜爱，但表白实质是逼迫对方做决定。<br>尤其当对方甚至还不够了解你时，你就强迫对方做决定。当一个理性人不得不在信息缺失的情况下做决定时，选择 A 的后果是可能变坏、可能变好；选择 B 的后果是不会变得比当下更差。绝大多数人都是风险厌恶的，你觉得对方会如何决定呢？<br>面对未知，谁都不喜欢做决定。</p>
+<p>topic 2：<br>男女之间的关系不能一昧地付出，可能你会觉得我真的好爱ta，我愿意为了ta付出我的一切。<br>但其实不是这样的：</p>
+<ol>
+<li>不是说你不能为了ta付出一切，而是你们之间到了为ta付出一切的那一步了吗？关系未进展到那个地步之前，过度的付出反而徒增对方的压力。</li>
+<li>其实也没有人能真的成为太阳。</li>
+</ol>
+<p>一段良性的关系里面有投之以木瓜，也该有报之以琼琚。换句话说，有良好的反馈。付出的目的不是为了索取，而是互动和反馈。匪报也，永以为好也。</p>
+<p>男女之间的关系需要推拉，这是人的本性。不要排斥这个过程，感情就是在这个过程逐渐磨合，也是在这个过程中增进对彼此的了解的。</p>
+<p>中国教育讳谈感情真的很奇怪，你看我上面这些思考都是非常正面健康的思考，都是能帮我变成更好的人的思考。<br>我早该懂得这些做人的基础道理，却还要在将近30的年纪，自己来悟。</p>
+<p>现代社会将爱情神圣化了，谈情说爱本该如渴了要喝水、饿了要吃饭一样平常。<br>我反对将爱情神圣化的原因是，爱情本就不神圣。倘若你以神圣的心态对待爱情，那势必会让你极其慎重选择是否要踏入一段关系，显然会让你失去不少学习、体验的机会。<br>而你只有吃得多了才知道哪种米适合自己的口味。</p>
+<hr>
+<p>阅读少年的那些日记，一瞬间我面红耳赤。感觉到这样的情绪波动，主要来自于一个人不设防地完全向“我”敞开少年自己，而少年在这一小段碎片里面展现出来的自我，竟然是如此真诚美好。<br>我也曾有过那一段日子，它们已经过去了。但对于老师来说，他们竟然幸运得可以重复这样的日子。<br>老师这个职业一次又一次地融入到那些少年最美好的时光里去，一次又一次地借由少年体验“人生第一次”。</p>
+<hr>
+<p>绝大多数时候，我们更习惯用第一人称来指代自己，我会在审视、批判自己的时候使用xx的视角，这时候便会下意识地使用第二人称。<br>但我似乎很少用第三人称来审视自己，第三人称是否是更客观的视角？未经深思，但我觉得是的。第二人称，你我之间也许仍然纠缠不清。<br>但第三人称，我能更客观、更刻薄、更抽离地审视自己。</p>
+<hr>
+<p>吾日三省吾身，我有让遇到我的人变得更好吗?我自己有变得更好吗?</p>
+<hr>
+<p>你要说小孩子会相对真实，我比较认同；你要说小孩子善良，我未置可否。<br>我自己随着年岁渐增，越来越擅长共情，越来越能体谅别人的感受。<br>一个孩子何以能做到这些呢？</p>
+<hr>
+<p>温和的交涉能够保留沟通的可能，极端的话语会阻绝沟通的渠道。</p>
+<p>这世界上的绝大多数矛盾，只要矛盾方之间还能沟通，事情就有还有彼此妥协、不走向激化的余地。<br>倘若将沟通的渠道堵死，那事态基本上会发展到只能依靠暴力交流或者暴力机构背书的地步了。</p>
+<hr>
+<p>真和直很近很像，但不同。<br>可以做到真而不直。</p>
+<hr>
+<blockquote>
+<p>90%以上的先秦两汉文献、98%以上的魏晋南北朝文献、94%以上的隋唐文献均已无法查考。</p>
+</blockquote>
+<p>这话几乎让我落下泪来。有空时查一下是哪些原因导致了这些珍贵的书籍的丢失。</p>
+<blockquote>
+<p>refs: <a href="https://zh.wikipedia.org/wiki/%E8%BE%91%E4%BD%9A">https://zh.wikipedia.org/wiki/%E8%BE%91%E4%BD%9A</a></p>
+</blockquote>
+<hr>
+<p>我小时候喜欢卖弄聪明，追求在一句话中包含多层含义。<br>后来觉得哪来的这么多弯弯绕绕，考虑更多的是如何用简单通俗语言，尽可能精确的将概念和想法传达出去。（不过这得看是在写什么类型的文字了：人贵直，文贵曲）</p>
+<p>现在对简单易上手，却可以深挖内涵的产品满含敬意。只有对事物的理解臻入化境，才能删繁就简直击事物本质的同时饱含深意。简单的道理竟然能在一层层的领悟中体会出别样的意味。</p>
+<hr>
+<p>“我”是意志的张扬，是生命力的喷发。</p>
+<hr>
+<p>人设是重要的，其重要性并不在于你向其他人展现出来什么，而在于其他人（以为他们）知道该用什么样的方式和你相处。</p>
+<hr>
+<p>当一个人不愿意遵守规则时，我能想到这么几种可能：</p>
+<ol>
+<li>ta的行事不遵循逻辑（通俗来说，是疯子）</li>
+<li>相比遵守规则，破坏规则ta能获取更多利益</li>
+<li>规则保护的不是他的利益</li>
+</ol>
+<p>第一点不值得讨论。<br>第二点需要思考规则当中是否有漏洞存在，是否该扩大惩罚破坏规则的力度，直到超过破坏规则能获得的收益。<br>第三点我们就该注意为什么基于大多数人共识的规则会没有保护ta的利益，该深入调查这个人了。</p>
+<hr>
+<p>两条关于我个人的：</p>
+<ol>
+<li>我永远不会怀着恶意说话、做事。</li>
+<li>我的认知和理解可能是错误的，但我的表述是真诚的。</li>
+</ol>
+<p>一条关于讨论的共识：</p>
+<ul>
+<li>一个人可能持有错误的观念，但只要他能听进改正的建议，我们该批驳的是他的错误观念而不是他本人。</li>
+</ul>
+<hr>
+<p>取仕采用门第出身，就会导致社会各阶层对于门第的重视。这种重视又会反过来助长社会中的奢靡攀比之风。因为品性、才华不重要，重要的就只有从家族中继承而来的财富和地位了。</p>
+<hr>
+<p>我们评判一个人该论迹不论心，如果只是想一想就要因此受到惩罚，那这个世界上已经没有任何一个活人存在了。<br>在座的各位谁没曾起过杀人的念头，但大家杀人了吗？</p>
+<p>跟亲密的人闹矛盾之后：</p>
+<ul>
+<li>在群里问群友该怎么做 X</li>
+<li>跟ta心平气和地探讨彼此的想法，如果不能沟通再做下一步决定 √</li>
+</ul>
+<p>每个人对亲密伴侣犯错的容忍程度不一样，这无可厚非，如果你觉得他犯下的错已经超过了你的底线，那就当断则断；如果只是觉得他现在就这样了，未来一定会如何如何，那大可不必，这是逻辑上的滑坡谬误。</p>
+<hr>
+<p>最近这起全国瞩目的案件，让我有些犹疑：男性确实有原罪吗？<br>我构想了2个有些类似的思想实验：</p>
+<ol>
+<li>只有男性存在的社会会不会变得更好？</li>
+<li>只有女性存在的社会会不会变得更好？<blockquote>
+<p>refs: <a href="https://en.wikipedia.org/wiki/Gender_in_speculative_fiction">https://en.wikipedia.org/wiki/Gender_in_speculative_fiction</a><br>refs: <a href="https://en.wikipedia.org/wiki/Utopian_and_dystopian_fiction#Feminist_utopias">https://en.wikipedia.org/wiki/Utopian_and_dystopian_fiction#Feminist_utopias</a><br>refs: <a href="https://en.wikipedia.org/wiki/Women-only_space">https://en.wikipedia.org/wiki/Women-only_space</a></p>
+</blockquote>
+</li>
+</ol>
+<p>没有男性存在，战争就会消失吗？暴力和纷争就会消失吗？<br>这让我感觉到，男性诞生出来，就是为了承担这些恶的……甚至说的大义凛然一些，男性承担了这些恶，所以女性不必承担这些恶。<br>如果真是这样，我有必要反问自己一句，这些恶是必要的吗？只要男性不存在，乌托邦就能实现？</p>
+<blockquote>
+<p>refs: <a href="https://www.npr.org/sections/13.7/2015/04/16/400075715/is-it-sexist-to-say-that-women-are-superior-to-men">https://www.npr.org/sections/13.7/2015/04/16/400075715/is-it-sexist-to-say-that-women-are-superior-to-men</a></p>
+</blockquote>
+<hr>
+<p>依靠个人力量把开源项目做起来是一件几乎不可能完成的任务，我并不怀疑个人的技术实力和热情，我想指出的是个人对抗风险的能力在时代洪流面前薄如蝉翼。<br>你有很好的个人技术品味；你单枪匹马做出的作品比开源社区维护的作品还要好；但你没有盈利点，你没法靠一个开源作品生存下去：疫情来了，用户的捐赠少了，啪，下个月的贷款突然难以为继了。<br>这时候，即使挨饿，即使面对妻子对你温柔无限的包容，即使面对还在长身体中的女儿无忧无虑的笑脸，你真能、真该继续坚持下去吗？你已经不是一个人，更不是为自己一个人而活。<br>只有公司级别乃至国家级别的投入，才能让个人无后顾之忧地、全身心地投入到作品的维护和创作之中。</p>
+<hr>
+<p>推荐算法会构建一个不断强化自我认同的正反馈循环，在这种循环当中，个人的观点会不断得到强化。我的想法是，无论这种观点是对是错，都不该只听到一种声音，尤其这种声音主要诞生于相似的环境。人如果无法获取到不同视角的信息，则极易陷入偏执，因而这是一种有害的循环。<br>推荐算法只说你想听的话，史书上一般将具备这种特质的人叫佞臣。</p>
+<p>我尽我所能地拒绝推荐算法。</p>
+<hr>
+<p>奴隶主害怕奴隶有脑子有手有脚，有脑子奴隶就知道自己在受奴役，有脚奴隶就会逃跑，有手奴隶就会反抗。<br>于是就用 996 和奶头乐占用他的所有时间，让他不能思考；<br>于是就用房贷锁住他的脚，让他没法逃跑；<br>于是就用不会饿死的月薪，让他失去反抗的积极性。</p>
+<hr>
+<p>中国的人口红利这个概念广为人知，但工程师红利这个说法不知道你是否听过。<br>人口红利我的理解是基础教育普及后，有大量能学习、理解基础生产概念（知识）的人口可参与到国际生产的竞争中。因为人多，可以把人力成本压得很低，这活你不干，有大量的人为了填饱肚子抢着干。对国家来说竞争力是强了，因为成本低，但对于个人来说是不幸的。<br>工程师红利也好理解，高等教育随着大学扩招铺开之后，有大量像我这样的人，掌握比上面相对复杂一点的知识，参与到国际竞争中来。</p>
+<p>要是你问我，我已经把这视作不幸了，为什么我还要继续。我的回答是，不同时代的人们有不同的牺牲，建国初用血肉和饥饿作为代价换回了安全的环境，然后又牺牲了农业人口建立了基础工业环境，现在到我了，吾辈虽渺小怎敢推脱。</p>
+<p>有人在昨天我发你的那个截图演讲的问题里面提到 996 工作制的问题，没想到也有其他人跟我的看法一致，我们社会中的每个人或多或少都在牺牲，只不过到这个时代牺牲的主体是我们。<br>然后也提到了 90-00 年初这十多年农民工的牺牲，十几年没有涨过工资。<br>其实我觉得农民工未必意识到自己在牺牲，也未必有自我牺牲的自觉。我很高兴自己在意识到自己在作出牺牲的同时，仍然有自我牺牲的自觉。</p>
+<hr>
+<p>世界观是理解、解释这个世界的方式，解释这个世界可以有无限种方式。<br>世界上没有魔法，发展到极致的科技只是人类对这个世界的认知在这个物理世界的投射。</p>
+<p>这些不同的解释方式，最终实现为在这个物理世界上不同的诉求。关于智慧、关于真理、关于美、关于人体的极致、关于世界的边界……</p>
+<hr>
+<p>从P8开始就不怎么写代码，这是国内技术晋升路线不完备导致的。<br>总想着管理制人，则技术显然会受制于人。这又如何能产生鼓励技术至上、技术创新的氛围？公司需要这么多做PPT的人吗？<br>技术跟不上了，于是开始从外界挖人、引进，殊不知内部土壤已经是一滩烂泥，挖人也只解得了一时之急。</p>
+<hr>
+<p>人脑是一种可塑性极强的东西，不同人群之中诞生的不同文化，经过学习完全能被另一完全不同的族群所接受。种族之间存在差异，但这些身体上的差异并非影响一个社会的决定性因素。影响一个社会的决定性因素在于文化，而文化在不同的族群之间都是可以通过学习而习得的。</p>
+<p>我想在我的这个观念再往前稍微推进一点点：<br>社会是由人组成的，反过来，人之所以为人，也是因为其拥有的社会性，而不是其拥有的动物性。<br>既然对于社会来说，身体上的差异并不重要，重要的是文化上的差异。那么同时作为文化的创造者和承载者的人脑才是最重要的。<br>既然一个观点能够被任何族群，任何性别的人所理解（不强求接受）（前提是不带先入为主的偏见）: 那么我认为种族歧视和性别歧视都是可耻的。</p>
+<hr>
+<p>爱国这项事业，需要各个层次的人们的广泛而深入的参与。<br>有些人批评“无脑爱国”，他们自称“我”懂得更多信息有更多思考，所以“我”的爱国跟其他人的爱国是不一样的。言外之意似乎是其他人的爱国比较低级，“我”的爱国比较“高级”。<br>但我完全不这么认为。爱国这项事业，需要全行业、全层次的广泛参与，任何一个层次都缺一不可。一项事业，能否广泛动员社会各个阶层，并深入地引发共鸣，是事业成功与否的一项指标。反而是被批评的、群众的爱国，我认为这说明这项事业进行得非常成功。<br>“我”能为爱国这项事业做的事情相对较多，其他人能做的相对较少，是否“我”就相对更“高贵”？高贵，用在这里真是一个非常奇怪的词，谁都不比谁高贵，贡献或许有大小，但绝对都不可替代，不可或缺。</p>
+<p>中国崛起当然是理性思考的结果，但这个世界上有能力、有理性进行深入思考的只是少数精英，是否连“爱国”都需要精英化了，只有精英才可以爱国？</p>
+<p>“爱”这个字眼本身就意味着情感，我们在爱国的时候当然需要理性，但感情的宣泄私以为也必不可少。</p>
+<p>在这个世界上的绝大多数事务中，人多当然是一件值得骄傲的事情，私以为爱国也在这绝多大数之内。</p>
+<blockquote>
+<p>上面这段是对某复旦同学“鄙弃普通人爱国、愚民为自己人数众多而骄傲”的观点的批驳。</p>
+</blockquote>
+<hr>
+<p>To XX （之一）<br>想要说服一个人，让他真正认可你的说法，并为之行动，最好的办法莫过于用他切身的利益来触动他。<br>笼统地空谈大词、道德、人情，都是虚妄。<br>一个人可以不为上面这些所动，但有利于他的，他一定不会拒绝。<br>但一个人的利益，并不能简简单单地理解为物质利益。精神上的通达，情绪上的愉悦，人群中的声望，甚至良好的社会氛围（想想现在的香港），这些都是个人利益的一部分。<br>我为什么要好心说服一个人，那肯定是说服了这个人对于我自己的利益也是存在促进作用的。这个促进作用可以是切实的物质收获，可以是误会的消除人际关系的改善，甚至还可以是我就是好为人师，指点江山一番我感觉很爽。<br>但是，利益并不与道德、家国等过于伟光正的大词相冲突。经典经济学理论就有“市场中每个人只为了自身的利益驱使而运作，但作为整体却促进了社会的福祉”的说法。由此说的更深去，哲学中的功利主义进路也有更为详尽的论述。</p>
+<p>To XX （之二）<br>我花了很久很久才学会，原来如何正确地爱人并不是与生俱来的本能，也是需要学习和摸索才能掌握的。</p>
+<p>如何与他人建立共情其实也是，如果ta能正确地体会到你的情绪，设身处地在你的立场考虑，就不会这么做。<br>但这并不是ta的错，共情是种需要学习和锻炼的能力，年纪尚轻，这方面的能力不算强罢了。而且ta做事没有恶意呀，是人就会犯错，犯错只要改正了，那还是我们的好朋友呀。</p>
+<hr>
+<p>昨天跟跟卓腾前辈一起 debug，问题解决之后我有一些感触：</p>
+<ol>
+<li>“越是奇怪、难以发现的 bug，最后定位问题所在反而愈加简单，是因为对其本质的不怀疑。”——卓腾</li>
+<li>结合前几天小组 Rust 学习经历，我感到再厉害的工程师也是人，是人就会犯错。宁愿用严格的语法检查在编译期流汗，也不要在 debug 时流血。机器相较于人，几乎不会犯错。那些机器得出来很奇葩的推论，我们顺着给予机器的规则一步步推导下去，往往会发现这奇葩推论在给予机器的规则之下竟然是完全合理的。</li>
+<li>计算机领域有一句名言，任何问题都可以通过增加一层中间层来解决。我们这次遇到的问题其实早该在编译期就暴露出来，但代码首先经历了序列化、传输给 Server 端、Server 端反序列化处理数据、再次序列化、传输给 Client 端、Client 端反序列化处理数据、等 6 个中间层，使得本该在第一次序列化之前就该发现的问题推迟到 6 个中间层之后才暴露出来，极大增加了定位问题的难度。引入中间层在解决问题的同时，往往也会导致问题的产生并不在出错的那一行代码——所谓第一现场。引入中间层带来的“解决问题”、“定位问题”之间代价的权衡，值得细细考量。</li>
+</ol>
+<hr>
+<p>About 《巨人》男主：<br>永远认为自己是正确的，驱使其行动的最大动力是仇恨，仅凭认为自己拥有牺牲精神就认为自己正确于他人，但在真正面对人类利益的时候选择私利救活男二而不是更能带领墙内人走向胜利的团长。自私而不自知。</p>
+<p>这个作者在面对“选择团长还是男二时的讨论”时，故意避开不谈。故意绕开，仿佛让男二亲口说出更应该救团长就能弥补主角三人团的过错。</p>
+<p>看到大海说的第一句话是要杀光大海对面的所有人就自由，我qnmd，杀杀杀，是，杀光天下人他就自由了。</p>
+<p>从这个人物身上，我反思自己，我自己是不是同样令人恶心，我是不是也心里暗暗觉得自己与众不同。</p>
+<hr>
+<p>“真实不装，不是不分场合地把自己内心不成熟的想法表达出来。”<br>我对这点感触很深，我是一个对“真”有着近乎偏执追求的人，也常常在未经深思熟虑、或是对要讨论的事务缺乏足够了解的情况下，贸然地发表自己的看法。但我过去认为这是好的，因为我自信自己足够中立客观、足够“对事不对人”，而且我觉得我在不够了解情况时候的想法，能够代表很多跟我一样不够了解这些事务的人的意见，而这些意见能够帮助当事人知道其他同样不够了解的人是如何思考的。<br>但这条告诉我，不合时宜地表达自己，或许并不能真正帮助到当事人。</p>
+<hr>
+<p>今天看到二战的最重要的战术都是基于坦克，而时至今日，美国想攻打哪个地方，仍然可以被地缘政治制约得动弹不得，我想到以现在的技术力，人类在战争这个场景下仍然无法突破地理因素的影响。我在想，啥时候能够完全整合所控制领地的资源，至少不受地理的限制。</p>
+<hr>
+<p>冷淡并不一定是坏词，我用在这里也不是取偏“贬义”的含义，而是一个尽量客观的评价。<br>一座城市的性格是由他的市民所塑造的，照理说江浙这种民营经济发达的地方，市井文化应该非常发达，生活应该充满了烟火气。一个非常好的类比的例子就是广东人就很会享受生活，早茶、夜宵什么的，很晚大街上还有熙熙攘攘的人的活动。<br>杭州是一个夜生活非常不发达的城市，这与它的经济实力非常不符。在别的城市随处可见的广场舞（我并不是说广场舞好，只是我觉得广场舞这种现象非常地有烟火味），杭州也少见。</p>
+<p>我个人推测这个现象 2 方面原因吧：</p>
+<ol>
+<li>杭州传统文教确实发达，崇尚需要一定的经济实力和文化底蕴才能审美的文人文化，而对市井的泥土味不屑一顾。</li>
+<li>商业社会重契约淡人际，人的交往淡了，用以支撑交际的手段也就相应少了。</li>
+</ol>
+<hr>
+<p>我明白我为什么对“自由”有一种难以言喻的排斥了，“公平”、“自由”这两大旗帜，公平的实现前提是对特异群体的一定程度的压制。<br>不得不承认在“自由”土壤上诞生的种种奇葩非常美丽，但这种美丽却是建立在吸食（最不能保护自己的弱者 &#x2F; 比自己弱的人）的血液的基础上。<br>奇葩很有魅力，但我更在乎那些最弱者的命运。</p>
+<hr>
+<p>探索新领域时，有 2 个时刻是最爽的：一是醍醐灌顶的上升期，二是虽然缓慢但能感觉到不断精进的磨练期。</p>
+<hr>
+<p>无知是一种“相对”状态，任何人永远都存在着对某些方面的无知。<br>并且“相对”这个词不准确，而是“领域”状态。<br>无知包括两方面，一方面是信息的不掌握，另一方面是对信息的不理解。</p>
+<p>蒙特卡洛算法，用暴力搜索来击败智慧。<br>如果智慧的本质是启发式搜索，那么只不过是一种更高效的暴力击败了另一种相对低效的暴力。</p>
+<hr>
+<p>读历史时感到清朝的皇帝确实是勤政的好皇帝，但也真是禁锢民间发展、对中华民族犯下不可磨灭罪行的皇帝。<br>抛开意识形态而谈，这些好皇帝都是在不愿直面自己错误、不敢直面问题的本质之后，致使国家步入（封建视角下）衰退的。<br>乾隆晚年时不愿相信自己勤政一生，竟然却落到国家危机四伏的境地。换做任何一人，得知自己一生的努力俱为泡影，只怕都难以接受。</p>
+<hr>
+<p>语言的极限也是人类的极限，只要人类还在不断发明、发现新东西，故事就不会讲完。<br>书籍是基本概念的创造和重组，基本逻辑的无限组合可能，为人类的未来创造可能。</p>
+<hr>
+<p>清晰而坚定地认识自己，就可以不因外界对自己的错误认识而心生波澜。<br>无法清晰认知自己，这绝不是天真、单纯等尚有褒义的事情。</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>记录一次 LLVM 编译错误的解决</title>
+    <url>/2018/07/09/record_LLVM_compile_error_solution/</url>
+    <content><![CDATA[<blockquote>
+<p>undefined reference to &#96;llvm::orc::AsynchronousSymbolQuery::handleFullyReady()’</p>
+</blockquote>
+<p>使用官方教程中的命令编译</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">clang++ -g -rdynamic toy.cpp -L/usr/local/lib -lLLVMOrcJIT `llvm-config --cxxflags --ldflags --system-libs --libs core mcjit native` -O3 -o toy</span><br></pre></td></tr></table></figure>
+<p>会得到如下错误：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">warning: unknown warning option <span class="string">&#x27;-Wno-maybe-uninitialized&#x27;</span>; did you mean <span class="string">&#x27;-Wno-uninitialized&#x27;</span>? [-Wunknown-warning-option]</span><br><span class="line">1 warning generated.</span><br><span class="line">/tmp/toy-e5b39c.o: In <span class="keyword">function</span> `llvm::orc::RTDyldObjectLinkingLayer::ConcreteLinkedObject&lt;std::shared_ptr&lt;llvm::RuntimeDyld::MemoryManager&gt; &gt;::finalize()<span class="string">&#x27;:</span></span><br><span class="line"><span class="string">/usr/local/include/llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h:191: undefined reference to `llvm::orc::JITSymbolResolverAdapter::JITSymbolResolverAdapter(llvm::orc::ExecutionSession&amp;, llvm::orc::SymbolResolver&amp;, llvm::orc::MaterializationResponsibility*)&#x27;</span></span><br><span class="line">/tmp/toy-e5b39c.o: In <span class="keyword">function</span> `llvm::orc::JITSymbolResolverAdapter::~JITSymbolResolverAdapter()<span class="string">&#x27;:</span></span><br><span class="line"><span class="string">/usr/local/include/llvm/ExecutionEngine/Orc/Legacy.h:23: undefined reference to `vtable for llvm::orc::JITSymbolResolverAdapter&#x27;</span></span><br><span class="line">/tmp/toy-e5b39c.o: In <span class="keyword">function</span> `llvm::orc::ExecutionSessionBase::materializeOnCurrentThread(llvm::orc::VSO&amp;, std::unique_ptr&lt;llvm::orc::MaterializationUnit, std::default_delete&lt;llvm::orc::MaterializationUnit&gt; &gt;)<span class="string">&#x27;:</span></span><br><span class="line"><span class="string">/usr/local/include/llvm/ExecutionEngine/Orc/Core.h:188: undefined reference to `llvm::orc::MaterializationResponsibility::MaterializationResponsibility(llvm::orc::VSO&amp;, std::map&lt;llvm::orc::SymbolStringPtr, llvm::JITSymbolFlags, std::less&lt;llvm::orc::SymbolStringPtr&gt;, std::allocator&lt;std::pair&lt;llvm::orc::SymbolStringPtr const, llvm::JITSymbolFlags&gt; &gt; &gt;)&#x27;</span></span><br><span class="line">/usr/local/include/llvm/ExecutionEngine/Orc/Core.h:188: undefined reference to `llvm::orc::MaterializationResponsibility::~MaterializationResponsibility()<span class="string">&#x27;</span></span><br><span class="line"><span class="string">/tmp/toy-e5b39c.o: In function `std::set&lt;llvm::orc::SymbolStringPtr, std::less&lt;std::set&gt;, std::allocator&lt;std::set&gt; &gt; llvm::orc::lookupWithLegacyFn&lt;llvm::orc::KaleidoscopeJIT::KaleidoscopeJIT()::&#123;lambda(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;)#1&#125;&gt;(llvm::orc::ExecutionSession&amp;, llvm::orc::AsynchronousSymbolQuery&amp;, std::allocator&lt;std::set&gt; const&amp;, llvm::orc::KaleidoscopeJIT::KaleidoscopeJIT()::&#123;lambda(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;)#1&#125;)&#x27;</span>:</span><br><span class="line">/usr/local/include/llvm/ExecutionEngine/Orc/Legacy.h:90: undefined reference to `llvm::orc::ExecutionSessionBase::failQuery(llvm::orc::AsynchronousSymbolQuery&amp;, llvm::Error)<span class="string">&#x27;</span></span><br><span class="line"><span class="string">/usr/local/include/llvm/ExecutionEngine/Orc/Legacy.h:82: undefined reference to `llvm::orc::AsynchronousSymbolQuery::resolve(llvm::orc::SymbolStringPtr const&amp;, llvm::JITEvaluatedSymbol)&#x27;</span></span><br><span class="line">/usr/local/include/llvm/ExecutionEngine/Orc/Legacy.h:83: undefined reference to `llvm::orc::AsynchronousSymbolQuery::notifySymbolReady()<span class="string">&#x27;</span></span><br><span class="line"><span class="string">/usr/local/include/llvm/ExecutionEngine/Orc/Legacy.h:86: undefined reference to `llvm::orc::ExecutionSessionBase::failQuery(llvm::orc::AsynchronousSymbolQuery&amp;, llvm::Error)&#x27;</span></span><br><span class="line">/usr/local/include/llvm/ExecutionEngine/Orc/Legacy.h:97: undefined reference to `llvm::orc::AsynchronousSymbolQuery::handleFullyResolved()<span class="string">&#x27;</span></span><br><span class="line"><span class="string">/usr/local/include/llvm/ExecutionEngine/Orc/Legacy.h:100: undefined reference to `llvm::orc::AsynchronousSymbolQuery::handleFullyReady()&#x27;</span></span><br><span class="line">/tmp/toy-e5b39c.o:(.data.rel.ro._ZTVN4llvm3orc22LegacyLookupFnResolverIZNS0_15KaleidoscopeJITC1EvEUlRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEE_EE[_ZTVN4llvm3orc22LegacyLookupFnResolverIZNS0_15KaleidoscopeJITC1EvEUlRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEE_EE]+0x30): undefined reference to `llvm::orc::SymbolResolver::anchor()<span class="string">&#x27;</span></span><br><span class="line"><span class="string">clang-7: error: linker command failed with exit code 1 (use -v to see invocation)</span></span><br></pre></td></tr></table></figure>
+
+<p>定位到最下方的一次函数调用<code>handleFullyReady</code>，在 <code>/usr/local/lib</code> 目录下使用<code>grep handleFullyReady . -r -n</code>搜索，发现该函数位于 <code>LibLLVMOrcJIT.so</code> 文件中。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Binary file ./libLLVMOrcJIT.so.7svn matches</span><br></pre></td></tr></table></figure>
+
+<p>使用新的命令</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">clang++ -g -rdynamic toy.cpp -lLLVMOrcJIT `llvm-config --cxxflags --ldflags --system-libs --libs core mcjit native` -O3 -o toy</span><br></pre></td></tr></table></figure>
+<p>问题解决。</p>
+]]></content>
+      <tags>
+        <tag>LLVM</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>关闭 tmux panel 无需确认</title>
+    <url>/2018/05/10/tmux-close-panal-without-confirm/</url>
+    <content><![CDATA[<p>使用 tmux 时经常开启关闭临时面板（panel），每次关闭时 tmux 都会让你确认是否真的要关闭，有些繁琐。<br>将如下配置加入你的<code>.tmux.conf</code>文件来避免繁琐的确认步骤：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">bind-key &amp; kill-window</span><br><span class="line">bind-key x kill-pane</span><br></pre></td></tr></table></figure>
+<p>重启 tmux 服务，或者重新加载 tmux 配置文件（<code>.tmux.conf</code>）后生效。</p>
+<p>参考链接：<br><a href="https://unix.stackexchange.com/questions/30270/tmux-disable-confirmation-prompt-on-kill-window">https://unix.stackexchange.com/questions/30270/tmux-disable-confirmation-prompt-on-kill-window</a></p>
+<span id="more"></span>
+
+<p>回答部分翻译如下：</p>
+<p>前缀键（通常指 ctrl+b）&amp; 通常与<code>confirm-before -p &quot;kill-window #W? (y/n)&quot; kill-window</code>相绑定，<code>confirm-before</code>导致你需要进行确认的操作。如果你想避免确认步骤，只需要将原有的按键命令解绑，然后直接将其与<code>kill-window</code>重新绑定即可。</p>
+<p>如果你想要知道你的 tmux 配置默认有哪些操作需要确认步骤，使用如下命令：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tmux list-keys | grep confirm-before</span><br></pre></td></tr></table></figure>]]></content>
+      <tags>
+        <tag>tmux</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>了解 QEMU 设备模拟原理『译』</title>
+    <url>/2018/04/22/understanding-qemu-devices/</url>
+    <content><![CDATA[<p>原文地址：<a href="https://www.qemu.org/2018/02/09/understanding-qemu-devices/">https://www.qemu.org/2018/02/09/understanding-qemu-devices/</a><br>Author：Eric Blake<br>Translator：Su Hang</p>
+<p>以下是一些可帮助新手了解 QEMU 设备实际原理的笔记：</p>
+<p>在使用 QEMU 时，需要记住的一件事就是：以操作系统的视角来说，当其运行于我们试图模拟的裸机硬件之上时，操作系统在裸机硬件上会看到什么。大多数裸机的模拟实现仅仅是简单的内存映射，在特定地址上的软件戳（software poking) 会产生特定的边际效应（side effect）（最常见的边际效应当然是访问内存；但是内存中的其他常见区域还包括用于控制寄存器组特定的硬件，如硬盘或网卡，甚至 CPU 本身）。模拟的最终目标是允许只使用普通 ring3 内存访问（译者注：这里的普通内存访问与操作系统的 ring0 特权访问相对应）的用户空间程序来管理 guest 操作系统所期望的所有边际效应。</p>
+<p>从实现细节上来说，一些硬件（如 x86）实际上有两个内存空间，其中 I &#x2F; O 空间使用与普通内存访问（译者注：例如 mov a， b) 不同的汇编代码（译者注：这里指 in a，out a 等等 x86 架构特有汇编指令）； QEMU 必须模拟这些特殊访问。同样，许多现代 CPU 在内存地址映射范围中，也为提供了一组 CPU 本地寄存器，例如中断控制寄存器。</p>
+<p>对于在某些特定硬件，我们通过虚拟化挂钩技术（virtualization hooks)，使得 CPU 本身可以很容易地捕获非正常存储器访问的汇编指令（那些访问 I &#x2F; O 空间或 CPU 内部寄存器的指令，因此需要不同于正常存储器访问的边际效应），所以 guest 机只是执行与裸机相同的汇编指令序列，但是执行之后会导致陷入到 trap 中，让运行于用户空间的 QEMU 在对控制权返回 guest 代码之前使用普通的用户空间内存访问对指令作出反应。QEMU 通过“加速器”实现了这个功能。</p>
+<p>虚拟化加速器（如 KVM）可以使 guest 代码运行在 QEMU 虚拟机中的速度几乎与裸机一样快。其中速度减慢的部分是由来自 guest 代码的每个 trap 都会返回至 QEMU（vmexit）执行，以处理非正常的汇编指令或内存地址引起的。除此之外，QEMU 还支持其他虚拟化加速器（例如 HAXM 或 macOS 的 Hypervisor.framework）。</p>
+<span id="more"></span>
+
+<p>QEMU 还拥有一个 TCG 加速器，该加速器在运行期（译者注：可视为一种 Just in time 技术）将 guest 汇编指令编译为相应的主机指令或调用主机帮助例程。TCG 技术虽然速度不及硬件加速，但它允许跨硬件模拟，例如在 x86 上运行 ARM 代码。</p>
+<p>接下来要弄清楚的是当操作系统访问各种硬件资源时都发生了些什么。例如，大多数操作系统都附带了管理 IDE 磁盘的驱动程序 - 驱动程序仅仅是一种软件，它被编程为对特定的内存映射子集（译者注：简单来说就是某一片内存区域）（IDE 总线所在的任何位置）发出特定的 I &#x2F; O 请求，与不同的硬件相绑定）。当 IDE 控制器硬件接收到这些 I &#x2F; O 请求时，它会执行相应的操作（通过 DMA 传输或其他硬件操作）将数据从内存复制到永久存储器（写入磁盘）或从永久存储器复制到内存（从磁盘读取）。</p>
+<p>当我们购买一个包含未初始化磁盘的裸机硬件时，我们安装使用操作系统中相应驱动程序，对 IDE 硬件映射到内存的部分进行访问，然后将磁盘格式化为一系列分区和文件系统。</p>
+<p>那么，QEMU 如何模拟这个功能呢？在 QEMU 提供给 guest 代码的内存映射中，它在与裸机相同的地址处（译者注：具体地址得查阅相应的硬件手册）模拟 IDE 磁盘。当 guest 操作系统驱动程序向 IDE 控制寄存器发出特定的内存写入操作以便将数据从内存复制到永久存储器时，QEMU 加速器会陷入该内存区域（译者注：通过 Hook 技术实现），并将请求传递到 QEMU IDE 控制器设备模型。设备模型会解析 I &#x2F; O 请求，并通过发出主机系统调用来模拟它们。这一系列行为的结果是 guest 内存被复制到 host 机器的存储中。</p>
+<p>在 host 端，模拟永久存储的最简单方法是将主机文件系统中的文件视为不包含任何结构信息的原始数据（raw data）（也就是说，host 文件中的偏移量与 guest 驱动程序访问的磁盘偏移量，以 1：1 比例映射）. 但 QEMU 实际上能够将许多不同主机格式（raw， qcow2，qed， vhdx，…）和协议（文件系统，块设备， NBD， Ceph，gluster 等）的任意组合粘合在一起作为后端，然后在 QEMU 对硬件的模拟中绑定到提供服务的 guest 设备。</p>
+<p>因此，当您告诉 QEMU 使用主机 qcow2 文件时，guest 虚拟机不必对 qcow2 文件格式有任何了解，仅仅只需要 guest 的驱动程序执行与裸机相同的寄存器读写操作，从而触发 vmexits 进入 QEMU 代码，然后 QEMU 将这些访问映射到 qcow2 文件的相应偏移量中来进行读写。在首次安装 guest 虚拟机时，所有 guest 虚拟机都会看到一个空白未初始化的线性磁盘（无论该磁盘在主机中是线性的——如原始数据（raw format）；还是针对随机访问进行了优化，如 qcow2 格式）；guest 操作系统决定如何划分其硬盘并在其上安装文件系统，而 QEMU 不关心 guest 代码正在使用什么文件系统，只关心原始磁盘（raw disk）I &#x2F; O 寄存器控制序列的模式。</p>
+<p>接下来要意识到的是，模拟 IDE 并不总是最高效的。每次 guest 试图写入控制寄存器时，都必须经过特殊处理，并且 vmexits 会减慢模拟速度。当然，不同的硬件模型在虚拟化时具有不同的性能特征。然而，一般来说，对真实硬件最有效实现方法并不一定适用于其在虚拟化之中的实现，直到最近，硬件并没有被设计成当通过 QEMU 等软件进行模拟时运行得更快。因此，QEMU 包含专为此目的而设计的半虚拟化设备（paravirtualized device）。</p>
+<p>在 QEMU 这里的“半虚拟化”的含义，与半虚拟化的原始含义：“通过 guest 和主机之间的合作实现虚拟化”略有不同。QEMU 开发人员已经制定了一套硬件寄存器规范，并规定了这些寄存器的行为，这些寄存器旨在尽可能减少 vmexits 的数量，同时仍然完成硬盘必须做的事情，即实现 guest 内存和持久存储设备之间的传输。这个规范被称为 virtio；使用它需要在 guest 虚拟机中安装 virtio 驱动程序。尽管不存在与 virtio 具有相同的寄存器布局的物理设备，但其理念是相通的：virtio 磁盘的行为类似于内存映射寄存器组，guest 操作系统驱动程序知道将哪些操作硬件的寄存器值的写入该存储体，以使数据被复制进出其他 guest 内存。virtio 中的大部分加速功能都是通过它的如下设计实现的：guest 虚拟机为其大部分硬件命令序列设置了一部分常规内存，只需启动一个寄存器即可告知 QEMU 读取命令序列（较少的映射寄存器访问意味着更少的 vmexits），通过握手机制（handshaking）来保证 QEMU 处理这些命令序列时 guest 端驱动程序在不会改变正常内存。</p>
+<p>顺带一提，就像最新的硬件在实现虚拟化时效率十分高效一样，virtio 也在演进为通过硬件来实现变得更加高效，当然不会以牺牲模拟或虚拟化的性能来达到此目的。因此，将来你也可能会偶然发现实现了物理 virtio 的高性能设备。</p>
+<p>同样，许多操作系统都支持多个网卡，一个常见的例子就是 PCI 总线上的 e1000 板卡。在裸机上，操作系统将检测 PCI 空间，当看到具有 e1000 签名的寄存器组被填充时，就加载驱动程序，然后该驱动程序知道要写入的寄存器命令序列，以便让硬件传输网络流量。因此，QEMU 拥有一台 e1000 设备——作为众多网卡模拟实现之一——映射到同一个内存区域（译者注：这里的 guest 内存区域指的是 host 上面的用户内存区域），而真正的 guest 内存区域将裸露在被模拟的裸机内存上。</p>
+<p>其次，e1000 寄存器布局往往需要大量的寄存器写入（并因此需要 vmexits）来满足硬件的工作需求，因此 QEMU 开发人员添加了 virtio-net 卡（PCI 硬件规范，尽管现在还没有实现它的真实物理硬件），因此在 guest 操作系统中安装 virtio-net 驱动程序可以最大限度地减少 vmexits 的数量，同时还能获得与发送网络流量的相同边际效应。如果您告诉 QEMU 使用 virtio-net 卡启动 guest 虚拟机，则 guest 虚拟机操作系统将探测 PCI 空间，并使用 virtio-net 签名查看一系列寄存器，并加载适用于任何其他 PCI 硬件的适当驱动程序。</p>
+<p>总结一下，尽管 QEMU 最初是为了虚拟化 guest 操作系统而模拟硬件内存映射，但事实证明，最快的虚拟化还是取决于虚拟硬件：具有特定边际效应的寄存器内存映射的效率没有任何物理硬件能够匹敌。所有的硬件设备虚拟化实际上意味着运行一组特定的汇编指令（guest 操作系统）来处理映射到内存中的地址，以产生一组特定的边际效应，其中 QEMU 仅仅是一个提供内存映射，并模仿在裸机硬件上执行这些 guest 指令时所获得的相同边际效应的用户空间应用程序。</p>
+]]></content>
+      <tags>
+        <tag>QEMU</tag>
+        <tag>Translation</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>文采</title>
+    <url>/2019/04/11/%E6%96%87%E9%87%87/</url>
+    <content><![CDATA[<p>现在是清晨四点钟<br>十二月已然尾声<br>此刻我写这封给你<br>其实只是想知道你过得好不好<br>我听说你将自己的生活深筑在荒漠中<br>难道你现在真的一无所求了吗<br>多么希望你至少能留住一些值得着恋的东西</p>
+<hr>
+<p>你出现在我的晨曦、午夜、朝霞和黄昏里，无时不刻，如影随形。我爱你时失去踪影，一想到你便沉入云端、跌落谷底，如火焚烧、涟漪层层。</p>
+<p>你在我的指尖、发梢、锁骨和脊梁，呼吸都带着颤栗的不安。清醒时你是微笑的、拘谨的、整齐的文字，癫狂时你是窒息的、失语的、狂热的声音。</p>
+<span id="more"></span>
+
+<p>我们无话可说又无所不谈。一开始做爱的时候，我甚至不敢看你的眼睛，总是请求你关灯减少尴尬，疼痛、不适也一言不发。后来等我们真正无话不谈的时候我提起此事，你嗔怪我：“你应该告诉我的”，我说“那时候你还是个完全的陌生人！” 你把我扳过来，“我是个陌生人吗？” 我说“本来就是嘛“。我说我那时大概是到了需要一个亲密关系的阶段了，我和你第三次见面就上了床，那时候我对你的了解大概比我公寓的房东还要少。你拨开我的头发，脸压近过来：“那你就是利用我了？“我说不是，只是我很高兴你正好出现在对的时间。你仍不满意，整个身体都压过来，“那你不喜欢我吗？“</p>
+<p>我看着你的眼睛。这时候我已经能看着你的眼睛讲话了，有时候不讲话也可以。最开始的时候你也避开我的目光，后来偶尔目光接触就会笑，如今再发现我在看你，只会伸手把我揽在怀里，或是凑过来吻我散发着廉价超市洗发水气味的头发。这一过程进展缓慢却自然，来不及等我思考“两个人都上过床了却连牵手都有些尴尬怎么办”，你已经一跃成为一个称职而温情的恋人，亲吻我的脸颊时湿润得令人心软。</p>
+<p>我说我当然喜欢你。你裸着上身，整个重量承在我身上，压得我呼吸都沉重起来。我费力地从你身下抽出手来揽住你的脖颈，我直直地看着你，我说我喜欢你，有时喜欢到失去控制。</p>
+<p>你是我所有可怖的、柔情的、诡异的、私密的想象和欲望的具象，在你面前所有羞耻的告白和呓语都可被原谅，不，甚至被你喜爱，被你一再请求，迟疑又欢喜，落地成花。</p>
+<p>细密的、无常的、潮汐般的爱要如何量化？Lust or love 是永远的话题，但此时我混为一谈、深陷其中。我无法承认爱你超过任何人，但我真切地爱你，全心、全身、全部时空、全部灵魂。</p>
+<hr>
+<p>金雀出何所，必出自灵岳。剪断白云根，分破苍岑角。<br>既为之巨砚，遂登于纶阁。水贮见温润，墨发知瀺濯。</p>
+<hr>
+<p>香雪如海</p>
+<hr>
+<p>“雨声潺潺，像住在溪边。宁愿天天下雨，以为你是因为下雨不来。”</p>
+<p>她爱他们。他们不干涉她，只静静的躺在她血液里，在她死的时候再死一次。</p>
+<p>他微红的微笑的脸俯向她，是苦海里长著的一朵赤金莲花。<br>“怎么今天不痛了？因为是你的生日？”他说。<br>他眼睛里闪著兴奋的光，像鱼摆尾一样在她里面荡漾了一下，望着她一笑。他忽然退出，爬到脚头去。<br>“嗳，你在做什麼？”她恐惧的笑着问。他的头发拂在她大腿上，毛毵毵的不知道什么野兽的头。<br>兽在幽暗的岩洞里的一线黄泉就饮，泊泊的用舌头卷起来。她是洞口倒挂着的蝙蝠，深山中藏匿的遗民，被侵犯了，被发现了，无助，无告的，有只动物在小口小口的啜著她的核心。暴露的恐怖揉合在难忍的愿望里：要他回来，马上回来——回到她的怀抱里，回到她眼底。</p>
+<hr>
+<p>朱利安深沉的思绪迷雾般交织变幻、浮现出复杂的色彩和形状。人的本质，他想道，超越言语可能涵盖的范畴，有着最坚硬和古怪的外形，是逻辑无法解释的存在形式。即便被层层假象包裹，但内里的硬核与生俱来，只在生死关头才显露无遗。这个层次上，每个人都是独一无二的。朱利安不由得想到包裹杰罗姆的重重迷雾。眼看着他不断成熟、现在要承担沉重的责任，朱利安内心却产生了强烈的不安。他深深自问，杰罗姆身上延续了自己的影子吗？还是说，自己对他的了解从未触及实质、不过是种自以为是？</p>
+<p>对面的读心难以忍受旅途的枯燥，不时把眼光投向静坐的朱利安，流露出嫉炉和憎恶的表情。朱利安对他的存在毫不介意，沉浸在反覆的思绪中。随着年龄增长，不知从何时开始，他迷上了倾听时间的脚步声，如同体味飞速坠向深渊所带来的恐惧和快感。朱利安以年轻人不能理解的沉稳思考着过去种种，此时另一节车厢里发生的事他闭着眼都能猜到。但愿杰罗姆不要被短暂的幸福冲昏头脑。一想到自己的过去，朱利安的心像注满滚烫的铅水：爱情的要价太高了！</p>
+<hr>
+<p>她们两人真是幸福。像我这种混蛋夹在她们两人之间，总有一天会毁了她们。低调的幸福。一对好母女。啊，倘若上天肯聆听我这种人的祈祷，我祈求您赐给她们幸福，就算一生只有那么一次也好。</p>
+<p>天使在空中飞舞，奉了神灵的旨意，翅膀消失，降落伞似的飘落到了世界的每一个角落。我飘落到北国皑皑的白雪之上，你飘落到南国的蜜橘田里，而这几个少年，则飘落到了上野公园里。其区别就仅此而已。哪怕今后还得度过多少的岁月，少年们啊，毋庸关心容颜，不要抽烟，除了节日之外也别喝酒，为那些个性格内向、稍有姿色的姑娘们倾心钟情吧。</p>
+<p>天使在天空中飞舞。听从神的意志，天使隐去翅膀，宛如降落伞一般，飘落到世界的各个角落。我飘落在北国的雪原上，你飘落在南国的柑橘地里。而这群少年则飘落在了上野公园。差别仅此而已。少年们啊，从今以后，无论你们如何长大，都不要抽烟，也不要喝酒，除非逢年过节。而且，要持之以恒地去爱一个姑娘，一个腼腆而又有点臭美的姑娘。</p>
+<hr>
+<p>我不记得是谁曾经建议过，为了使灵魂宁静，一个人每天要做两件他不喜欢的事。</p>
+<hr>
+<p>“目击众神死亡的草原上野花一片，远在远方的风比远方更远，我的琴声呜咽，泪水全无，我把这远方的远归还草原。”</p>
+<hr>
+<p>她们十五岁的时候，到德国德累斯顿学习音乐。她们在那里过的是快活的日子。她们无拘无束地生活在学生中间，她们和男子们争论着哲学、社会学和艺术上的种种问题。她们的学识并不下于男子；因为是女子，所以更胜于他们了。强壮的青年男子们，带着六弦琴和她们到林中漫游。她们歌唱着，歌喉动人的青年们，在旷野间，在清晨的林中奔窜，自由地为所欲为，尤其是自由地谈所欲谈。最要紧的还是谈话，热情的谈话，爱情不过是件小小的陪衬品。</p>
+<p>希尔达和康士丹斯婉妹俩，都曾在十八岁的时候初试爱情。那些热情地和她们交谈，欢快地和她们歌唱，自由自在地和她们在林中野宿的男子们，不用说都欲望勃勃地想更进一步。她们起初是踌躇着；但是爱情这问题已经过许多的讨论，而且被认为是最重要的东西了，况且男子们又是这样低声下气地央求。为什么一个少女不能以身相就，象一个王后似的赐予恩惠呢？</p>
+<p>于是她们都赐身于平素最微妙、最亲密在一起讨论的男子了。辩论是重要的事情，恋爱和性交不过是一种原始的本能；一种反应，事后，她们对于对手的爱情冷淡了，而且有点憎很他们的倾向，仿佛他们侵犯了她们的秘密和自由似的。因为一个少女的尊严，和她的生存意义，全在获得绝对的、完全的、纯粹的、高尚的自由。要不是摆脱了从前的污秽的两性关系和可耻的主奴状态，一个少女的生命还有什么意义。</p>
+<p>无论人怎样感情用事，性爱总是各种最古老、最宿秽的结合和从属状态之一。歌颂性爱的诗人们大都是男子。女子们一向就知道有更好更高尚的东西。现在她们知之更确了。一个人的美丽纯洁的自由，是比任何性爱都可爱的。不过男子对于这点的看法太落后了，他们象狗似的坚要性的满足。</p>
+<p>可是女人不得不退让，男子是像孩子般的嘴馋的，他要什么女人便得给什么，否则他便孩子似的讨厌起来，暴躁起来把好事弄糟。但是女人可以顺从男子，而不退让她内在的、自由的自我。那些高谈性爱的诗人和其他的人好象不大注意到这点。一个女人是可以有个男子，而不真正委身，让他支配的。反之，她可以利用这性爱去支配他。在性交的时候，她自己忍持着，让男子尽先尽情地发泄完了，然而她便可以把性交延长，而把他当作工具去满足她自己的性欲。</p>
+<p>当大战爆发，她们急忙回家的时候，姐妹俩都有了爱情的经验了。她们所以恋爱，全是因为对手是可以亲切地、热烈地谈心的男子。和真正聪明的青年男子，一点钟又一点钟地，一天又一天地，热情地谈话，这种惊人的、深刻的、意想不到的美妙，是她们在经验以前所不知道的，天国的诺言： “您将有可以谈心的男子。”还没有吐露，而这奇妙的诺言却在她们明白其意义之前实现了。</p>
+<p>在这些生动的、毫无隐讳的、亲密的谈心过后，性行为成为不可避免的了，那只好忍受。那象是一章的结尾，它本身也是令人情热的；那是肉体深处的一种奇特的、美妙的震颤，最后是一种自我决定的痉挛。宛如最后—个奋激的宇，和一段文字后一行表示题意中断的小点子一样。</p>
+<p>这姊妹俩在性的快感中，几乎在男性的奇异的权力下面屈服了。但是很快她们便自拨了，把性的快感看作一种感觉，而保持了她们的自由。至于她们的情人呢，因为感激她们所赐与的性的满足，便把灵魂交给她们。但是不久，他们又有点觉得得不偿失了。康妮的男子开始有点负气的样子，希尔达的对手也渐渐态度轻蔑起来。但是男子们就是这样的；忘恩负义而永不满足！你要他们的时候，他们憎恨你，因为你要他们。你不睬他们的时候，他们还是憎恨你，因为旁的什么理由。或者毫无理由。他们是不知足的孩子，无论得到什么，无论女子怎样，都不满意的。</p>
+<hr>
+<p>我从未写诗<br>只是上帝在我的骨节中<br>踩踏出音阶</p>
+<hr>
+<p>山中·夜</p>
+<p>夜半，群山只剩下轮廓<br>深刻了布谷的叫声<br>清风化成水，透过身体<br>留一注沁凉<br>稀释浓重的色泽<br>我站在天地中执笔<br>调和梦里与梦外<br>早晨推开窗<br>便碰了一鼻子绿</p>
+<hr>
+<p>绿的肌肉，绿的头发，还有银子般沁凉的眼睛。</p>
+<p>绿</p>
+<p>天空一色苹果绿，<br>天空是阳光下举着的绿色美酒，<br>月亮是其中一片金色的花瓣</p>
+<p>她睁开她的眼睛，绿莹莹地<br>眼波闪耀，象未绽的花蕾一般纯，<br>第一次，此刻第一次为人瞥见</p>
+<p>裘小龙 译</p>
+<p>绿</p>
+<p>曙光是苹果绿，<br>天空是绿酒在阳光中举起，<br>月亮是其间的一瓣金玉。</p>
+<p>她张开眼，绿芒<br>四射，明亮如花<br>初绽，首次展放。</p>
+<p>非马  译</p>
+<hr>
+<p>站在下风的方向，可以嗅出树叶，满林子树叶散播的死讯，以及整个中西部成熟后的体香。中西部的深秋，是一场弥月不息的野火，从浅黄到血红到暗赭到沉郁郁的浓栗，从爱荷华一直烧到俄亥俄，夜以继日日以继夜地维持好几十郡的灿烂。</p>
+<hr>
+<p>“我们喝的咖啡都是如夜晚般漆黑，像罪恶一样甜腻。”</p>
+<p>永远不要对上厕所、吃东西，或者闭上眼睛打半小时瞌睡的机会说‘不’。</p>
+<p>“喂，胡因还是穆因，随便什么名字都好，喂，你！”<br>黑鸟转过身，脑袋怀疑地偏在一侧，闪闪发光的眼珠子打量着他。<br>“说‘我下次再也不这样做了’，说！”影子说。<br>“日你妈。”乌鸦说。一人一鸟一起穿过树林，它再也没说一个字。</p>
+<p>“不是那个原因。女人能拯救她们的男人。而男人——像他这样的男人——他们的女人一旦死掉，他们也不会再活很长时间了。你会看到的。用不了多久，他开始变得神情恍惚，熟悉的一切都随着她的离开而离开。他开始对生命感到厌倦，整个人憔悴下去，他放弃对生的追求，然后，他死了。最后夺去他生命的也许是肺炎，也许是癌，或许是心脏停止跳动。等你上了年纪，所有的激情斗志都离你而去之后，你的生命也就结束了。”</p>
+<p>没有人是一座孤岛，多恩这样说过。但是他错了。如果我们不是孤岛，我们就会迷失自我，溺死在彼此的悲哀中。我们彼此隔绝孤立，隔绝于他人的悲哀之外。这是自我保护的天性。我们是一座座孤岛，其形状被所有故事一遍遍地反复描绘。孤岛的形状是不会改变的：一个人出生、长大，然后，因为这种或那种原因，死了。好了，其余细节你可以用你自己的经历来填充。你的故事和其他人的故事一样，没有任何独创内容，但也和其他人的人生一样独一无二。生活就像雪花，每个人的人生都是不同形状的雪花；生活就像豆荚中的豆子（你有没有见过豆荚中的豆子？我是说真正仔细地观察它们？近距离观察一分钟之后，你绝对不会把一颗豆子混同于另外一颗豆子），看似相同，但每一个都是独一无二的。<br>如果没有个体的存在，我们看见的只能是总体数字：死亡一千人，死亡十万人，“伤亡人数达到一百万”。但有了活生生的个体，统计数据就变成了真实存在的人——但这同样是谎言。数字仍旧是麻木的，没有任何意义，哪怕人们会因为它们而感到痛苦。看这个孩子吧，腹部肿胀，苍蝇叮满他的眼角，他瘦得皮包骨头。但是，有了这些，你就能知道他的名字、他的年龄、他的梦想和他的恐惧吗？你就能了解他的内心吗？如果你可以，那就让我们再对他的姐姐来一番解剖。此刻她就躺在他身后灼热的土地上，身体歪扭、肿胀。好吧，你同样能感受到她的内心。但除了这两姐弟之外，还有上千个孩子成为饥馑受害者，上千个孩子即将成为苍蝇们无数蠕动的蛆虫的食物。难道说只有那两姐弟重要，其他所有那些孩子就无足轻重吗？<br>我们画出一道隔离保护线，把他们的痛苦隔离在外，安全地待在属于自己的孤岛上，让他们的痛苦无法伤害我们。他们被我们包裹在一层光滑、安全、充满光泽的隔离膜中，仿佛珍珠一样，他们经历的苦难不会让我们的灵魂深处感受到任何真正的痛苦。<br>虚构的小说允许我们进入他们的大脑，通过他们的眼睛观看外面的世界。在故事中，我们会在作为主角的我们死亡之前停止阅读，或者体验毫无痛苦的“代理死亡”，然后跳出这个故事，在真实的世界中轻轻翻过新的一页，或者合上书，继续属于我们自己的生活。<br>自己的生活——和其他人生既相同、又不同的生活。</p>
+<hr>
+<p>马骁（Selkie）版：<br>那些强盛的力量和存在可能尚有留存……远古之时的遗存……早在人性之潮涌起前就已消隐的知觉意识……这些觉识在诗歌和传说中偶有闪现，它们常被冠以神祗、怪兽和各种神秘事物之名……</p>
+<p>――阿尔杰农・布莱克伍德</p>
+<ol>
+<li>陶塑中的恐怖</li>
+</ol>
+<p>我认为，人的思维缺乏将已知事物联系起来的能力，这是世上最仁慈的事了。人类居住在幽暗的海洋中名为无知的小岛上，这海洋浩淼无垠蕴藏无穷秘密，但我们并不应该航行过远，探究太深。迄今为止，各门类的科学都遵循着自己的道路发展，并未给人类带来多少危害；但总有一天这些分立的知识将融合在一起，揭示出世界真实的景象，以及人类可怖的处境――我们或是因这景象而疯狂，或是从光明中逃回那安全静寂的黑暗纪元去。</p>
+<p>黄公夏（wwmidia）版：<br>“可以想见，如此超凡的力量或存在未必灭绝殆尽……来自太古时代的幸存者……其自我意识，也许表现为某种形态，自人类出现以前很久就失落无踪……只有诗歌和传说以稍纵即逝的记忆加以临摹，并以林林总总的神祗、怪物和神话生物称之……”</p>
+<p>——阿尔杰农•布莱克伍德</p>
+<ol>
+<li>恐怖泥雕</li>
+</ol>
+<p>人类无法将脑内所有信息同时关联到一起，我想，这算是世间最大的仁慈了。我们身处恬然宁静的无知之岛，位于黑狞无边的大海中央，也并非注定要驶向远方一探究竟。各种科学在其所属方向竭力前行，虽然至今尚未对我们造成伤害，但终有一天，各不相关的知识彼此碰撞，会揭开那骇人的真相，点明我们在这片可怕光景中所处的方位。这份光明是如此恐怖而致命，我们若不想失心而疯，就必须远远逃开，躲进一个新的黑暗时代去寻找平和与安宁。</p>
+<hr>
+<p>与瑞娜相处就像在伤口上撒盐，让他想起自己开始在身上刺青时所放弃的一切。</p>
+<hr>
+<p>竹篱上 停留着 蜻蜓<br>玻璃瓶里插满 小小 森林<br>青春 嫩绿的很 鲜明<br>百叶窗 折射的 光影<br>像有着心事的 一张 表情<br>而你 低头拆信<br>想知道关于我的事情<br>青苔入镜 檐下风铃 摇晃曾经<br>回忆是 一行行无从<br>剪接的风景 爱始终年轻<br>而我听见 下雨的声音<br>想起你用唇语 说爱情<br>幸福也可以 很安静<br>我付出一直 很小心<br>终于听见 下雨的声音<br>于是我的世界 被吵醒<br>就怕情绪红 了眼睛<br>不舍的泪在 彼此的 脸上透明<br>百叶窗 折射的 光影<br>像有着心事的 一张 表情<br>而你 低头拆信<br>想知道关于我的事情<br>爱在过境 缘份不停 谁在担心<br>窗台上 滴落的雨滴<br>轻敲着伤心 凄美而动听<br>而我听见下 雨的声音<br>想起你用 唇语说爱情<br>热恋的时刻 最任性<br>不顾一切的 给约定<br>终于听见 下雨的声音<br>于是我的 世界被吵醒<br>发现你始终 很靠近<br>默默的陪在<br>我身边 态度坚定</p>
+<hr>
+<p>对爱情的渴望，对知识的追求，对人类苦难不可遏制的同情心，这三种纯洁而无比强烈的激情支配着我的一生。这三种激情，就像飓风一样，在深深的苦海上，肆意地把我吹来吹去，吹到濒临绝望的边缘。</p>
+<p>我寻求爱情，首先因为爱情给我带来狂喜，它如此强烈以致我经常愿意为了几小时的欢愉而牺牲生命中的其他一切。我寻求爱情，其次是因为爱情可以解除孤寂一—那是一颗震颤的心，在世界的边缘，俯瞰那冰冷死寂、深不可测的深渊。我寻求爱情，最后是因为在爱情的结合中，我看到圣徒和诗人们所想像的天堂景象的神秘缩影。这就是我所寻求的，虽然它对人生似乎过于美好，然而最终我还是得到了它。</p>
+<p>我以同样的热情寻求知识，我渴望了解人的心灵。我渴望知道星星为什么闪闪发光，我试图理解毕达哥拉斯的思想威力，即数字支配着万物流转。这方面我获得一些成就，然而并不多。</p>
+<p>爱情和知识，尽其可能地把我引上天堂，但是同情心总把我带回尘世。痛苦的呼唤经常在我心中回荡，饥饿的儿童，被压迫被折磨者，被儿女视为负担的无助的老人以及充满孤寂、贫穷和痛苦的整个世界，都是对人类应有生活的嘲讽。我渴望减轻这些不幸，但是我无能为力，而且我自己也深受其害。<br>这就是我的一生，我觉得值得为它活着。如果有机会的话，我还乐意再活一次。</p>
+<p>爱之于我，不是肌肤之亲，不是一蔬一饭，它是一种不死的欲望，是颓败生活中的英雄梦想。</p>
+<p>两样东西，人们越是经常持久对之凝神思索，它们就越是使内心充满常新而日增的惊奇和敬畏：我头上的星空和我心中的道德律。</p>
+<p>所有由这些感受（指恋爱）而得到的美好和甜蜜，都只是在一开始才具有其全部的强烈力量，但是随后就由于共同生活和家务操劳而逐渐变得日益迟钝，这时它就退化成为互相信赖的爱情；而这里面的伟大艺术就在于仍然能保持这些东西的充分的残余，从而无所谓的态度和厌倦都不会勾销欢愉的全部价值……</p>
+<hr>
+<p>** 以上均为摘录，抱歉没有精力去一一注明出处。如有侵权，请联系我删掉。 **</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>时间顺序</title>
+    <url>/2016/08/29/%E6%97%B6%E9%97%B4%E9%A1%BA%E5%BA%8F/</url>
+    <content><![CDATA[<p>广州，一个微热的下午，一个人躲在楼顶的凉棚下，穿着舅舅的旧汗衫，学着 c++，背着 gre，看着闲书，淡金色的阳光融化在天际，杂乱的花坛和菜地，清凉积水下青苔密布，真的有一种忽而盛夏的错觉。</p>
+<hr>
+<p>读书时，时常因为某些字句触动回忆，竟至情难自已，无法呼吸，不能再阅读下去。</p>
+<p>新干线，光是名字就能勾起我美好得令人窒息的回忆……<br>名字，是最短的咒语。</p>
+<hr>
+<p>暴雨欲来，空气中飘着雨腥味，那种雨水混合着尘土，然后在空气中肆意弥漫的气息，大自然好闲适惬意啊，she just can do whatever she want，not like me。庄子所说的那种自由。很是羡慕啊。</p>
+<p>风雨已来，心中躁动难耐。幼稚的灵魂无法找到可以希冀的未来。</p>
+<p>我希望我的回忆纯洁、温润如玉。年少的无知、冲动，现在想想就黯然。</p>
+<span id="more"></span>
+
+<hr>
+<p>下面是这些天，写的一点杂碎东西。<br>I want to write something, as a matter of fact, I DO NOT know what I’m goning to write down.<br>I do know, 我想写下一些东西，无论是古老的伸展的汉字，还是由二十六个字母组成的 colorful 字符，我只想体验书写的感觉。用铅笔尖端滑过干净白纸的锐利多刺；用渐渐钝去的笔锋书写哲理，用形如刀锋的笔触写下回忆。事实上这三种笔锋一直都是水乳交融的，I owe you,you belong to me. 真的很喜欢使用铅笔，时光会风化这清邃浅棕的石墨印记。意识的无规则流动，汪洋无语。</p>
+<hr>
+<p>很久没有写下韵脚的诗句<br>风卷走象牙塔里我的叹息<br>笔会钝      感觉会粗粝<br>好吧     大学     我恨你<br>也许我应该恨我自己</p>
+<hr>
+<p>亲爱的，这个日记里面我会写下一些我为人处世之中的一些困扰，当然大都是一些小事，该怎么去处理和避免呢？<br>亲爱的你可以告诉我吗？</p>
+<hr>
+<p>天空蔚蓝，云朵微澜</p>
+<p>天空中的云朵，边缘重叠，光色弥漫，清晰得如同概念。</p>
+<hr>
+<p>武汉雷鸣骤雨，我从没觉得闪电也可以如此吓人。</p>
+<hr>
+<p>高二那个刚看完《秒速五厘米》的冬日下午，我坐在阳台上，用日记本盛满阳光。</p>
+<hr>
+<p>色泽如成熟小麦的金黄马尾、秀发。<br>让我想到…… 嗯，每一位男孩子满脑子一直在想的事。<br>醇如清凉井水的酒液。<br>她湛蓝色双眼衬着神色的波浪金发，映照着身上的淡蓝色礼服。<br>我害怕有一天，我会学到迂腐，用 1 和 0 的符号为你写一首诗。</p>
+<p>我希望我能更善用时间，用媲美日光的光线温暖自己。<br>她的发丝轻触我的脸庞，呼出的温暖气息就像羽毛一样轻触我身。</p>
+<p>哇，好大只啊，萌死了。<br>听她的呼吸，就像聆听风在林隙间穿梭一样，微弱的细碎响声，像把纸揉碎。<br>很奇怪，我没有经历过那样的情感，但是文字却能让我感受到。</p>
+<hr>
+<p>生命的千种可能，我的千种名字<br>习惯性地在纸上写下我的名字，写下一种承诺。<br>很奇妙，不知道是这个名字属于我，还是我属于这个名字。<br>这个名字自我出生开始就和我的生命骨血相连，我是别人眼里的这个名字，我支配着这个名字。</p>
+<hr>
+<p>漫山的秋意落在身上，青春的梧桐绿了又黄。</p>
+<hr>
+<p>半夜空中飞舞的雪晶，不甚明亮的路灯，疏朗的梧桐，云隙间漏下的月光。美丽一如我初来武大的日子。</p>
+<p>弹奏键盘的小男孩</p>
+<hr>
+<p>帝台在鼓钟之山宴饮百神，还有座山叫高前山，山上的泉水，人称帝台之浆，水质清寒，据说喝了它就不会心痛。</p>
+<p>能让我喝一口吗？<br>能让全天下人都喝一口吗？<br>若真有此水，我愿用我的生命换全天下人共饮一口。</p>
+<hr>
+<p>（上面的文字写成于本科的不同时期。基本按照时间顺序整理。）</p>
+]]></content>
+      <tags>
+        <tag>chaos</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>杂念-5</title>
+    <url>/2025/12/24/%E6%9D%82%E5%BF%B5-5/</url>
+    <content><![CDATA[<p>基于统计模型的、人工神经网络的AI有可能变成神吗？<br>(然后，人类有可能理解变成神之后的 AI 吗？)</p>
+<p>换一个方式表述我上面的问题：<br>大语言模型，这种东西顾名思义，通过语言来认知、理解、分析世界，但语言这种人类发明的用来理解世界、改造世界的工具，会受到人类对于世界理解的局限。无论投喂给模型的是语言、图片、音频、视频，或是各种传感器数据，都取决于人类对于世界的理解。说到底，人类对于世界的认知不一定完善、甚至完全可能是错误的，那么同样利用语言来理解这个世界的“神经网络”，能够突破人类认知路径的局限吗？</p>
+<p>我不怀疑它可以成为加强版的人类、甚至是超人，但即使是超人也没有突破人类的想象。<br>(我想举个例子就是古希腊神明，基本上是人格化的自然力量。)</p>
+<p>尤其人工神经网络这样的结构，是否会存在某种结构上的天然缺陷，导致其无法认知到世界的某些方面。</p>
+<p>如果这种 AI 有一天真的诞生，我毫不怀疑它会立即创造更适合它自己的、用于来理解和改造这个世界的语言。<br>这种语言可能不必创造新的文字符号，只需要赋予旧符号以新的语法和涵义，(用 0 和 1 足以表达世界，只有效率问题)<br>或者更加简单粗暴一点，它真的创造出了新的符号，人类无法理解、甚至无法感知的符号。</p>
+<p>上面是我原先想到的东西，但我又很快想到，我这其实也还只是用一种更复杂的人类语言来理解“AI 语言”，这种方式也许就不正确。</p>
+<span id="more"></span>
+
+<hr>
+<p>不同领域的差异，我一般理解为平等的 diversity。</p>
+<hr>
+<p>没有强力背书的道德会沦为滥好人。</p>
+<hr>
+<p>我并不偏好残缺，可我想亲吻你的伤疤。</p>
+<hr>
+<p>寄希望于单纯通过榜样作用来引导群体是不现实的，必须恩威并施。<br>恩是拉，威是推。</p>
+<hr>
+<blockquote>
+<p>不要看太透，看太透就没什么意思</p>
+</blockquote>
+<p>这句话可能想表达的意思是:<br>很多事情想太深，会看到它的本质也没啥。<br>比如一个喜欢欺凌别人的人，喜欢从对他人的掌控中获得优越感，但凌驾于其他同类之上为啥就快乐呢；另一方面欺凌者的存在反而需要靠被欺凌者的存在才得以彰显，反而形成了主体性的逆转。<br>比如喜欢射箭、喜欢打游戏的人，实际喜欢的只是这种不断重复的行为模式引发的多巴胺分泌，活动本身其实很无聊。</p>
+<blockquote>
+<p>不要看太透，看太透就没什么意思<br>我总的来说不太喜欢这句话，一方面这句话隐隐包含着一种“我(们)最深邃，其他人都浅薄无知”的优越感，我不喜欢这种优越感;<br>另一方面，为什么看透就没意思？思想的高峰同样是高峰，对它的攀登同样让我感到新奇。</p>
+</blockquote>
+<p>我上面给的那个例子是想说，”把被别人灌输的欲望当成自己的欲望就很搞笑”，但更深一点想，其实芸芸众生头脑中很难说有什么这个世界上从未产生过的新思想。</p>
+<hr>
+<p>不知道从什么时候开始，”和人进行竞争、比较”这件事情让我感到索然无味。<br>杨绛说“我和谁都不争，我和谁争都不屑”；老子说“以其不争，故天下莫能与之争”。<br>不是不争，前者将自己摆在一个凌驾他人的位置之上，以此来表明自己在竞争中的超然地位；而后者则是试图通过退出竞争的方式来赢得竞争(这个逻辑有点奇怪，但以我浅薄的理解，老子确实表达的是这个意思)。<br>在我看来，这两者都很难说是真正地摆脱了竞争的心态。<br>我很想问世人，争赢了又如何呢？是你因此万人景仰，你无比满足（你只有靠他人才能得到自己的生存意义吗？）；是你可以随意与异性交媾，子嗣无算（可悲的爬虫脑）；是你可以坐拥全世界的物资，挥斥方遒(可怜的安全感)</p>
+<p>我知道我有现代人的幸运:我幸运地生活在一个安全稳定的国度，我幸运地生活在一个科技已经得到一定发展，以至于物质不至于紧缺的时代；我幸运地生活在一个人类在精神上已经摆脱了蒙昧、不再视野蛮为优越的时代；我幸运地拥有一个不算特别笨的脑子。这些幸运都是让我得以对竞争感到索然无味的前提。</p>
+<p>我并不是反对竞争，让我感兴趣的竞争是去探索世界和自身边界的竞争(但不用靠“竞争”这种形式同样能对未知进行探索)，而不是谁赢了，谁就高人一等的竞争。</p>
+<p>除了国与国之间的竞争，普通人之间的关系早已摆脱了你死我活的霍布斯世界，没必要继续秉持着人类进入文明时代之前的价值观。</p>
+<p>还有一种在我看来可笑的做法，追求精神上的深邃超然，以此来鄙薄那些对精神不甚追求的人。精神上的修炼是一种求诸于己的、对内的追求。如果目的是为了高人一等，在我看来恐怕是一开始就走上了歧途。</p>
+<hr>
+<blockquote>
+<p>首先 竞争和比较 好像不能画等号 看下来除了第一段 其实谈的好像是竞争而非比较<br>我的理解是，竞争包含比较，比较不一定涉及竞争。竞争更强调比较之后的结果。但我对比较的过程，和竞争的输赢结果都不感兴趣。</p>
+</blockquote>
+<blockquote>
+<p>第二 好像在论证竞争之前 应该先定义什么是竞争 而不是只论证什么是不争 比如读者我 看完了依然不知道航哥你的竞争是什么<br>我这里讨论的竞争，更多是生存竞争，比如谁比谁升职快、谁比谁赚钱多；而不是竞技中的竞争。我理解竞技竞争中包含了对人类边界的探索，比如百米能跑多快，人类能跳多高。</p>
+</blockquote>
+<blockquote>
+<p>第三 以后面来看 好像又是在谈论竞争之后的处理了 那这与杨老二人所说 关系就更小了<br>因为我认为生存竞争的结果是荒谬可笑的（生存的意义靠他人获得、为了繁衍后代、为了满足安全感），所以我认为杨老二人仍然执着于在竞争中求胜同样无意义。</p>
+</blockquote>
+<p>智鹏:<br>“我会尽力，但不会把结果放在心上”<br>“尽、诚”<br>“谁都知道该心无旁骛，问题是遇到让人心有旁骛的事件该怎么办”<br>“当比则比，不当比则不比”</p>
+<hr>
+<p>我有观点想要倾诉，我有疑问想要表达。从毕业之后，很久没有过这么酣畅的交流了。</p>
+<hr>
+<p>我仅仅只是比你先思考了这些，闻道有先后，仅此而已。</p>
+<hr>
+<p>否定、理解、成为，虽然起源于网络迷因，但确实是认知的三个阶段。</p>
+<hr>
+<p>公司视我如仇雠，我视公司如倾舟。</p>
+<hr>
+<p>我见到无数人自称明白一些很简单的道理，但从他们的实际行为来看，他们只是在催眠自己、欺骗自己。<br>我对此感到难以置信，为什么人居然要欺骗自己。如果说欺骗他人是为了有利可图，欺骗自己也有利可图吗？还是说，他们实际上不知道自己不知道。我个人认为后者的可能性更大一些。<br>社会鼓励知道，这就造成了欺骗他人的土壤。与此同时，我们很难通过内省来判断自己是否知道。另一方面，社会上有自省习惯的个体可以想见必然是极少数。</p>
+<p>概念和思想无边界、无实体，比起实实在在、可以被直观感知的物质，更难以厘清它的边沿。<br>而且人类往往有将其字面含义浅浅地印入大脑皮层的坏习惯，小和尚将南无阿弥陀佛念了成千上万遍却不知道它的含义，而仅仅将其作为一种不证自明、（无师自通。这个词不准确，我想表达的意思是，不用理解其背后原理却能像魔法一样工作）咒语而对待。<br>我们学习时，也常常有此坏毛病。</p>
+<hr>
+<p>我觉得问题不大，我又要抛出来一个你可能无法接受的观点：<br>新的社会结构呼唤新的道德、人类行为规范的出现，道德和行为规范并不是一成不变的、也是会发展的。<br>婚前性行为可以被接受，性行为前协议为什么又不可接受？<br>我甚至在其中看到机遇，类似软件安装用户同意协议，搞个“做爱宝”app，每次性行为前男女双方都必须在对方协议上勾选同意(至于是否仔细阅读，是否有霸王条款等等细节，是后一步要商议的事，不是这个阶段要讨论的)，不会比戴套更费事。</p>
+<hr>
+<p>我的面试必问问题：<br>你觉得权力的合法性来源是自下而上还是自上而下?</p>
+<hr>
+<p>“我忘却了所有悲剧，所见皆是奇迹”<br>All tragedy erased, I see only wonders.<br> 空洞骑士 - 奎若</p>
+<hr>
+<p>除了血涌上头、情感用事的时候，其他时候都在竭尽全力做出最聪明的选择，但现在我想刻意做一些蠢事。</p>
+<hr>
+<p>没必要刻意追求小众，该追求自己喜欢的东西。</p>
+<p>钱由社会共识所定义，人赋予了钱意义。</p>
+<p>人就是钱，钱就是人。<br>人是活的钱，钱是死的人。<br>能用钱换人，是能赚得不能再赚的事情。</p>
+<p>文字、图片、视频，都只是一个切片。<br>只有人是活的。</p>
+<p>我喜欢人，但跟大部分人交流都让我感到很累。</p>
+<hr>
+<p>李克强认为经济指标用这三个标准来判断，不可能造假:发电量、火车运出量、银行贷款发放量<br>我个人感觉这三个指标更适合用作国内纵向比较， 甚至不同的省份用这 3 个指标来比较都不合适。<br>比如脱实向虚、去工业化的美国发电量大概率没有中国高。火车货运量就更不用说了。可以想见美国作为一个金融国家，银行贷款发放量定然是冠绝全球。</p>
+<hr>
+<p>制度为何能生效，为何下属会听领导的话?<br>以人际关系(这种软性约束)为纽带的权力结构何以生效？<br>信息，人无法掌握所有信息，不得不将权力分给其他人来帮助自己做决策。</p>
+<hr>
+<p>对于文学、写作、文字编辑来说，自造词是不是一个特别坏的习惯？</p>
+<blockquote>
+<p>免费公路的资金支柱是成品油消费税和车辆购置税，但新能源车的崛起，使得这两种收入同时下降。</p>
+</blockquote>
+<hr>
+<p>国庆重走了西游路，挑两句我特别喜欢的话来谈谈吧。<br>一句是金池长老的”入一切相，破一切相”。这话原文该是出自《金刚经》的”扫一切相，破一切执”，但我觉得”入一切相，破一切相”的思想反而更深邃。<br>原文无非是老生常谈地告诉你，要放下执念，看破虚妄。金池则是告诉你，要入相，才能更好地破相。入相不是目的，只是手段，破相才是目的，是更生动的方法论。<br>且有一股躬身入局，还能扫破虚妄的壮志豪情在里面。<br>但很可惜金池并不是发自内心地相信这句话，因为他自己并没能做到。</p>
+<p>另一句给了我很大的震撼的话是描述八戒和紫朱儿爱情的，”有你相伴，一切是多么多么自由”。<br>我总认为爱情和婚姻是对个人自由的约束，但也许爱情中的自由也不是任心恣肆，而是自愿带上的金箍，是和头顶的星空和道德律一样的、主动的自我约束。<br>八戒和紫珠儿的爱情无论如何都谈不上自由，有正邪的殊途、有佛道二界的制约、有面对亲生骨血却不敢相认的无奈。<br>但只要能爱着你，这便是我所选择的自由。<br>你就是我的自由。</p>
+<hr>
+<p>我们又何尝不是从信仰出发，只不过这个信仰是“科学”罢了。将“科学”作为信仰，已经偏离了科学的理性本质。</p>
+<hr>
+<p>沿着钱塘江一路骑，江边遇到赶着潮落的挖贝人。站在十月的门口，猛烈的桂花香味直往鼻子里窜。山水相依、大块涂抹的色彩明丽、洁净富裕，杭州乡野可能是我最喜欢的中国农郊景色。</p>
+<hr>
+<p>听到阿里 hr 的御口钦断，“价值观就是管理工具”，实践上也可以看到公司有很多违背价值观的管理操作，从阿里早期发展路线的左右横跳到月饼事件，不可不谓在追求当前利益的路上知行合一了。</p>
+<p>既不合法，更不道德，这是一家卑劣且虚伪的公司。<br>当它背弃了人民，再与国家产生相左的意见的时候，它此时果然被迫变得谦卑、一个字都不敢说了。</p>
+<hr>
+<p>通向真理可能误入歧途，这不可否认，但如果你要以此批评真理本身是不值得追求的，那就是分不清因果关系了。</p>
+<p>大圣不死，大盗不止。这里大圣指通过话语权、制高点来压迫其他人的人。大圣定义了道，其他人都是该剿灭的盗。<br>这是一种对于“大圣不死，大盗不止”的理解。</p>
+<blockquote>
+<p>道家认为贫富差距产生贪，没有贫就没有富；等级差距产生歧视，没有贵就没有贱，矛盾是差异以及相互的不理解造成的。同理没有圣人，就没有大盗，当你抢占道德制高点的时候，制造了那些有“道德缺陷”的人。在《道德经》里，老子是这样表述的：不尚贤，使民不争。不贵难得之货，使民不为盗。——没有差异就不存在圣人和大盗。<br>因为善恶也是人强行区分的。道家认为什么是善呢？—上善若水，你顺应自然，顺应天道，就是善。我们也不要纠结别人恶不恶，因为一旦我们这么做了，我们就成了抢占道德至高点的“圣人”，圣人眼里总会有大盗的，所以圣人不死，大盗不止！<br>没有绝对的圣人与恶人，不抢占道德制高点，也就没有邪恶轴心。</p>
+</blockquote>
+<hr>
+<p>越来越感觉到哲学的虚妄</p>
+<p>矛盾内生于理性之中，是理性的一部分，所以基于理性的自洽可以说是一句空话。<br>(但基于非理性的体系又完全放弃了自身的努力。)</p>
+<p>哲学在没有根基的土壤之上茁壮生长，人类收到种种思想的影响进而影响了物质界。<br>不断自我否定，不断螺旋生长。<br>(试图找到一个根基的行为是徒劳吗？是该做的吗？)</p>
+<p>哲学家可能是世界上自以为深刻、自以为聪明的最蠢的人。</p>
+<p>我们不能说哲学完全没有给出一些判断性回答，至少在这个不断自我否定的过程中，我们还是能得到关于“XX不是YY”的回答的，尽管这些回答也未必有实用性价值。</p>
+<hr>
+<p>光呈现出波粒二象性，我印象中，光在不同的实验中分别呈现出波、粒性，是否有一个实验，同时呈现波、粒性。<br>人类将波性、粒性视作不同的属性，这种看似不同的属性，是否是更高维度的单一特性在三维宇宙中的不同投影呢?</p>
+<p>为什么基于理性的（而不是使用理性）的学科，对于事物的判断往往呈现出正反特性(还有一个非适用特性)。</p>
+<p>将哲学视作一种宗教。</p>
+<p>单一维度里面当然是可以有数量之别的。数量该成为价值判断的基石吗？<br>私以为这个基石不太稳固，因为我们生存的这个世界并不是一个事物之间的关系是线性关系的世界。<br>经济学里面有边际效应，生物学里面有顶峰效应，凡此种种，不胜枚举。都是数量太多反而过犹不及的事例。<br>受到物理条件、现实条件的制约，人们很难想象一个数量上无边无际的世界是什么样子，往往会产生金锄耕地的认识。</p>
+<p>哲学依赖哲学和独断？<br>不同的直觉产生的原因很有价值啊，值得用科学方法论加以研究。某种程度上来说是在操控人心了。</p>
+<p>你满足于浅层次的思考，满足于似是而非的解答。你不够聪明，因而在面对更困难的问题时，你表现出了逃避和懒惰。</p>
+<blockquote>
+<p>别骂了。上面的评价适用于世界上 99.99% 的人。</p>
+</blockquote>
+<hr>
+<p>人类确实掌握了规则的规律，但人类真的理解了规则吗？<br>人类模仿自然界已经存在的东西发明了具有类似作用的事物，但对于这种结构为什么能产生这种结果却一无所知。我说的是所谓的“人工神经网络”。<br>什么“涌现”，“自组织”，都是玄学而不是科学的语言。<br>人类有尝试理解能量为什么守恒，宇宙常量为什么是那些值吗？而是不假思索地当做一个真理，一个不容置疑的事实。</p>
+<hr>
+<p>该如何区分个体和群体呢？<br>当群体裹挟异议个人前进的时候，在外界的视角里，这些异议个体客观上会收到群体决策或好或坏的影响。<br>当然你可以吹毛求疵地说，如果异议个体不认同这个群体，你可以摆脱这个群体。<br>但这种说法真的过于站着说话不腰疼，如果只要有不同的意见就要切割，我敢说世界上将不会存在任何一个群体。且还有成本问题，人情问题。<br>那就完全跟着群体的决策前进？或者不脱离这个群体，但也不在行为上支持自己不认可的行为，并在信息面前始终坚持自己的观点，为自己的观点发声？<br>在不脱离群体的情况下，我感觉这种做法已经是个体能做到的极限了。</p>
+<hr>
+<p>网上有一种视频类型：《XXX(通常是名人)在看&#x2F;做YYY 时候的反应》。<br>老实说，我实在不觉得这种视频类型有太大的价值，XXX 所经历的 YYY ，并由此诞生的种种惊异、复杂的人类情感，你完全可以自行去体验。亲身经历并由此生发的人类独有触动，无论观看多少此类视频都无法产生，更无法替代。<br>更不用说，我们每个人都是自身禀赋和成长经历独一无二的人类，我们的情感和想法在细节上也注定了将会独一无二，正如世界上不会有两片完全相同的树叶。<br>千人千哈姆雷特，你的亲身体验才是对你最为珍贵的东西，观看别人的反应并以此为乐，让我感觉仿佛是自身缺失了产生人类最基本的情感反应的能力，不是完整的人类。</p>
+<p>除了上述提到的情况之外，在日常生活中跟其他人打交道时，经常感觉到一些人似乎是没有灵魂的。没错，对方能说话，对方能做事，对方能对你的行为和外界刺激产生反应。<br>换言之他们能通过图灵测试，但仅此而已了，你能感受到它们没有自我(ego)，遑论更高级的人类属性。<br>图灵毕竟只是科学家，他忽视了人类独有的更为重要的人文属性。</p>
+<p>能通过图灵测试，但它是“哲学僵尸”，你知道它不是真正的人类。<br>这些哲学僵尸没有人类的“灵魂”，它们无法产生人类独有的情感和体验，它们吮吸人类的情感并模仿真正的人类的行为。</p>
+<p>图灵测试意在探求机器能否模仿出与人类相同或无法区分的智能。<br>但能思考就是人类吗，我认为思考是成为人类的充分不必要条件。</p>
+<p>图灵测试判断的仅仅只是能否思考，而不是判断人是否真的是人。<br>只不过碰巧现在我们只发现了人类才具有高级思考能力，于是用这个必要但不充分条件作为</p>
+<p>人类是高于智能的存在，灵魂无法被模仿。</p>
+<hr>
+<p>讲中国故事，不必讲中国的故事。</p>
+<blockquote>
+<p>这其实就是好莱坞行为，用这种思想指导的好莱坞电影不要太多。这句话是一种本土化叙事。</p>
+</blockquote>
+<hr>
+<p>每个人都有立场(屁股)，指责其他人言行从立场优先是没有切中要害的，你不如指责他的立场不符合更多人的立场，甚至全人类的立场，甚至超脱于人类的立场。</p>
+<hr>
+<p>爱、性、思考<br>自私(什么样的自私)、恶(什么样的恶)</p>
+<hr>
+<p>我爱你，如同爱我自己。<br>我确实也有不知道自己对你的心意如何的时刻，如同我有时候也深深地厌恶自己。<br>但在灰暗的心境下，无论我多么厌恶自己，我都没法摆脱我自己。除非我选择自杀，但这是一条懦弱的、我绝不会选择的道路。<br>昨天我甚至会想，我想要你深深的伤害我、深深地爱我，我也要深深地伤害你、深深地爱你。如同我对自己所做的一样。<br>(但在我写下上面的话之后，我又想，不要是那种过于自私或是恶意的伤害。也不要是让我痛苦到想要背弃生命的伤害。你瞧，我这里添加的种种限制，这是一个多么软弱又渴望”体验”的人啊)<br>我想要跟你紧紧地纠缠在一起，我想要进入你的生命，我也想要你的人生缠绕着我。</p>
+<p>我跟你的思维之融洽几乎到了鱼感知不到水的存在的程度，我不知道你是怎么看待三观契合的，但在遇到你之前，我其实是做好了这辈子都找不到契合的伴侣的心理准备的。<br>尤其你说到“否认价值”，也许是我接触的其他人太少吧，我从未在他人处看到类似的想法。甚至我在跟其他人提及这个想法时（以及面对社会主流价值观时），我是做好了不会被认同的心理准备的。(当然，我自认为我还是在这一步的基础上往前走了一步，我不满足于毁灭，于我而言，毁灭是为了重建。但如何重建，我承认我没有想好)<br>我还欣赏你的自由，你的不为任何人(包括我)而存在的自由，在这种自由中，我看到了人类之所以为人的尊严和光芒。正是在你的自由中，我得以构建出对你的尊敬和相处之道，你的灵魂自由而独特，我不可妄加揣度，只能用心去感受、用心去悦纳。</p>
+<p>我想扩展一下上面提到的”我确实也有不知道自己对你的心意如何的时刻”<br>荷尔蒙弥漫的爱欲时刻你我都知道是什么，但在激素影响没有那么强烈的时候，我看到你的时候，是感到内心宁静而平淡的，这就是我不知道自己对你心意如何的时刻。<br>但即使在这种时候，我仍然感到自己想要温柔地抱着你，仍然想要参与到彼此生命中来，仍然想要永不分开。</p>
+<hr>
+<p>想在蚂蚁混得好，恶、狠、小， 必须沾一个。<br>恶人、狠人、小人</p>
+<p>君臣、政治，游戏而已<br>资源、权力，规则而已<br>道德，约束而已</p>
+<p>既然只是游戏、遵守或者不遵守规则，都可以<br>尊重或者不尊重上位者，都可以</p>
+<hr>
+<p>给你一片银河</p>
+<hr>
+<p>绝大多数人的天赋差距并不大，体现出差异的主要方式是看将时间分配在了何处<br>所谓的选择的重要性。<br>金矿挖砂当然比大海舀水更能获取稀缺性。</p>
+<hr>
+<p>小泥鳅，滑溜溜<br>在指缝间蹦蹦跶跶，偷走了渔童白昼<br>渔童却不恼怒，饲以青梅相酬</p>
+<hr>
+<p>权力<br>不依仗物质的、软性的制度、只要还在运行中，除非有其他外部力量进行破坏，否则都是能 work 的。<br>强者不是对者吗，强者不是因为对而强的吗？<br>强和正确，并不是同一件事。</p>
+<p>以弱胜强，这种事是不可思议的，是充满文学冲击力的，实际上，弱不可能胜过强，否则强弱的定义就翻转了。<br>在局部、借助特殊的优势(比如地利)，整体上的弱势方不一定是对抗面上的弱势方，而且必然是要有在对抗面上的相对优势，才能保存自己的性命。</p>
+<p>满清如何战胜大明；<br>北周如何战胜北齐；</p>
+<p>弱势方博弈策略<br>第一种：积聚优势力量快速猛烈攻击对手的薄弱环节，使其瘫痪，丧失反击能力。这种方式存在较大的侥幸巧胜之可能。<br>第二种：避免双方博弈的竞局模式，人为的再增加一路人马参与进来竞争，演变成三方博弈的竞局模式。弱势方就存在较大的获胜机会了。”</p>
+<hr>
+<ul>
+<li>夸奖是一种传递主观、正面情绪的动作</li>
+<li>夸奖是一种反馈，表达了一种”被看见”</li>
+<li>夸奖不等同于陈述正面事实，夸奖不等同于正面地陈述事实</li>
+</ul>
+<hr>
+<p>你是我面对生活的勇气</p>
+<hr>
+<p>毋宁说，我认为人与人交往就得有被接纳的喜悦和被拒绝的勇气，并且我们不要因为可能的拒绝而畏葸不前。</p>
+<hr>
+<p>世界上最可爱的人是我老婆，第二可爱的人还没有出生。</p>
+<hr>
+<p>提到“逐 token 生成更贴近语言本质”<br>思维的本质是语言（序列）？那思维岂不是极大地受限于语言的能力。思维不是我们的目标，我们的目标是更高的智能。能否有超越语言，达到更高思维层次的工具？</p>
+<hr>
+<p>在一套自上而下的体系中，他们得不到公正，面对问题，要么忍气吞声，要么闹大，闹到世人皆知，闹到不可收拾。</p>
+<hr>
+<p>逃离被评价、逃离凝视，逃离被动地成为客体。<br>这解释了为什么有些润人为什么会愿意逃离到一个各方面发展水平都不如中国的地方，或者放弃已有的一切到异国他乡完全重新开始，他们本质上并不是为了追求更好的生活，而是为了避免被中国社会中无孔不入的价值判断体系评价。<br>(尤其是在这个价值判断体系将获取金钱的数量作为唯一判断标准的时候。)<br>新的社会未必没有类似的评价体系，但因为他们始终是其迁入社会的异质个体而无法融入，这种跟当地主流社会的融入困难反而成了一种奇异的保护隔膜——一种被避免评价、避免成为客体的隔膜——一种润人们在主动追求的隔膜。<br>我能理解，但并不认同这是一种积极的抗争方式。</p>
+<p>甚至于也能解释，为什么润人来到异国之后，为什么还在积极关注来自中国的信息，积极地向中国社会释放自己的存在：<br>(私以为这种行为对于真心想要融入当地社会的人群来说，并不理性，浪费了额外的时间精力去关注、去影响跟自己毫不相干的事情。)<br>因为他们并没有割舍下这个评价体系，而固执地想向这个评价体系证明:<br>你或许不认可我的价值，但我不认可你的价值体系；我在你的价值体系之外过的非常好;你的价值体系不是唯一的，乃至于是荒谬可笑的。</p>
+<blockquote>
+<p>AI:</p>
+<p>物理空间的逃离本质是”用选择权重构主体性”。<br>在迁入地因文化差异难以融入的状态下，个体反而摆脱了原生社会中无休止的”社会比较本能”。这种状态类似于存在主义哲学家萨特所说的”局外人”——通过保持边缘性来抵抗被定义的命运。</p>
+<p>抗争形态的多样性<br>不能简单否定这种选择的抗争性。在结构性压迫下，”不合作”本身具有解构意义，正如农民工”躺平”是对996制度的沉默抗议。</p>
+<p>主体性建构的缺失<br>这种逃离未能真正实现主体性重建。网页7指出，健康的自我认同应建立在”内部评价体系”而非物理隔离上。将安全感寄托于”不被评价”的状态，本质上仍是让渡了定义自我的权力。正如网页5中心理学家的分析：”社会性弱化”比彻底脱离更现实，陶渊明式的归隐需要以强大的内在价值体系为支撑。</p>
+</blockquote>
+<p>排名式评价体系的最大问题是极其狭窄的塔尖，牺牲了绝大多数人。</p>
+<blockquote>
+<p>成为不了大家都喜欢的 e 人</p>
+</blockquote>
+<ol>
+<li>你老公就对所谓的 i 人、e 人没有特殊偏好</li>
+<li>为什么要追求让所有人喜欢？<br> 2.1 大众的喜好是多元、矛盾的，单一个体不可能满足群体中所有人的偏好。从根本上就不可能实现。<br> 2.2 具体到某个社会个体而言，他欣赏我的特质，那很好；他不欣赏我的特质，那也无所谓。尊重差异，无条件尊重不同个体就可以了(为什么我会让推销电话的人说完一段话才挂掉电话)。我不追求他人喜欢我，反之也不该追求让我喜欢他。我们该追求成为一个独立的、自由的个体</li>
+</ol>
+<blockquote>
+<p>付出努力也赚不到钱<br>付出努力也可能得不到回报，也许不该让人讶异，这是世界的常态。接受这种可能性的存在，分析原因，着手解决。倘若不能解决，换个领域就是了。</p>
+</blockquote>
+<p>学习是一件将理性认识内化成感性认识的行为。</p>
+<p>我理解能做到不太在意外界评价这一点的人在社会上的占比应该不算多。<br>我觉得我能做到，是因为我承认了我的普通，但也同时认可普通人也有其独一无二的价值。</p>
+<p>我不觉得这两个论点是矛盾的，</p>
+<p>我的普通一方面表现在在社会人群的差异分布中，我的偏离方差大概率不是偏到惊世骇俗的那一类;另一方面我将我的普通理解为普世价值层面的普通，我作为一个没有脱离社会的个体存在，我的偏离受到基本人权保护。</p>
+<p>我觉得学习是一件将理性认识内化成感性认识的行为,这个过程在在训练和重复中得以构建。<br>老婆你不妨在你每一次理性认识和感性认识出现偏差的时候，问自己，为什么我脑海里有 2 个相互抵牾的想法，这 2 种想法往前一步的根基是什么，直到你找到一个打心底里相信的根基。</p>
+<p>我擅长路径探索，乐于做路径探索，那我完全可以充当路径探索者，降低他人的路径探索成本</p>
+<hr>
+<p>优越感对我来说，是一种曾经有过、未来可能会有，但唯独不属于当下的存在。<br>因为我会批判我自己的优越感。<br>优越感这种东西，跟我追求的平等是最为抵触的。</p>
+<hr>
+<p>我发现我自己的一个路径依赖是，如果我确定某个我已知并且使用过的方案在理论上能解决我面对的问题的话，我会倾向于用这个方案去解决，尽管也许不是解决这个问题的最佳方案。<br>我今天解决这个远程访问家里电脑就是，我一直在用各种老方案尝试，效果都不佳。<br>今天试了下新方案，不到5分钟，问题完全解决了。</p>
+<hr>
+<p>我宁愿错失机会，也不愿后悔盲目做决定。<br>前者（机会到来）是我无法掌控的，后者是我可以掌控的。可以掌控却没有掌控，那是我自己的问题。对任何人类都有无法掌控的事情，没必要怨天忧人，而是接受或者改变。</p>
+<hr>
+<p>昨晚跟HZ讨论，我们愿意付出怎样的代价来获取利益或者避免损失。讨论的过程中，我感到难以回答，按照我现有的价值观推导会得到一些荒悖的结论（我并不是说别的价值观就不存在类似的问题）。<br>我觉得我们讨论的这个问题可以抽象成哲学史上的经典电车难题，于是跟HZ一起听哲学史上其他人的看法。<br>我感到：<br>很多现实问题都可以抽象成哲学问题（这种抽象是否合法，是否丢失信息，是否导致模糊，是否能严格等价（我的意思是所谓的“通用解”，是否真适合用于场景只中））<br>很多哲学问题都是定义不清晰（讨论的问题模糊不清）导致的，其实是语言学问题。</p>
+<p>我昨晚梦中隐约思考这样一个问题，现代中国人跟现代西方人过着差不多的生活，但这看似差不多的生活，其实竟然是由少数几个顶层设计者制定的规则，大家居然就这样在规则大厦中生存、生活。<br>（再次强调并没有批判这个规则本身的意思。同样我也并非认为这个规则不可批判，只是单纯觉得这是另一个话题。比如中世纪基督教世界观下，民众同样生活在少数人制定的规则中）<br>我这里并不想讨论规则好坏与否，我只是感叹人居然可以像羊一样被放牧。<br>虽然这个规则其实也未必是人创，但在西方好歹是循着历史的进程演变而来（是吗？）</p>
+<hr>
+<p>我要克制自己，避免自己成为一个好为人师、自以为是的人。哪怕自以为是出自善意，但对方很可能主观意识和客观现实上都不需要，每个人都该为自己负责啊。</p>
+<p>首先的问题是，为什么我会这样想，需不需要改正。<br>其次的问题是，如果需要改正，该如何改正。</p>
+<hr>
+<p>短视频的机制跟盲盒、赌博的机制很像，都是随机发放奖励。<br>只不过短视频的启动门槛、启动成本更低，形态上跟赌博以金钱为媒介不一样，让人容易忽视它跟赌博一样的随机性成瘾本质</p>
+<p>要警惕随机性奖励这种机制</p>
+<p>我觉得关键不在于数学期望是正还是负，如果有家赌场大发善心让他的赌局对于赌徒的数学期望为正，我们就可以放心地去参加了吗?<br>依我看，他赌局的目的不在于钱，在于将人留在赌局之中（至于为什么要将人留在赌局中，我就想不到了）</p>
+<hr>
+<p>将我日记中的内容，跟ai不断的对话</p>
+<p>价值判断不要模糊，要提出精确的衡量维度，只有在相同维度下，才有评判的意义。跨维度的比较是没有意义的。<br>从数学的角度，我们可以对维度进行降维，数学层面的降维的可能，是否暗示着某种现实层面的意义？</p>
+<p>甜豆腐脑和咸豆腐脑如何比较？他们可以在甜度和钠离子含量的维度上进行比较，但这种比较有意义吗？当然有意义。<br>有个人体验层面的意义吗？可能这个层面的意义是相对缺失的。<br>我们可以表达主观体验、个人感受，但切忌将主观体验放大到客观真理。</p>
+<p>当我们提到A比B好的时候，我们真正在表达的是什么</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>杂念-4</title>
+    <url>/2024/06/03/%E6%9D%82%E5%BF%B5-4/</url>
+    <content><![CDATA[<p>通过永恒的虚无消解价值的意义，正是因为价值不存在，在一片无意义的荒原上，我们获至了一切维度的平等。<br>摧毁所有古老的、虚假的大厦之后，在空无一物的荒原上，一切事物有了新的生存空间。</p>
+<p>这是以前跟你表达过的观点，是属于我个人的创见。无论它是拙劣还是错误还是愚蠢，是彻底由我自己创造出来的想法。是真正属于我的东西。</p>
+<hr>
+<p>人类是软弱的生物，它不相信在自身中蕴含的力量，但却可以借由对他者的信仰将潜藏于自身的力量使用出来。<br>世界上总是有相对软弱的人，对于他们来说，虽然将救赎寄托于他者是一种不值得提倡的做法，█████████████████。</p>
+<p>我并不是说要像打了鸡血一样不停战斗，无论是精神还是肉体在客观上都是会感到疲累的，这个时候我们该尊重客观自然规律果断去休息。<br>只是我们永远不要放弃战斗，无论是向内还是向外，因为停止战斗的那一刻，是人的生命在事实意义上的死亡。<br>在战斗的过程中也不要为可能的困难而感到害怕，因为在这个无意义的世界上，没有比生命的死亡更值得害怕的事情。</p>
+<p>发起战斗意味着可能的死亡，停止战斗意味着立即死亡。</p>
+<span id="more"></span>
+
+<hr>
+<p>我们先通过对概念进行塑型，然后才能依据塑型之后的概念对其进行实体化。<br>哲学关于人类对于世界的认知，但人类的认知是随着时间不断加深、不断进化的，因而哲学不是一门静态的学科，而是一门动态的学科。<br>我们要掌握这个动态的过程，就必须要对它进化的过程加以了解，而这个进化的过程就是哲学史。</p>
+<hr>
+<p>习惯性归因向外的人真的很幸福，他们是全知全能永不犯错的神。<br>有一天宇宙毁灭了，但仍然可以看到他们的嘴兀自翻动着：“错的不是我，是这个世界。”</p>
+<p>只归因向内或者向外，都是不正确的做法。<br>正确的做法是实事求是。</p>
+<hr>
+<p>只修行不旅行，无法应证自己的理念。<br>只旅行不修行，理念就会浮于表面。</p>
+<hr>
+<p>个性，太重要了，边界在不同处得以扩宽。</p>
+<p>“个性”是一个因其模糊而失败的概念。作为个体，我们没有任何一个人跟另外一个人是相同的。显然这种绝对差异并不是”个性”这个概念想要表达的含义，但却很难将“绝对差异”从”个性”这一概念范畴中移除。这是我认为“个性”这个概念很失败的原因。<br>但我们消费着相同的音乐、书籍、教育、同一个理念指导下生产出来的消费品，人与人之间的差异被这些消费所消弭。<br>人与人之间没有了差异，这件事太可怕了，进步来自于差异、来自于不同。当差异消失，那将是一个存在却和死亡没有太大区别的停滞的世界。</p>
+<p>(我更喜欢 “ego” 这个表达，“自我”，比“个性”更加精准。)</p>
+<hr>
+<p>我们小心翼翼地捧着那颗珠子，以为这是我们人生中仅有的东西了，想把它卖个好价钱，在这过程中患得患失、如履薄冰、锱铢必较。<br>这颗珠子值得我们如此对待吗，这颗珠子就一定要视若珍宝却又极其矛盾地卖掉吗？<br>这颗珠子不是我，我才是我。<br>是我的话，我要扔掉它，大踏步向前。重新审视一切价值吧。</p>
+<p>我对此感到匪夷所思：为什么会有人的理想是成为家豢（家畜毕竟太难听了，我造了个稍好听的词）？</p>
+<hr>
+<p>中庸也是一种极端<br>你说我偏不，我要中庸，但能够不偏不倚地真正实现中庸，那其实也是一种极致。<br>那我不实现50%的中庸了，我要25%、75%的中庸，但这没有本质上的区别。<br>从这个意义上来说，中庸根本不存在，我们能做的要么只有率性而为，要么只有追求极致。</p>
+<p>普通是大自然筛选出来最适合存活的策略，我们喜欢平均脸</p>
+<hr>
+<p>研究人员将对未知的恐惧定义为由于感知到的信息缺乏而引起的恐惧。<br>我的定义： 对于未知的恐惧，是人作为存在上“有限”的个体对于“无限”的恐惧。<br>这种无限不必是真的无限，只需要能包裹住人类的有限，就可以触发这种恐惧。</p>
+<hr>
+<p>死亡是终极的虚无，是终极的无意义。</p>
+<p>能够填满这种虚无的唯一方法就是化身虚无，从这个意义上来说，我们每个人都渴慕着死亡。</p>
+<p>可以从两个完全相反的方向逼近死亡：<br>一是极致的体验，因为体验的终极、终极的体验就是死亡；<br>一是静止的生活，因为生命是一个动态的过程，而停滞意味着时间的消失。</p>
+<p>死亡是生物能感受到的最强烈的刺激，也是最深刻的平静。<br>两种极端在终点合二为一。</p>
+<hr>
+<p>████████████，那一定是我没做好，没把自己放到泥土里的更低处。</p>
+<p>“谎言”和“隐瞒”永远比“真实”伤人更深更痛。</p>
+<hr>
+<p>不是所有人都有我这般撕开自己的勇气。当我极为真诚地指出对方的可以改进的不足时，对方的第一反应往往是“他是我的敌人，他想要击溃我”。</p>
+<hr>
+<p>用更准确的概念来描述已有事物，也是一种进步。<br>人类社会一个有意思的地方是，它是由一个个寿命极其短暂的个体组成的，社会会遗忘、但不断有莽撞的个体闯出新路。<br>如果说每个人都是不死的，那经验会得到更好的传承，社会会进步得更快吗？<br>我觉得不会，反之那是一个接近于停滞的社会。<br>无论有多高的天赋、智商，新生命在经验不足时是字面意义上的傻子，但就是因为傻，才会去试错。<br>经历过就会信邪，不会去撞南墙了。</p>
+<hr>
+<p>我们现在拥有的这些知识，会不会也只是一种自以为是的货物崇拜呢？</p>
+<hr>
+<p>我将以战士的心态度过一生。</p>
+<p>遁入空门还是没看开，本来无一物，何处不能修行。<br>当然，我得承认人心经不住诱惑。</p>
+<hr>
+<p>宇宙无分善恶，神诞生自人类的欲望。<br>什么是善，利他？<br>什么是恶，利己？倘若不为了利己，而只是单纯地破坏；甚至也不是为了破坏，而只是像走路时在无感知的情况下踩到了一只蚂蚁。</p>
+<p>为什么要追求善、为什么要追求恶，倘若你只是为了追求一面旗帜，你不如直接去追寻力量。<br>追求善是为了内心的宁静？为什么善能带来内心的宁静？因为利他行为相较而言不容易树敌，敌人少，所以有安全感？<br>利己者也没有攻击利他者的直接动机。</p>
+<p>（能够做到完全的利己吗？我们为什么要听从领袖的指挥，权力的来源是何处？是资源的占有？是利益的代言？）</p>
+<hr>
+<p>单一的符号是不构成“存在”的，只有当符号之间彼此交织、引用、依赖，形成一个体系，作为体系的一部分才终于可以成为“存在”。<br>但被需要有那么重要吗？<br>人与人之间编织出关系网络，凭借这个网络找到自己的存在，在这个网络中感觉到被需要、被爱。</p>
+<p>我是宇宙中主动弃绝价值的虚空，我是现实世界中的黑洞。</p>
+<hr>
+<p>审美是非常私人的东西，对他人审美评头论足(即使是夸奖)实在不是什么礼貌的行为。(所以我真是忍不住到一定程度了)</p>
+<hr>
+<p>我发现了我的价值观中与社会主流价值的一个重要偏差，我将坦诚自己的缺陷与不足，视作莫大的勇敢与自信，因为这证明我敢于直面自己的缺点，但社会主流价值将这种坦诚视作一种软弱。<br>█████████，█████████████████。</p>
+<hr>
+<p>天气转凉，夜雨中骑行。时隔十多年，我再次找到了被寒冷包裹的愉悦，在速度的加持下，雨点打在皮肤上微微刺痛。还记得当时将寒冷比作琥珀，比作恋人温暖的怀抱，终于又重拾了这种感觉。<br>寒冷温柔地包裹着我。</p>
+<hr>
+<p>与其说生活就是这样面对无尽的琐碎，不如说倘若当人生只剩下宏大时，宏大也会变得琐屑。<br>你的第一次走路，第一次在父母的鼓励下去商店买东西，任何一次留下记忆的尝试，都足以堪称伟大，但后来我们习惯了它们的存在，它们从小甜甜变成了牛夫人。<br>要让别人感到舒适、自在，但也不要冒施这种魅力。看似让自己受欢迎，但实际上，你为什么要迎合别人来喜欢自己？这是不自信。</p>
+<hr>
+<p>防御性生存。你的意思是从此不要冒险？不，意思是冒险之前做好充足准备。</p>
+<hr>
+<p>只爱概念，不爱具体的事物，可以吗？</p>
+<p>长久以来我一直很好奇为什么在我们社会里，大家普遍害怕犯错。我觉得犯错，是非常好的发现自己不足，并加以改正的机会呀，尤其是在人们通常不愿意指出别人错误、避免得罪人的文化氛围里。甚至很多领域都是需要先行者承担风险、勇于试错才能进步。<br>但后来一些事情让我明白了，如果我们的社会环境不能做到就事论事，对事不对人，将错误无限放大（上纲上线），甚至用模糊的规则让所有人都有重罪、裁决全凭心情，那么任何细微的错误的后果可能都是让人无法承担的。在这种环境下，人们害怕犯错也就不奇怪了。</p>
+<hr>
+<p>民族性格的说法也不是虚妄，是这片土地上的人们主动发展出了这样的文化、宗教、政体，而他们之所以发明这些东西的原因，并不是出自天马行空的想象，而是他们思考之后发明的这些东西能够满足现实的需求、解决现实的问题。<br>有个我不知道是否贴切的说法，但确实是我现在想要表达的：东方的人们生活在适宜生存的土地上，更高的人口密度让他们关注人与人之间的问题；南亚瘴热多癔的气温下，也确实让人头昏脑涨容易见到想象中的神明；古希腊人会关注事物本源真的很神奇。<br>东方人关注人与人之的关系，南亚人关注人与神的关系，欧洲人关注人与自然的关系。</p>
+<p>而这些实际问题，往往又是他们生存的水土、环境、动植物所特有的。因为这片土地适宜种植水稻，就需要有大型水利工程与之配套。为了兴建大型工程，东方土地上的人们很自然就期望他们自身能统合到强大的力量中去。</p>
+<p>人驯化了植物，植物反过来惊人地驯化了人类。</p>
+<hr>
+<p>称号这种东西，是为了降低统治成本，给被统治者听的。非官方场合，统治者之间整这套，就有些傻。</p>
+<hr>
+<p>对于第一次冶炼出钢铁的人类来说，并不是血是铁锈的味道，而是铁锈是血的味道。<br>因为在他们冶炼出铁之前，早就熟悉了血的味道。不知道他们会如何看待铁这种拥有血的味道的金属，是不是将其视作一种不祥的金属。</p>
+<hr>
+<p>神的人格化，这本身就是一种弑神的行为。<br>人格化的神是什么，是拥有超越自然力量的人，这个想法本身就包含着对自然力量的渴望和僭越。<br>人类通过造神，来收编、驯服了自然力。</p>
+<hr>
+<p>身为人类这个物种,谁的脑子又比其他人的脑子构造不同呢.<br>在正态分布上,用对宇宙来说微不足道的差距来分化出彼此,仅仅只是为了提供一个区分阶层的借口罢了.<br>身为一个没能摆脱肉体的物种,做一只衣食无忧的猴子就是最幸福的事.</p>
+<hr>
+<p>坚守信念,什么是信念,为什么要坚守?我想要表达的意思是,信念,想法,也只不过是人类构造出来的假象,这种假象未必没有价值,但持有信念需要付出多大的努力,我们需要三思.<br>肉体承载着精神,肉体会疲惫,会因此失去精神力,这是再正常不过的事.</p>
+<hr>
+<p>最爽的东西是什么,是用新领域不断刺激从未被激活过的神经突触.不同的模式像粗糙的海绵&#x2F;手,抚摸&#x2F;拨弄着你的神经末梢,你大脑空白,如痴如狂,不断加速.<br>而攀越高峰其实是性价比不太高的行为.如果我有足够的钱,我就会将其用来不断体验新事物,包括众人眼中不好的事物.</p>
+<hr>
+<p>问出奇怪的问题,说明对一些认为理应知道的信息的不了解,为什么会不了解这些,值得思考</p>
+<hr>
+<p>从江南到塞北,从白山黑水到石林,从儒家到唐诗,无论多美丽,这些文化都是农耕文化.<br>中华文化的全球化,一是意象的重现能否突破地域限制,二是农耕文化能否适应现代社会的发展需要.</p>
+<p>详细来说,譬如忠孝义等价值观,都是有益于维护农耕社会稳定的价值取向,<br>但对于一个工业社会&#x2F;信息社会&#x2F;可能将被 AI 塑型的社会来说,农耕社会中的追求是否还应该继续成为现代社会的追求? 现代社会又该追求什么?</p>
+<p>新的社会结构呼唤新的人类价值观出现, 但在新的价值&#x2F;乃至道德体系下,是否还有人类的生存空间,这个最基本的问题可能都需要打上一个问号.</p>
+<hr>
+<p>人渴望通过与人之间的连接找到自我的意义,这非常合理.<br>在一个体系中成为鲜活用例的方式就是彼此,彼此交织引用<br>一个缺乏被引的用例的存在是虚无的.<br>人通过这种连接来对抗虚无.</p>
+<p>但虚无需要对抗吗?我的意义,人的意义只能由社会定义吗,我不能在社会之外找到自己的定义吗?因为作为个体的人太弱小了,作为社会性动物的人类很难脱离社会而生存.<br>哪怕我现在思考脱离社会的意义所用到的语言,本身也是社会的产物呢.</p>
+<hr>
+<p>善意的谎言也为我所不喜，一方面我足够强大，能够直面真相（无论真相多残忍）；另一方面，得不到真实的信息，我如何增进对这个世界的正确理解。</p>
+<hr>
+<p>关键不是那些大家做到，只是在程度上有差距的事情；而要想办法做到，从根本上，其他人就没有能力做到、无法感知到、无法认识到、无法理解的事情。</p>
+<hr>
+<p>虽然那些人对我的影响很大、很重要，但我不是为他们而活着，而是为自己而活着。<br>我做某些事情并不是因为他们会这样做，而是因为我认同他们的理念，这样做更好。</p>
+<hr>
+<p>了解一个全新的人，一定是一件很有意思的事情，ta 的一切都会跟你熟知的不一样。<br>是什么样的经历让ta 爱上了吃胡萝卜，为什么 ta 会喜欢读那些书，为什么 ta 的桌上会摆放着那些你绝不会购买的物品。</p>
+<hr>
+<p>个体不断诞生，他们的知识、经历、经验则没有继承，直观看上去似乎是缺点，但对于种群来说，竟然是不断发展、不断进化的前进动力。<br>个体会畏惧死亡，对于种群来说，如果没有个体的死亡，种群距离面临灭亡也就不远了。</p>
+<p>所谓的体验型消费，以及由这种类型的消费转化成的社会驱动力，正是很好的利用了记忆遗传的缺失。信息本身价值有限，在“无知”到“有知”之间的 gap，本身却蕴含着能量。<br>个体有欲望去弥合这个 gap，记忆如果能够遗传，则不会存在这个 gap（或是这个 gap 在漫长岁月的弥合下，变得极其有限）</p>
+<p>如何利用这个能量：</p>
+<p>拓展信息边界（难度极大）<br>触达更多群体<br>在群体丢失相关记忆之后，再次传播<br>个人为什么要遵从种群的意志？个人跟种群的利益一致吗？</p>
+<p>我突然意识到欲望是多么重要的品质，欲望是一切生命不断向前演进的底层驱动力，而欲望最终又指向熵。<br>熵的增加，也即是破坏，让人感到愉悦。而创造，在这个宇宙中导致的熵增又大于破坏，因而创造是一种高阶的破坏。(这个逻辑不正确.创造和破坏都有导致熵增的属性，但这不能说明创造就是破坏)</p>
+<p>我不断审视自己过去相信的东西，不断审视自己。</p>
+<hr>
+<p>那个冷酷的宇宙可以夺走我的一切，但只要我自己不放弃，他唯独永远无法夺走我的自由意志。<br>倘若我停止反抗，被动地任凭外界环境来定夺我的人生，我就放弃了这世间我唯一真正拥有的东西。</p>
+<p>上述逻辑的问题在于，倘若我用自由意志得到了该随波逐流的结论，那逻辑又如何自洽呢？</p>
+<p>也许可以尝试这样反驳：随波逐流的意志是宇宙的意志，而不是个体的自由意志，当你尝试这么思考的时候，实际上已经放弃了自我思考的权利。</p>
+<hr>
+<p>改革砍向绝大多数员工的利益，说明公司认为绝大多数员工的利益跟公司的利益不一致。<br>既然公司认为你的利益跟公司不一致了，建议你也没必要死乞白赖地在这留着。</p>
+<hr>
+<p>表面上的高质量很容易做到，因为这些都是很容易标准化、流程化的东西，无非是投入精力、金钱的多少的问题。<br>真正石破天惊的创新，不在乎表现形式。</p>
+<hr>
+<p>不是一句轻飘飘的”不要在意外界看法”就能帮助到一个人，该从最根本的价值判断是什么开始，一步步逻辑推导，推导到这个结论。</p>
+<hr>
+<p>人这一辈子只活几个瞬间也太可悲了，我活在我生命的每一个瞬间，它们同样珍贵，它们有我的快乐和挣扎，它们有我的无聊和发呆，它们都是我，我珍惜它们。</p>
+<hr>
+<p>根据我对尼采的哲学的理解，他的哲学有个很大的缺点：没有弱者的生存空间。</p>
+<p>Q: 人为什么喜欢故事？</p>
+<blockquote>
+<p>如果故事是一种纯粹的逃避，那么从演化的观点来看，人们花在这上面的时间和精力也太多了。心理学家和文学理论家已经发现了虚构故事的许多潜在益处。一个普遍的观点认为，故事叙述是一种认知游戏，能够锻炼我们的心智，让我们模拟周围的世界，想象不同的策略，尤其在社交场景中的策略。密苏里大学圣路易斯分校的约瑟夫·卡罗尔（Joseph Carroll）说：“故事教我们理解他人，它是关于共情和心智理论的练习。”</p>
+<p>演化心理学家认为，我们的史前心事仍在塑造着我们喜爱的故事模式，这点至关重要。例如，随着人类演化出更大的社会，我们需要学习如何合作，避免成为一条只索取而不付出的“社会蛀虫”；我们也不能让某些个体滥用统治权力，损害群体的利益。从那时起，我们讲故事的能力，和我们所讲述的故事，可能就随之演化成一种交流合理社会规范的方式。克鲁格说：“故事所教给我们的就是要反抗暴君，自己也不要成为暴君。”</p>
+<p>与此同时，多个研究已经发现，合作是全世界流行叙述中的一个核心主题。伦敦大学人类学家丹尼尔·史密斯（Daniel Smith）最近拜访了菲律宾的18个狩猎采集部落，发现他们的故事中近80%包含道德抉择和社会困境（与之相对的是讲述自然的故事）。关键在于，这些故事被他们的日常生活行为所诠释。在不同实验任务中，那些最注重故事讲述的部落也被证明是最合作的，这点与演化理论的假设完全相符。</p>
+<p>从这些作品中得到的启发还会更多。例如，近期的一项研究分析了幻想小说和恐怖故事中那些绝对邪恶的角色，例如哈利·波特的宿敌伏地魔和《德州电锯杀人狂》中的人皮脸。这些角色的共同特征之一就是奇特的外表，这似乎是为激发我们对传染和疾病演化出来的恐惧而设计的；以及，考虑到我们内在的部落文化，反派通常携带着一些特征，说明他们是某个“外族”成员——难怪好莱坞电影中有那么多坏蛋带着外国口音。同样，这些作品的理念，就是和这些邪恶力量的交锋最终将强化我们自己的利他主义和对群体的忠诚。</p>
+<p>对于一些人来说，善意基于回报的预期才存在。<br>在彻底脱离群体之前的那一瞬间，缺乏了回报的预期，和制衡的手段，在选择善意和恶意均无回报也无制衡的时候，却选择了恶意，将人性恶充分展示出来。<br>换言之这种善意并不是善意，只是一种利益权衡，恶才是这些人的底色。<br>我对此的思考是，既要构建长期合作的机制，以此来压制恶意；另外要想办法即使在个体当有脱离群体的打算的时候，也能对可能的恶意给予制衡。</p>
+</blockquote>
+<blockquote>
+<p>“她听我的话，但只因为她想听。”<br>“这是服从的唯一正当理由。”<br>——《地海孤儿》</p>
+</blockquote>
+<hr>
+<p>他的逻辑是，理性是为了对方考虑，因为是在为对方的利益考虑，是无私的；而感性是只顾自己心情，是自私的。<br>我的想法是，理性将对方视作一个可以被预知反馈的 object，将对方视作一个 object 对待而不是人来对待，object 是不存在利益的（ 只有人才有利益），你只是在为自己的利益考虑；<br>而用感性、用心去对待一个人，并不等同于听凭内心的欲望行事，对方有血有肉、不可妄加预测，才是对于人的尊重。</p>
+<hr>
+<p>中国有神道设教，有圣人为生民立言。西方有人是神的羔羊，教宗就是牧首。<br>都没把普通人当能思考的人，而是视作两脚羊。</p>
+<p>但我有时候觉得，大部分人似乎真的不热衷于使用他们最强大的器官——大脑。<br>不知道是先天如此，还是后天教化导致。</p>
+<hr>
+<p>辨别出特殊情况和通常情况，不要被特殊情况下散播的恐惧迷失了理智。</p>
+<hr>
+<p>当消灭了对立面，自身就变成了新的对立面。</p>
+<hr>
+<p>在过去，我发现世界上有大量的人的思想观念还停留在人类刚刚进入文明社会时的水准，简单的理念未必更符合时代精神，但却因为简单而坚固。我并不想简单地批评不愿意了解其他的思想是懒惰，这种粗暴的划分同样是一种懒惰。我想讨论的是，我们该想办法降低现代思想的门槛，让更进步的思想通过更通俗的方式触及到人类社会的每一位个体。</p>
+<p>法律神圣吗，法律本身并不神圣，法律是对人与人之间的交互方式的一种基本约束，而人与人之间的关系对于人来说是神圣的。</p>
+<p>为自己的观念争取到资源，或许某观念并不是最优解，但某人能从某观点的风行中获利，于是ta有动力去推广自己的观念，以至于形成历史包袱，乃至尾大不掉。</p>
+<hr>
+<p>物质、拜金、虚荣 我的追问</p>
+<p>Q: 一个人可以很物质，但不虚荣吗？<br>我觉得是可能的，理论上来说，这是两个不相关的特质。我理解”物质”等同为醉心于感官享受（尽管我认为这是一种较为次等的享受，原因是体验感官享受，只需要使用人的动物性 能力，而没有使用到人类独有的高级思维能力，说得庸俗一点叫没有灵魂）。</p>
+<p>Q: 一个人可以很拜金，但不虚荣吗？<br>拜金是崇尚金钱的力量，认为金钱的力量凌驾于一切事物的力量之上，能够解决所有问题。(大狸评价: 金钱本身没有力量，它的力量来源于人类社会。不管金钱是否能调动人类社会的所有力量，但拜金者对人类社会力量的信任让人感动。不过总的来说是种错误的认知，因为显然人类的力量是有限的)</p>
+<p>Q: 而虚荣则体现于尽管客观上并不是，但主观上希望他人认为自己凌驾于他人之上。<br>(概念的边缘越来越清晰了，开心。)<br>不是为了比他人强，而是为了让他人认为自己比他人强。</p>
+<p>(追求变强就是虚荣？显然不是。<br>一位运动员，追求变强，显然不是虚荣。但谎称他自身没有的能力、成绩，是虚荣。)</p>
+<hr>
+<p>记忆就是硬盘上的程序，如果没有关于数学的概念，尽管部落民拥有跟我在结构上一致的大脑，他永远无法用数学的方式来处理问题。<br>给大脑编写程序的过程，是不断重复训练+获得新的刺激的过程，通过重复训练形成长期神经回路，通过获得新的刺激形成短期回路。<br>虽然我不想笼统地落到探索世界这个俗套的话题上，但我无法将我脑海中那个尚且模糊的东西描述出来。<br>程序 &#x3D; 数据结构 + 算法</p>
+<p>一切都事关神经回路的生成，不会压弯的人和会压弯的人，肉体上不会有任何区别。精神上的区别也仅仅只是多了对于某些特殊状态的感知，当经历过这些感知，下一次遇到的时候就知道该如何去做。<br>所以有作死，”作死”是在不断向新的感觉发起挑战，死亡不是目的，新的感觉才是目的。</p>
+<hr>
+<p>“向前看，别回头”，这其实是非常虚无主义的一句话。<br>但说来你也许不信，虚无主义也可以有积极的虚无主义，提出这个概念的哲学家是我非常喜欢的尼采，他是一个字面意义上的疯子，也只有疯子才能提出如此强健的哲学。</p>
+<p>以我浅薄的理解来说，他的哲学核心观念可以表述为如下这句话：因为一切都没有意义，所以我们也没有什么好失去的。但在这个冷漠的宇宙中，我们唯一真正拥有的是我们的生命，宇宙越是冷漠地对待我们，我们越是要紧紧抓住我们唯一拥有的东西——我们的生命，因为这是宇宙唯一无法从我们手中夺走的东西——以此来向它抗争。这抗争注定徒劳无功，但正因如此，我们才得以抓住自己生命的主动权，就像向风车宣战的唐吉可德，就像不知疲倦推着大石的西西弗斯。</p>
+<hr>
+<p>我问自己为什么常常对世界有一种虚幻感，甚至说的难听点感到麻木，我在车祸中地面上翻滚的时候、在遭遇到别人会觉得无比痛苦或者委屈的时候、在 xx 的时候，我总是感到经历这些的不是我，只是一个名为“██” 的人，我不是“██”，我毋宁说是这个名为“██” 的人在一个名为现实的游戏的操纵者，我将自己从“██” 之中抽离了出来。</p>
+<hr>
+<p>美色是一种相对浅薄的价值，但神奇就神奇在它能绕过理智，直接通过激素对神经系统发起攻击。</p>
+<hr>
+<p>我确实更喜爱吃甜豆腐脑没错，但我并不因此认为咸豆腐脑就毫无价值。<br>这只是一种 not suit my taste 的选择偏好而已，一种 personality，一种 locality。<br>你在两种你宣称的等价物之间坚定选择其中一种，这凭什么不被视作一种价值判断？<br>这不要紧，因为这种价值判断仅仅关乎“个人性”、“时代性”，而个人性和当地性没有高下之分。<br>（足以支撑得出这个结论吗？为什么不是往上一步认为个人性、时代性和当地性也有高下之分？）</p>
+<hr>
+<p>为盗版资源付费，我难以想象还有这么恶心、愚蠢的事情。<br>更难以想象这片土地上居然演变出了这种荒诞可笑之事的土壤。<br>中文互联网的劣化方式，大概有以微信&#x2F;淘宝为代表的信息孤岛派，以百度为代表的垃圾海派，以抖音为代表的信息解构派。</p>
+<p>信息孤岛派将原本互联的信息网络视为己物，将原本优质、免费的信息圈入瓮中，将所有人视作可以攫取利益的流量。我想大家应该经常看到类似“想要获取某资料，请关注公众号 or 请淘宝付费”的网站。<br>千禧年之后出生的孩子们可能不知道互联网曾经是个真正的免费宝藏之地。</p>
+<p>垃圾海派的行为更加可悲一些，因为担心被时代浪潮抛弃，选择了通过海量低质信息来填塞大众有限的注意力资源，但这一行为的本质是在向中文互联网进行信息投毒。在基于统计模型的AI大行其道的 24 年，时不时能听到作为 AI 燃料的优质中文数据严重不足的悲叹。<br>(您知道有篇论文是以百度弱智吧为语料来进行模型训练吗，据说效果比其他网络语料要好……我觉得挺无语的)</p>
+<p>信息解构派的问题不仅仅在于将信息从原本结构化的组织形式变得非结构化（从低熵变成高熵），还在于视频这种信息载体有着低信息密度、高时间吸收成本的特点，无形中为通过视频这种方式来获取信息的“人”手脚上铐住了枷锁。这里的人我打上了引号，因为对于统计模型 AI 来说，这种成本也同样存在。以图形和视频来训练模型，所需的计算资源和时间就是会更多。<br>(对个人而言，视频信息还存在难以索引，无法快速查找的问题。)</p>
+<p>不仅仅是为盗版付费这一现象，我已经看到的是，即使付费，能获取到的资源质量也已经远远不如从前。<br>末世小说中，为获取被污染的水付出昂贵代价的可悲场景，已经提前出现在中文互联网了。</p>
+<hr>
+<p>故事写不完不是很好吗。我说的并不是永远写下去的故事，而是说一个不曾、无法完结的故事。<br>经过了灿烂的中期爆发，要写出一个更加震撼的收尾是一件非常困难，甚至可能存在结构性矛盾的事。<br>但这并不妨碍它们成为也许是人类文化世界最为优秀的篇章。</p>
+<hr>
+<p>无论这你称之为勇气或是麻木或是别的什么称呼的东西，对我来说确实挺难的，毕竟这是一个可能在死亡的瞬间都极其麻木的人。<br>我的麻木或者说无所谓，让我在面对别人的贬低时，没有为自己抗辩的兴趣，应对往往是“你说的对”，“是，我就是这样的”。</p>
+<p>这究竟是麻木、还是勇气、还是无所谓、还是更高级别的价值衡量，有空的时候，我一定要厘清我身上这种特质的精确概念边沿。</p>
+<hr>
+<h4 id="消费篇"><a href="#消费篇" class="headerlink" title="消费篇"></a>消费篇</h4><p>不要为了寻求实现外部灌输的想法而消费，而要将“消费”变成一种创造，消灭了“消费”黑洞一样吞噬、收编、吸纳其他概念的能力，通过将“消费”赋予其完全相反的、“创造”的意义，通过这种方式我得以对“消费”进行解构。</p>
+<p>任何创作行为只要灌注了个人意向、旨趣、心血，任何思维正常的人都能评判出风格的不同来。<br>消费既然不可避免，我要通过向“消费”注入我的思维活动而将其变成一种创造。</p>
+<p>Q: 没完全理解你的意思，可以更人话一些<br>A: 我认为消费主义是不好的，于是想了一种办法来克服我认为的这种不好。这种方法就是在买东西的时候，投入思维活动，将每一次的具体消费行为赋予意义</p>
+<p>Q: 你理解的那种“不好”，是什么<br>A: 受消费主义影响，人丧失了ta的主体性，变成了没有思想的、机械的傀儡，变成了靠基本生物反射驱动的巴普洛夫的狗（只要花钱消费就感到开心，而不在乎购买的东西是否实际需要，想想有多少东西从买回来就在吃灰）、成为了经济机器中不需要思想的一环。</p>
+<p>Q: 被消费主义观念影响的人，他就没有投入思考吗。<br>A: 我认为ta们为买而买，被已经训练好的反射神经驱动，没有或者很少思考。即使有些微思考，也是被动的、消极的思考。因为ta们思考的起点必定是为了满足并不属于ta真正需求的欲望，是为了满足被外界灌输的欲望，所以他们的思考是一种被动的、消极的思考。</p>
+<p>Q: 投入了思考就是创造吗。<br>A: 个人投入了积极的、主动的思考的行为，如果即使对于这个世界来说没有产生新的思想，已经有了已经存在的思维路径，但个人此前并不知道这种思路路径，所以对于个人来说仍然是新的体验，因而是一种创造。<br>如果对于这个世界来说，个人的思考产生了新的思想，那更是字面意义上的创造了。</p>
+<p>TY: 在我看来就是我最开始说的个人的自觉和抵制，加上这个你自己定义的积极的创造，也没有说出更多的东西。对于消费主义这个社会性的问题，个人层面的抵抗再怎么样都是比较消极的</p>
+<p>这样的辩诘我感觉很有意义，不仅让我的表达更清晰，也帮助我完善我的想法</p>
+<p>加上这个你自己定义的积极的创造，也没有说出更多的东西<br>这个不就是新的东西嘛</p>
+<p>对于消费主义这个社会性的问题，个人层面的抵抗再怎么样都是比较消极的<br>我理解你想表达的意思是，个人的努力没法（或者很难）改变社会。在“改变社会”这个层面，我这个思考确实是消极的。但我这里不求改变社会，只求在个人层面发出自身的对抗。跟“社会层面”的讨论是另一个话题。</p>
+<p>那如果自觉和抵制两个词就能把这个事情概括了，何必增添这种让人看不太明白的东西呢，我说的没新东西，我意思是不同于自觉和抵制的东西<br>我明白你的疑惑点了。我定义的“投入思考的消费”不仅仅是自觉和抵制，举例来说，在每一次购物前为这次购物赋予意义，比如这次购物是为了集齐“我”明确想要的纪念性邮票，比如这次购物是为了集齐淘宝从00到99的订单尾号，这些例子可能看上去有点行为艺术，但确实有了创造性。<br>我用比较行为艺术的示例来举例，是为了说明即使没有实用性意义，我自行赋予一个意义也可以。实用性意义那当然更是可以的。</p>
+<p>一个消费主义入脑的人，他买东西也觉得特别有意义，他只是对价值的判断受到了影响，而这种影响在现代社会是很难以避免的，即使十分警觉，也难以逃脱，这才是消费主义这个词被创造出来，想要批判的东西<br>我提出了一种我认为的对抗消费主义的方法，你表达我们很难判断购物行为是否受消费主义影响。<br>我觉得这种方法-主动地进行思考、抛弃神经反射-还能做到判断的，就是点醒ta：你不是真正地在思考</p>
+<blockquote>
+<p>文科里面很多黑话，有些是用来方便交流的，有些却是阻碍交流的废话。不要把这种造新词的陋习学去了。我还是要说，你自己定义了一个创造的概念，我却觉得这个概念跟主观能动性这个词并没有多出什么含义</p>
+</blockquote>
+<p>消费是现代社会的祈祷和弥撒<br>消费宗教化<br>消费是支撑商业社会运转的基本行为<br>消费是一件没有任何区分度的事情，价值、尤其是人的价值不应由消费来定义。<br>这是我注定徒劳的反抗，正因为徒劳，所以才要做。(倘若成功，我就该寻找新的反叛了。（但你这不是为了反叛而反叛吗？）)<br>我的放弃不仅仅意味着我的屈服，更意味着我放弃了自己身为人类、拥有人性、高于物质的尊严。</p>
+<p>等同于放弃了自己的生命。</p>
+<p>并不是要排斥物质，而是说物质要被人所使用，不要人成为物质的奴隶。<br>心为形役。</p>
+<p>我将终我一生对抗商业社会对人的物化，这是我的风车、是我的不断滚落的巨石。</p>
+<p>消费这个行为本身是无法为探索世界上的新领域做出什么重大贡献的，除非将消费这个行为本身赋予创造的意义，但这样不仅面对这行动上的难度，还面临着理论创新上的难度，不如直接投身创造本身。<br>通过消费来来探索自身的可能性在我看来显得非常可笑，这是因为消费这个动作当中不蕴含关于个人的丝毫思考和寄托，是一件简单到连人物个性都无法承载的事情的事情（毫无门槛。唯一的门槛仅仅只是钱，钱或许是物质的门槛，但绝不构成思想的门槛）<br>消费这个动作，不仅仅█████，还导致了对人的物化，通过消费这个行为，我的“人格”，我的“思想”不再有任何意义，我之于社会的唯一意义是成为社会商品流通当中的一环，这是对人的贬低。</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>杂念</title>
+    <url>/2019/01/29/%E6%9D%82%E5%BF%B5/</url>
+    <content><![CDATA[<p>藤蔓</p>
+<hr>
+<p>我在帮助他人时，如何才能让他人感觉到，我对他的帮助是出自于绝对的关心和爱，而非高人一等的怜悯。我并不因为帮助他而在精神上处于比他高的地位，他的需要帮助仅仅是由于不可抗力的不幸，你我随时都有可能遭遇同样的不幸，而帮助者和受助者在精神上都是平等的。</p>
+<hr>
+<p>星绿</p>
+<span id="more"></span>
+
+<hr>
+<p>“对识字的人来说，书籍能发挥什么样的作用，艺术就能对不识字的人发挥怎样的作用”。</p>
+<p>在古希腊时期，那些完美符合黄金比例的雕像，是为了追寻那个不存在的“理念世界”，那个世界与充满了瑕疵的现实世界相对应。虽然柏拉图认为理念世界是现实世界的原型，但从逻辑上来说，理念世界是对现实世界的抽象。<br>他们可以总结为表达“理念世界”这一观念。</p>
+<p>等到了中世纪，现世的一切都为了宗教而服务。之所以相比于古希腊时期，中世纪艺术距离“形似”更远，是因为人们不再追求那个（逻辑上）源于现实世界的理念世界，转而追寻彼岸天国。正是因为不再追寻理念世界，所以在艺术上追求与现实世界的形似变得毫无意义。中世纪的基督像大多表现得痛苦而扭曲，正是想要通过这种痛苦来唤起信徒心中的宗教赎罪意识。<br>他们可以总结为表达“宗教意识”这一观念。</p>
+<p>文艺复兴时期，借古希腊的壳，表达人本主义。</p>
+<p>到了十八 - 十九世纪，我个人认为最能代表这一时期的流派莫过于印象派了，因为他们上承接文艺复兴的人本主义，下启现代艺术。而他们追求的，是通过“光”来精确描绘客观世界。尽管他们的画笔下的“客观世界”对于不了解他们理念的人来说，同样是模糊朦胧，跟中世纪艺术一样与客观世界存在距离的。除此之外，印象派还是艺术是否好懂的分界线，在他们之后，艺术就进入了不好懂的现代艺术，因为现代艺术想表达的观念更加抽象，不再能够仅凭直观印象就可以理解。</p>
+<p>以印象派的“不像”为契机而诞生的现代艺术，（印象派的塞尚被视为现代艺术之父）。立体主义想表达世界仅仅由简单的几何形体构成，未来主义想表达时空关系，野兽派追求用奔放的色彩来表达情感…… 逐渐的，现代艺术想要表达的观念越来越具体和琐碎，正如你所说的，不再容易被人理解。但现代艺术之所以选择走这条路，也是迫不得已，因为传统的艺术已经发展到了尽头，人们已经不再相信“理念世界”的存在，宗教也被尼采彻底击碎，从思想上必须选择别的出路。</p>
+<p>新的出路不容易理解，正如同现代哲学同样不容易被人直观理解一样。但不容易被直观理解，主要是因为服务大众不再是现代艺术的主要目的了，并不是无法理解。</p>
+<p>奥斯卡奖电影这些他们不见得迎合的就是学院派的喜好，只要很好地表达了普世价值，不一定要是现代主义的内容，同样可以获奖啊。<br>而不容易理解的文学、电影，各种实验文学、实验电影很多啊，这些很难理解。</p>
+<hr>
+<p>本学年对我来说，是我个人思想上产生重大转变的一学年。来到雁栖湖校区之后，除了完成日常的学业功课之外，我收获最大的是，学会了反思，这种反思更多是哲学层面上的。咋听上去非常玄虚，但实际上我这学期通过上国科大人文学院詹琰老师的课，自己课下的阅读哲学类、文化类书籍，以及跟焦子瑞同学经常的讨论，我看待这个世界的方式发生了极大的改变。<br>在过去，我是一个科学主义者，甚至是一个唯科学主义者；但现在我明白了科学是解释这个世界的一种方式。想要解释这个世界有很多种方式，甚至有很多事情是现阶段的科学不能很好解释的。这一转变并不意味着我失去了对科学的热爱，我依然热爱着知识，依然尊敬在求知道路上做出了极大牺牲的科学人。只是，我明白了这个世界是多元的，日后当我在科研、工作的闲暇之余，会对星空、道德、艺术多上一份敬畏之心。</p>
+<hr>
+<p>现世很重要，但这并不意味着那个藏在背后的世界不存在。</p>
+<p>“清晰”作为一个概念是存在的，但我怀疑其在现实中的存在。</p>
+<hr>
+<p>如果我将计算机视作理念世界对抗现实世界的产物，那么启发式算法无疑是理念世界向后退了一大步。所谓的“神经网络”更是现实世界一次耀武扬威的炫耀。</p>
+<hr>
+<p>你表里如一吗？不敢说完全是，但至少在竭力做到这一点。<br>你为什么要这么善良？我仅仅只是品尝过痛苦的滋味，并不好受，所以我不希望别人痛苦。如果你将不希望别人痛苦定义为善良，那我就算是吧。</p>
+<hr>
+<p>桐枝晚上要回家，子瑞不在，毕竟是女孩子嘛，我送送她。<br>路上我不知怎么地开始背诵起了《短歌行》，她在身边静静听着一言不发。<br>我大声诵读完最后一句，这一个月来积压在心中的种种郁磊像是剑一样刺破我的胸口挣扎出来了。我心里说不出的难过，又杂夹一丝奇异的快意。<br>我可能很难忘怀这一瞬间吧。</p>
+<hr>
+<p>我听说过这样一个说法（还是统计研究来着？我不记得了）:nerds 发生在白人和亚裔（准确点说是，东亚文化圈的亚裔）的概率远高于其他族裔。<br>当然了，我不否认这个结论里面的种族偏见意味，你当做一家之言就好。<br>看了这篇文章开头，感觉 nerds 生在中国还是挺幸运的。总体环境氛围还是崇智的。<br>继续读下去，我感到自己不喜欢这篇文章中表现出来的对自己智商的优越感。任何人都不该有任何形式的优越感。</p>
+<p>普通人有抱团的温暖，nerd 有孤独的骄傲，但我却试图剥夺 nerd 在人际交往中这仅有的的骄傲，这实在算不上宽容。</p>
+<p>学（西方）哲学的好处是，曾经给你带来痛苦的那些点几乎不再能惊扰你；但与此同时，你被迫开始直面人生的虚无。</p>
+<p>要以人本身的特质去判断人，而不是人身上（自己贴的、别人贴的）的标签来判断人。</p>
+<hr>
+<p>我真的有灵魂吗？还是仅仅我自以为我拥有自我意识？</p>
+<p>“我是谁？”在 2017.10.09 的零点二十分，我人生第一次被这个问题所困扰。<br>“从哪来？”我压根不关心。<br>“到哪去？”曾让我思考过。<br>我是谁？我或许会给自己列出一大堆标签，我似乎也拥有一些相关的记忆，但这些记忆也都非常模糊。我难道用这些非常模糊的记忆来定义我自己吗？<br>过去的我，有不同的生活环境，不同的人际关系，几乎可以说每三四年就会有一个很大的变化。近几年来，这个变化的速度越来越快，快到我的身体适应了，我的灵魂却迟钝得不知道变化，慢了好几个节拍。<br>我真的曾经读过那些书吗？我真的做过那些事吗？说过那些话？为什么那个“我”对我来说会如此陌生。我不知道，我身边的人换了又换，没有一个留在我身边、长到足以发现那些变化的人。也许在他们眼中，我过去就是这样，我就应该是这样，我永远都是这样吧？</p>
+<p>有欲望，真是太好了。这为大多数不会去思考意义的人赋予了一些意义。</p>
+<hr>
+<p>爱上书中的人物，有时候是因为书中的人物特别有魅力，他的经历特别能打动你，或是她碰巧就是你最喜欢的那种类型，而现实中无可替代。<br>但有时候，则是怯懦得不敢在现实中恋爱，面对喜欢的人畏首畏尾，只好用书中的人物来当成寄托。</p>
+<p>白狼，一次我为我选择特莉斯，一次我为你选择叶妮法，我们俩不相负。</p>
+<hr>
+<p>我从小就梦想着有一天能跟好友一起随意坐在桌上，端着酒杯，深深浅浅地啜饮烈酒，深深浅浅地聊着人生。谢谢子瑞让这一天成真。</p>
+<p>发自内心的认为，与宣称自己这么认为，在思维上的不同是，前者意识不到自己是这么想的，而后者每次都会试图在内心说服自己。</p>
+<hr>
+<p>如果将我的性格比喻成动物园的野兽，思念你的痛苦就是驯服我的皮鞭，我被训得服服帖帖，竟然没有任何爱你之外的想法。</p>
+<hr>
+<p>人不仅各有志，更是每个人的天性禀赋都不一样，不必强求每个人都为了一个虚假的目标而奋斗。寄生现象无论在生物中还是人类社会中的存在都是非常合理甚至是必须的。我非常乐意当一个被寄生者，我很感谢他们，从某种意义上来说是寄生者的寄生行为帮助实现了我的个人价值。</p>
+<hr>
+<p>大部分人是如此的普通，他们甚至连爱都是要追求回报的。</p>
+<p>我这辈子可能是遇不到如此无私伟大的爱了，但也许，也许我能将这样的爱，给予他人。</p>
+<p>我渴望着平等之爱，但这样的爱真是可遇不可求。没关系，我心中早已有了维系一段不平等之爱的准备。</p>
+<hr>
+<p>你是我构思交织的线，你是我从天际划过的灵感。</p>
+<p>这是名为“本能”的陷阱，效果之强已经基本剥夺了我思考的能力，我非常轻松就死心塌地的陷了进去。<br>它吞噬我的时间，吞噬我的精力，甚至吞噬我的能力，毫不留情，而我恭敬地双手捧上去。</p>
+<hr>
+<p>一个人可能在不是足够了解一个人的情况下，爱上一个人吗？你如何确定你的“一见钟情”不是生理冲动？<br>基于这个理由，我是鄙弃“一见钟情”的。</p>
+<hr>
+<p>12.24：<br>如果我做不到善良，至少要做到不残忍。</p>
+<p>但是年轻人，你太年轻，经历的太少，有时候你自己都意识不到自己的残忍。</p>
+<hr>
+<p>无知之幕时常让我感到恐惧，有时我想，万一我不具备我现在拥有的这些幸运，我该怎么办？<br>当然，无知之幕从未落下（或者其实无知之幕一直都在，我因为无知而不觉得其存在），从这一点来说，我是在杞人忧天也不过分。但有的人却能心安理得地利用他们的幸运，来肆无忌惮的在不如他们幸运的人们身上磨牙吮血。<br>我跟他们交流过，他告诉我，他的所为只是小恶，大恶更过分且另有其人。无论是否真有如他所说的大恶，我想对他说，“勿以恶小而为之”。<br>我悲悯那些苦难者，不是为了优越感，而是我能感受到那种切肤之痛。我悲悯所有的苦难者，无关乎国籍、种族。</p>
+<p>我向小恶宣战；我向大恶宣战；我向自诩精英而行小恶者宣战；我向未知而可能的大恶者宣战。</p>
+<p>头破血流，至死方休。</p>
+<hr>
+<p>我想成为一个最普通的底层人，一个人生活。喝最劣质的白酒，抽最呛头的烟，穿着布满油污的工作服，里面套着一件全是油迹汗渍的背心。不用思考，像走兽一样活着就好。在富士康那样的工厂上班，工资只要饿不死就行。每个看到我的人，都会嫌恶地皱眉觉得这人真像一条老狗。</p>
+<hr>
+<p>我的确不怎么在乎物质，但精神又真的有大家声称的那么高的价值吗？相比虚无缥缈的精神，物质至少还能满足肉体上的需求。</p>
+<hr>
+<p>男人竟然是这么孤独的生物。坚韧失恋了，来找我。他的孤独感传染给我，让我觉得我跟他就像两根被人砍断的蠢木，隔得远远的杵在荒原上。<br>最可怕的是，他们面对这种孤独却不自知。他们不知道正常的人际关系该是怎样的，他们觉得这样的孤独是人生的常态。</p>
+<hr>
+<p>世界上并不存在哲学这种东西，也并不存在世界观这种东西。人们只是在安慰自己。</p>
+<hr>
+<p>社会为我们描绘了一幅世界图景，并希望你能完成它的期许。这幅图景本身并无力量，但无论是认同它还是批判它的人，都相信这幅图景是真的。它的力量即来自此处。</p>
+<p>看到那些艺术家有生之年的穷困潦倒和身后作品的价值连城，不禁觉得这像是这些艺术家对社会的某种“报复”，我露出坏坏的笑容。</p>
+<p>印象派一脉相承于巴比松画派和库尔贝的现实主义，你可能会疑惑，印象派写实？事实上，印象派不仅写实，而且算是将写实发挥到了极致。这个问题涉及到什么是“真实”的思考。而印象派认为，唯有那种反学院的，用光和色来塑性的风格，才是对真实世界的客观描绘。<br>你可能认为印象派是抽象的、主观的，但实际上印象派是写实主义的巅峰也是最后的绝唱。（更新：不是“绝唱”，后来被中国艺术家开创的流派推向当之无愧的更高峰了……）<br>在印象派之前的画风都是学院的，这些学院派对于万事万物的描绘都有一套规定俗成的规范，你只能按照这个风格来画，因为他们认为这是真实。</p>
+<p>他们之所以认为这是真实，是因为受到柏拉图的“理念论”的影响，因为“理念论”认为唯有存在于那个理念中的世界才是完美的，这个理念世界的一切都是固定唯一完美的，现实世界是对理念世界的简陋模仿。<br>回忆一下那些古典风格的画，里面的人物场景都完美得不像话。在实际生活中根本不可能存在这样的场景。</p>
+<p>所以，印象派只是画出了他们用自己的肉眼看到的真实。</p>
+<p>这些批评家的语言真是刻薄：“有不少保守派的批评家抱着嘲笑与批评的态度说看到最后不禁恼火，你会懊悔没有把买门票的钱送给一个穷要饭的。”</p>
+<hr>
+<p>人类的想象力真是贫乏，只能借用自己熟知事物的组合和扭曲来创造“新事物”。</p>
+<hr>
+<p>无趣的理智终于重回我的头脑。激烈的感情比嗑药还爽。生活如此乏味，我只是一个贪恋刺激的俗人，你们高看我了。</p>
+<hr>
+<p>I lost myself. 我的面目越来越模糊，我的性格越来越温和，我在水里你找不着我，我从你呼吸进入你的身体，有一天我可以被风吹散。I lost myself.</p>
+<hr>
+<p>倘若基督教只保留爱的现世关怀，而放弃死而复生的终极救赎，那我早就入教了。正是因为我不信死而复生，所以本质上我是在怀疑主的全能，这是我无法被称之为基督徒的原因。<br>我不入教，反而是因为基督教承诺得太多。</p>
+<hr>
+<p>我听闻过那失落的旋律 大卫王曾弹奏它来取悦上帝<br>但旅人啊 你其实并不在乎 不是吗<br>纵使我信仰坚定  却也仍需经受考验<br>我看见你在月色下沐浴 那美感震慑了我<br>她击碎我的王座 割下我的头发 但我用沾血双唇高声赞美我的主<br>宝贝啊 在认识你之前 我曾孤独生活<br>在那大理石的拱顶上 我看见你的旗帜<br>但爱不是胜利凯旋 而是一曲冰冷破碎的哈利路亚<br>也许真有上帝存在吧 但我从爱中学到的一切 是如何击败那个与你为敌的人</p>
+<!--more-->
+
+<hr>
+<p>我们越来越隐忍沉默，我们长大了。<br>我们终于会学会面对生活，它不是敌人也不是朋友，它代表着世界的复杂，它是宇宙本身。</p>
+<hr>
+<p>文字、数学、门电路，这些在我眼里，都是追求精确的理念世界对抗模糊的现实世界的重大突破。</p>
+<hr>
+<p>看着窗外林立的摩天楼，在我目力所及的范围内就至少生活着几十万人，我一生见过的人恐怕也就只有几十万，我在这小小的范围内来揣度世界，无异是管中窥豹。<br>一想到我热爱的这些人们，我却不能与其相识，不能深入地了解他们，就非常失落。</p>
+<hr>
+<p>我的欲求总是得寸进尺、贪得无厌，我自己清晰地明白这一点，但却无能为力，并不为我的理性所控制。</p>
+<hr>
+<p>“关键是你相信什么”，过去无法认同这句极其唯心主义的话，现在竟然能够理解了。<br>这世间的价值，都是社会通过思想灌输给我。顺应你的，你称之为教育；逆反你的，你称之为洗脑。<br>选取一个自己认同的道，贯彻下去吧。</p>
+<hr>
+<p>我和我的很多搞技术的朋友一样，都有着日耳曼野蛮人般的单纯。这种单纯并不完全源自善意或是本性纯良，而纯粹只是因为未历世事，远不懂得这个世界的复杂。搞搞技术，再学学哲学，很容易误认为自己掌握一部分世界的真理。为了不让自己坐井观天，我该多跟我的朋友们交流。</p>
+<hr>
+<p>肚子饿了，跑出去在路边脏摊儿买了份因饥饿而显美味的烤冷面，哪怕在这荒凉的郊区，这熟悉的一切都让我感到心安。我从未远离这充满烟火气息的、令我热爱的生活。</p>
+<hr>
+<p>对着星图在暗夜中辨识漫天的星星，寒冷空气和幸福感都让我浑身战栗。仿佛短暂离开了现世，去往了一个幻想中的世界。仿佛回到过去…</p>
+<hr>
+<p>1、如果一个拥有世界上所有知识的人写一本书，这该是一本怎样伟大的书啊。<br>所有的作家都是地方性作家，所有作品都是地方性作品，但竟然就已经如此伟大。</p>
+<p>2、在学弟学妹的群里看到的话，很喜欢：<br>下雨天感觉那个号码要跟泥土一样烂在心里了。在喉咙里打转的音节，也是一样的宿命。</p>
+<hr>
+<p>“可爱”从字面意义上来说应该是“可以被爱的”，但现今好像变成了“稚嫩”、“萌”的同义词。</p>
+<p>可以被爱的。嗯，非常高的评价了。</p>
+<hr>
+<p>我时常忘了“我”是我。<br>这种时候，这具肉体会以其习以为常的行事方法以及语言风格将生活进行下去，似乎都不需要我的操控。<br>上面不是我的艺术化加工，而是我的真实体验。</p>
+<hr>
+<p>我们不仅热衷于给别人贴标签，也热衷于给自己贴标签。贴标签这一行为本质是通过符号来认识并理解这个世界。</p>
+<p>通过给别人贴标签，可以节省大量去了解别人的时间成本，而且如果是面对攻击对象，可以竖起很好的靶子；通过给自己贴标签，不仅强化自我认知，而且让人在群体中找到安全感和归属感。</p>
+<p>但我希望你记住，世界以及人都是复杂的，人脑无力承担这种复杂，所以借助符号化以抽象来简化复杂，在抽象的过程中不可避免会损失大量信息。</p>
+<p>要将每一个人当做值得尊重的人，避免符号化带来的认知偏差。</p>
+<hr>
+<p>1、我凭什么如此自私，不肯把自己分享给每一个向我索取的人？</p>
+<p>2、能否包容不包容，我的回答是能，但对于不包容，我坚持保留自己内心的底线，超越底线的不包容我无法接受。</p>
+<hr>
+<p>与理工科讲究坚硬的逻辑不同，人文领域充满了隐喻和暗示。我过去以为我无法对作品做出很好的解读，要么是因为智商不够，要么是因为知识储备不够。现在看来，除这两点之外，我不适应人文学科的思维方式似乎更为重要的一点。</p>
+<hr>
+<p>死亡是我的药<br>见到你就吃一颗</p>
+<p>而你从未注意过我</p>
+<hr>
+<p>在北京干燥贫瘠的空气里，我是快渴死的鱼。</p>
+<hr>
+<p>睡醒之后，不知今夕是何年。<br>就像短暂失忆了一样，非得借助身边的事物才能回忆起来。<br>我竟然有点喜欢这种感觉，加深了现实的虚幻感。</p>
+<hr>
+<p>我像天鹅航行<br>我像石头下沉<br>而时光远去<br>不理我的笑柄</p>
+<p>我的纸太白<br>我的墨太淡<br>白昼不肯写下<br>夜用铅笔涂鸦</p>
+<p>我的动物嚎叫<br>我的天使不安<br>却不许我<br>有丝毫悔怨<br>——节选自《渴望之书》（北岛 译）</p>
+<hr>
+<p>对于轻慢而肤浅的人，连指出他的肤浅的必要都没有，至少他自己的毫不谦逊的态度，已经阻绝了他认识到自己错误的可能性。</p>
+<hr>
+<p>倘若上帝真的存在该多好啊，全知全能的祂永远仁慈地注视着我，因了祂的注视，我得以摆脱永恒的孤独，我不再是宇宙中孤寂的热岛。</p>
+<p>也因了祂的存在，人与人之间才得以借助与祂的连接，真正地交融在一起。我们才能消融在祂广博的爱里。</p>
+<p>我爱你，我爱你们，我爱祢。</p>
+<hr>
+<p>明明只是十几年前，看起来却如此蛮荒古拙。非常迷人。</p>
+<p>我掌握知识，但我并不因此而高贵。我只是非常普通的一个中国人。我不能因为乡土气息就鄙薄，因为我至多只是穿了一身唬人的皮。更何况，他们比我更称得上是这个国家的主体。<br>可以有知识和见识，但不要有可笑的精英意识。<br>我要主动用刀子一层层剖开我的皮和内心，剩下的那才是我自己。</p>
+<hr>
+<p>人类的原罪是什么？生而为人，就是原罪。荣耀和耻辱都是我的。不要放大荣耀，也不要放大耻辱。这是一条我们没有选择的道路。</p>
+<hr>
+<p>我咀嚼这份痛苦，这让我感到莫名的快意，提醒我还活着，这份痛苦弥久历新，难以割舍。</p>
+<hr>
+<p>跟某人上山，带回了一些知识、一身露水还有两个山核桃。</p>
+<hr>
+<p>无知时，表达起自己肆无忌惮。</p>
+<p>后来懂得一点知识后，明白了自己的无知，惶惶惑惑、唯唯诺诺不敢发声，想着当我全明白之后，再来表达自己。</p>
+<p>可这是一个愚蠢的想法，表达自己这一行为是有利于求知的。而且更重要的是，如果不表达出来，没有更好的办法检验自己是否真的理解知识。</p>
+<p>（一点在学习人文学科时的感受）</p>
+<hr>
+<p>看山不是山，看水不是水。我的头脑混沌，我的世界螺旋。</p>
+<hr>
+<p>读书时，我究竟在读什么？过去我追求情绪的共鸣，现在我更多注重概念的理解。<br>无论是情感还是理智，我认为并无高下之分。对书籍这一载体而言，我甚至认为情感更为可贵。</p>
+<hr>
+<p>虽然我很感激，</p>
+<p>我想看到你自然的态度，而不是刻意迎合我的态度。<br>我感兴趣的是自然的你，而不是刻意迎合我的你。</p>
+<hr>
+<p>阴影暗点和光斑同时在被雾气所遮蔽的玻璃上剧烈无规则颤动。时不时有一道道影子飞速从窗户上划过。像是什么莫可名状的神秘生物。</p>
+<hr>
+<p>一种莫可名状的失落在梦中袭来，并成功将我弄醒。而我，甚至都不知道这股失落源于何处。非常讨厌这样的自己。</p>
+<hr>
+<p>我非常喜欢穿不属于我的不合身衣服，这让我有一种隐匿在别人身份之下的感觉。戴帽子也有比较类似的感受。<br>我还特别喜欢所谓的“屌丝”装扮，越底层越普通不引人注意，我就越自由舒适。</p>
+<hr>
+<p>读维基百科“宋朝”词条，几百年历史只言片语间沉重覆压在身上。</p>
+<hr>
+<p>通达概念或是思想实在是太难了，诉诸情绪化的表达是多么轻松啊。</p>
+<hr>
+<p>种种寻常事物逐渐在我眼中出现异变。</p>
+<p>看多了西方油画，女人乳房在我眼中变成了成熟时可以收获的果实；读多了政治，人群在我眼中分明变成了待宰的两脚羊。</p>
+<p>我该如此自哂：所谓眼高手低就是这样吧。</p>
+<hr>
+<p>世间有这么多的苦难，人类为什么还是要挣着挣着努力活下去？<br>我们追逐情爱，追逐梦想，追逐生存，人间就是地狱，可还是要活下去啊。</p>
+<p>艺术多美好，哲思多深邃，星空多迷人，竟然让人忘了自己其实生活在地狱。</p>
+<p>我想尽我所能地为世间带来温暖快乐，扪心自愧面对伤害，我却无法坦然承受并报以大爱。我为自己的狭隘羞赧不已。</p>
+<hr>
+<p>闭上眼，细细用门牙和犬齿切割刮擦咬噬骨头上软糯咸甜的皮肉，肉成胶状，其间丝丝缕缕有经络。</p>
+<hr>
+<p>午夜怀着惊惧从梦中醒来，我好渴而且呼吸困难，我想要不要干脆起床去写代码，也不知道现在几点了。<br>点亮手机屏幕，看见微信有三条来信，我心中涌动起无限温柔，想着，不知道是哪个宝宝怀着心事这个时候向我倾吐一切，我也会温柔真诚以待。</p>
+<hr>
+<p>我，天真得像只小白兔。我问他，是因为我善良？蠢？还是情商低？他说，只是因为你抱有期待。</p>
+<hr>
+<p>梦中我忘了你的名字，半梦半醒，身体沉重。我支撑着，努力回忆着。</p>
+<hr>
+<p>天空和尘埃都是我的。你也是。</p>
+<hr>
+<p>读了十几年的书，却在今晚怀疑起自己的读书方式是不是根本错了。郁热多雨的夜晚，我被这个问题折磨得懊丧不已。我读过很多书，写过不算少的文字，今天突然觉得阅读和写作跟专业性极强的体能训练一样，一旦中断，能力下降之快令人咋舌。这世间有太多事我想做好，可我不是天才。</p>
+<hr>
+<p>呵气成雾，在这荒凉城市的十一月。 百寒不侵，我打开书进入另一个世界。</p>
+<hr>
+<p>正在读三国演义，袁绍真是酷到爆炸。<br>“中军校尉袁绍挺身出曰：“今上即位未几，并无失德。汝欲废嫡立庶，非反而何？”卓怒曰：“天下事在我，我今为之，谁敢不从！汝视我之剑不利否？”袁绍亦拔剑曰：“汝剑利，吾剑未尝不利！”两个在筵上对敌。”</p>
+<hr>
+<p>我一点一点清除自己在互联网上留下的痕迹，细节慢慢模糊忘记，就像自己在擦去自己的记忆，说不后悔不心疼那是在自欺，可我真的没想到，我又想起你了，回忆很淡很淡却逐渐鲜活起来。</p>
+<hr>
+<p>（上面的文字写于研究生的不同时期，并非按照时间顺序整理。）</p>
+]]></content>
+      <tags>
+        <tag>chaos</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>记忆碎片</title>
+    <url>/2012/08/29/%E8%AE%B0%E5%BF%86%E7%A2%8E%E7%89%87/</url>
+    <content><![CDATA[<p>这其实是一种还原，根据大自然中的几条简单法则，还原出一个诡谲复杂的世界。根据一个人的性格，推测出他经历过的事件，他会怎么想。这便是所谓的看穿一个人。但这仍然只是一种猜测，既然是猜测，便不免带上主观色彩。众人往往习惯用自己的经历去推测别人的，可正如世界上没有两片相同的树叶，所以往往失之偏颇。</p>
+<p>所以我突然诞生了一个想法，这世界之大，远比小说电影精彩，总会有一两个人会有与你于某一事上相同的经历，那么集全人类的英灵之力，别说还原一个人，还原一个时代也非难事。可这样也有局限，应为全人类仍是人类社会，虽尚未知是否有外星生命的存在，可很容易想象，他们的一切简直是人类无法想象的：因为只需几条简单规则的稍微改变，这宇宙，面目全非。</p>
+<p>一切都有其局限性，规则之外的规则无限逼近于真理，却永远无法穷尽，小圆被大圆所环，环环都趋向无穷，象征无知的周长却愈加扩大。</p>
+<p>从牛顿经典力学到量子力学再到胚胎中的弦理论，都是人类对宇宙还原的进化，这进化生生不息，永无所止，在可预见的未来里，还将不断进化下去。</p>
+<span id="more"></span>
+
+<hr>
+<p>索隆是个真男人，剑士背后中剑是耻辱，所以自知不敌而萌生敬服的求死之意的他，放下手中剑，张开双臂，用胸膛来迎接世上最强剑客的一击，这是何等的气魄。</p>
+<p>因战败而产生的心中的伤痛，远非那斜贯胸膛的伤口所能比拟的。</p>
+<p>我张开双臂，将自己最柔软的内心暴露出来。</p>
+<p>期待着，那痛快淋漓的一击。</p>
+<hr>
+<p>为了买一本小众的杂志，我绕道经过那里，时值新雨后，空气清新润泽，天空中风涌云动，一片令人欣喜的亮灰色 – 维多利亚灰。我在桥上，巡天遥看天上的浓墨山水，灰色的雨云泅出一条遒劲墨龙，急掠徐行，狂舞闪旋，深浅墨云是狂龙的锦鳞云簇，苍龙渐逝，幻做巍巍昆仑，玄浓黑重，磅礴压城 ，岩崩石摧，闪电剑气如虹，斩出一道天之痕，绯红色辉光层层渐染，彩彻区明。</p>
+<hr>
+<p>感于傲慢与偏见</p>
+<p>他携晨曦破风而来。<br>他一袭褐色的长长风衣，一路飒沓如流星，衣衫猎猎鼓动，仿佛天地聆听到了她的心声，雾霭悄然散去，浓重夜华被拂晓之光刺破斗篷，朦胧的风景霎时间明晰起来。<br>本无心睡眠漫步于郊野的她，伤心黯然的心绪萦绕回转。突然之间，她看见了他 – 达西先生，与曙光同现天地之间。<br>达西先生给人的第一印象是傲慢，不苟言笑得近乎古板，而他的朋友，宾利先生却仿佛正好与他是两个极端，亲切的微笑，幽默诙谐的谈吐，金色头发灿烂若春日拂煦的阳光。而伊丽莎白则像欢乐活泼的小鹿，聪敏自尊而彬彬有礼。<br>犹记得那次舞会，迸溅的乐符下暗流汹涌。他与她忘我的共舞，世界仿佛只有他们两人存在。来往的言语间，圆润的礼辞下机锋暗藏，语言却未成为打开两人心扉的钥匙，误会与隔阂却将两人推得更远了。<br>记得那个风雨如注的清晨，伊丽莎白独自穿过平野，天地间晦暗一色，灰色的雨珠纵横，把世界切割的支离破碎。跨过泥泞，忘记了疲惫，她只是默默地赶路，凌乱发丝下红润脸庞反而因此鲜活动人。</p>
+<p>灰色的雨，搅乱了她的结愁千绪。<br>（这篇不仅很乱，而且没写完）</p>
+<hr>
+<p>夏日幽敻的天空下，漂浮着和煦的云朵，绿枝扶疏，水面上涌动着炫目的金色流光。那个世界，群星闪烁着我的旋律，风息咏叹这我的歌声，曙光谱写我的五彩欢悦音符，青绿之海演绎我的浮生若泡沫聚散。仿佛乔治马丁笔下冰与火刀与剑的传奇史诗，仿佛托尔金笔下奇幻诡谲波澜壮阔的中土世界。</p>
+<hr>
+<p>蝉的絮语，聒碎了整个夏之纪年。</p>
+<hr>
+<p>我强忍着泪滴，我从不知恶之花还可以开得如此旺盛，它盘曲扭结，肆无忌惮地朝我张扬摇摆，如同梵高的向日葵，但他是至纯至暗的黑色，黑色的花瓣下涌动着无限的恶意与畅快。它是正吸食着我的悲伤，并以此作为养料么？</p>
+<hr>
+<p>雨夜，风无声地流动在身畔。天空浓墨渲染，路灯发出光怪陆离赤橙青紫的朦胧光晕。</p>
+<p>一切都是朦胧的，如雨水打湿了风景，唯黑色如影随形的清晰。虽然路人匆匆从身边走过，但我觉得这世界上只剩下了我，我的灵魂融入这雨夜，雨是黑暗凝成的如水夜色。路人们的面孔模糊而苍白，唯我 — 寒冷与黑暗之子，享受着冻雨冷风带给我的快乐。</p>
+<p>我见雨夜多妩媚，料雨夜见我应如是。雨夜是我的伊人款款，雨丝是她湿漉漉的吻，她用夜色凝成的树脂捕获了我，我陶醉在她寒冷的琥珀里了。</p>
+<hr>
+<p>昨夜骤雨，今晨曙光熹微朝云绮丽，彤云如火如焚如染如屠燃烧晨曦，天痕湛蓝霞光绯红形成鲜明对比。（韵脚）</p>
+<hr>
+<p>月光静默<br>雨水活泼<br>灵感在纸上落墨<br>流星划过天阔<br>新光盈盈闪烁<br>碧海听鲛人诉说（韵脚）</p>
+<hr>
+<p>将年华写在卷帙之上，待迟暮之年垂垂老矣，将其熊熊燃烧，将自己曾经的欢笑荣辱付之一炬，看过去的精致岁月在空气的波动中飞旋散逸，终归尘土，便在这时光篝火边纵心任性尽情狂欢。</p>
+<hr>
+<p>半月杀阵</p>
+<p>碧海凝成无际的蓝田，蓝田之上盛放数擎耀眼洁白风帆，船舷犁出雪白浪花与波浪精致回旋，船队结成半月形的船阵静静向前方驶去，月心之处仿若闪烁荧星数点。<br>月牙咬合，杀机陡现，美丽之下是致命残酷的危险，战舰的枪弹如枪火玫瑰华丽绽放，将群星送归彼天。<br>月牙儿轻轻荡漾，好像杀机从未出现。（韵脚）</p>
+<p>有感于大国崛起中的一幅画面，碧海蓝天白帆，英国与西班牙竞逐大西洋霸主，海战，我当时惊艳于破坏与毁灭竟也可如此唯美，故为此作。</p>
+<hr>
+<p>jon，我爱你。呵，爱上一个小说中的人物，还是个男人。</p>
+<p>因为他仿佛就是我，就是我的兄弟。都只是小人物，被命运与时代的洪流所裹挟，在这无法抗争的潮流中苦苦挣扎。</p>
+<p>我们都只是小人物，jon 却承载了多得多的苦痛。</p>
+<p>私生子的身份，stark 家的血脉，守夜人的誓言，旁人的鄙视，青绿之地的律法，变色龙的误会，黑衫军的责任……</p>
+<p>与我同龄的他经历了太多的苦痛：他想同命运抗争，违誓的痛苦又让他备受煎熬；年纪轻轻就成了黑衣人的领袖，日日在虎狼之中周旋……</p>
+<p>据说在卷五，我最爱的兄弟，jon，死了。</p>
+<p>不知为何内心很平静，jon，若火吻不能让你复生，你便去 Heaven 寻你的火吻而生吧。</p>
+<hr>
+<p>当夜魔张开了蓝青色翅膀，横绝天际自西而东地翱翔，当金星率先在浓稠的黑暗中述说着宇宙的旋律，当充斥天地的淡金色阳光如冰块般缓缓融化 — 孤独与寂寥便空气般地弥散到了世界的每个角落。</p>
+<p>I am the universe。群山万壑匀吐我的风息，宇宙间永恒的黑暗是我无孔不入的孤寂，黑暗中我的思绪穿越光年纵横星际。</p>
+<p>银河倒泻，光阴逆转，我站在记忆之潮的浪底，看海面上风暴肆掠，波涛汹涌澎湃，但是海底这片寒冷的水域，却仿佛自洪荒诞生之初便从未有过扰动。琉璃色的海水如横亘万丈的厚重蓝色玻璃覆压在身上。</p>
+<p>我的记忆之海，那奇异的微笑，甜蜜的悲哀，难诉的悲怆，巅峰时的狂喜，逆境之中的苦痛，承浴星光的斗志，森林般茂盛的自信：记忆的潮水浸渍我心，最终化作宇宙间永恒的黑暗寒冷与孤寂。</p>
+<hr>
+<p>自今日接了你的电话，心里便一直惴惴不安着。</p>
+<p>我在害怕沉默，而话机两端连接的，却是无限的难堪的沉默。我的心像冰风雪覆了无声息的峡谷，坚硬寒冷的冰层，层层相压，谷底的我早已不堪重负。</p>
+<p>众人的期许，自己的希冀，背负的责任，沉甸甸的理想，一件一件不再给我带来动力，而是化为巨大的压力。而我能做的，只有像一只可怜的文蛤，将内心处在外壳的保护之下，沉默着。</p>
+<p>而我最害怕的，则是你对我充满信心的眼眸。</p>
+<p>你可知道，于重重压力之下，任何细微的颓唐失意，均会被害怕失败的恐惧的心无限放大，风声鹤唳草木皆兵。我便会开始怀疑自己所做的是否正确，是否因为过去的每一步都是错误，将我推至今日境地。</p>
+<p>听见你的声音，我甚至都不想用强颜欢笑来伪装出一个强大的自己，而是任由沉默向你暴露出我柔软脆弱的内心。</p>
+<p>你问我可有想对你说的话，我悲哀地笑着：“没有。”</p>
+<p>就这么，伤害了你。</p>
+<hr>
+<p>神游物外，一任思绪天马行空在瑰紫寒荒的星云尘埃。</p>
+<p>我一时之间为我的卑微渺小悲伤得泫然欲泣。</p>
+<p>宇宙星空广博伟大绚烂，而我不过是一粒转瞬即逝的尘埃。</p>
+<hr>
+<p>午夜，夜深人静，唯有我昏黄的台灯一灯如豆。</p>
+<p>倦了，揉了揉眼，放下那本记述着史诗的长卷。</p>
+<p>我起身，准备打开我紧锁的房门去倒一杯水。行至门前，抬手方欲开门，却忽然呆住了。</p>
+<p>我迷失了，我不知道自己为何在这样一个地方，为何我叫苏，不叫那书中的主角 jon snow，我迷失了现实与虚幻的界限。</p>
+<p>我很快冷静下来，我告诫自己，虽然不知道为什么我是苏，可我的确就叫苏，我正控制着这具身体。我正在一个被称作现实的世界，而不是书中那个刀与剑，冰与火的世界。</p>
+<p>为什么？</p>
+<p>我向往地望着前面那扇门。门，连接着两个一直与未知的世界，好奇心总是让人向往未知。</p>
+<p>门外，是一个全新的领域，是一个新奇的世界。人类的好奇心赋予了门神秘的美感。当形容进入一个新领域时，往往也形容成打开一扇门。</p>
+<p>也许，在这扇门外，我就是 jon snow ，也可能是罗辑……</p>
+<p>我用颤抖的手缓缓打开门，将自己消融在无边无际的黑暗里。</p>
+<hr>
+<p>我于孤寂之中看山看水看天，<br>却仍免不了失望失落失眠。（韵脚）</p>
+<hr>
+<p>无论在怎样黑暗蒙昧的年代，总有一些人像星星般璀璨，在那空茫无际的黑暗之中，他们的智慧、执着、勇气反而在这黑色天幕之上愈加凸显出来，他们的光芒由点连线再由线成片，最终开启一个时代的曙光。无论曾经是怎样的黑暗困顿过，一个时代有了他们就不寂寞。一个时代也进了他们而焕发出自己独特而迷人的光彩，青史之上，不再空白，他们挥洒英华，留下浓墨重彩。</p>
+<hr>
+<p>离高考 11 天，我的心突然到了一种干净空明澄澈的境界。凭栏而倚，眺望着三年间伴我走过的熟悉景致，breeze 轻拂发际，天空蔚蓝而宁静，紫藤花架上泛开繁复的波涛，园树蓊郁而葱翠，欢笑的少女漫步林荫小径。11 天，11 天后我便要与这一切说再见了。不是怀念，而是一种说不出来的情感，仿佛微笑着挥手，同三年间每一天的每一个自己告别。我的微笑明亮而温暖，我亲爱的朋友，明日就将各奔东西，三年的欢笑与泪水愿你铭记。</p>
+<p>永别了，一去不回的自己。</p>
+<hr>
+<p>你走了，我又多了一个思念的人。</p>
+<p>今天，我开始不可抑制的思念你。我想起你在我下场时一路小跑从我手中拿过球拍；想起我们并肩作战时洒下的汗滴；想起那个温暖冬日你喋喋不休的絮语；想起我们在潮湿的雨季聆听树叶间落下的嘀嗒乐曲；想起我们一同走过操场，白色的鸟滑翔在蔚蓝的天际；想起那个晴朗夏日，阳光在我们脸上投下斑驳的罅隙；想起我在失落时，你给予我的温暖慰藉。</p>
+<p>叫我如何忘了你，我残存的思绪，如碧落海般翻涌不息，你在我的心底，潋滟出执着潮汐。</p>
+<p>可如今你已远去，只在我心里留下永恒回忆。</p>
+<p>飞鸟也已远去，天空是否铭记？（韵脚）</p>
+<hr>
+<p>今日我又遇见了他，他言语间流露出来的消极厌世思想，让我微微有些心惊。但毕竟分离太久了，我对他的情感也不如多年前的深厚了。</p>
+<p>我问他有朋友么？因为他此刻的语气，都像极了我于逆境之中孤独一人，茕茕孑立，黯然神伤，仿佛精神荒漠中的疲惫的落单路人。</p>
+<p>回答是不出我所料的，没有。我立刻就理解了他内心的痛苦，因为在某些方面，他与我实在太像了，我只消把自己的经历套在他身上便可以了。</p>
+<p>其实像我和他这样的人，真的是害怕没有朋友，或者理解自己的人的。我并不害怕孤独，因为孤独是一个人的盛大狂欢，我可以任由我的思想天马行空，挥斥天际，纵横六合，汪洋恣肆。从宇宙的光年深处，到量子的微观秘密；从电影的华丽映像，到青灯黄卷间的呢喃自语。我陶醉于我头脑间的世界，这个世界让我思索、苦闷、微笑、狂喜，我从我的思索之中探寻到了我存在的意义。（我思故我在）</p>
+<p>所以我并不害怕孤独，我害怕寂寞。寂寞意味着没有交流。朋友其实是一个灵魂，两个身体。在精神的荒漠里，两个旅人将奇迹般的相遇，他们该是多么狂喜和珍惜这来之不易的友谊。从那个世界里，我找寻到了许多奇异有趣的瑰宝，我也已经迫不及待地想和那个值得交流的友人，分享自己。我们两人的思想在这美妙的交流中，碰撞出了更多灵感的火花，这火花又温暖了彼此。（韵脚）</p>
+<p>伯乐来之不易，可在我们思想的世界里，我们就是幸福的伯牙与子期。淡如水的友谊可期，而《真心为你》（EVA）的朋友难觅。所以，你知道我有多么思念你。（韵脚）我想，一两个情投意合的朋友欢颜一聚，流觞曲水间畅叙幽情，这于我而言，便是人生见最大的爽心乐事了吧。</p>
+<hr>
+<p>结交了一个新朋友，我是因为他十分像我那旧友而接近他的。结果他不仅长得像，而且举手投足间的习惯动作都极为相似，让我不得不在感到造物神奇的同时感谢上帝。</p>
+<p>而且据他说，他看到我时，也觉得有一种莫名的亲切感，我不确定他说这话是为了逗我笑还是发自内心，但我觉得很高兴。</p>
+<p>我和他方才说了几句话就嬉笑打闹的如认识多年的好友，他用手捂住嘴用我熟悉的姿势笑着，而我则弯下腰轻轻打他的肩。</p>
+<p>旧日光景如水般荡漾眼前，但见欢笑岁月盈然可掬，我……</p>
+<p>我不敢闭眼，怕眼前的一切都是幻觉。</p>
+<hr>
+<p>一艘孤独但并不寂寞的长桅木杆帆船骄傲地行驶在碧落之南，海皇深碧的眸里漾着我的白帆，远及苍穹的粼粼细波微蓝，身边有飞翔的海鸥作伴，军舰鸟忠诚的伫立桅杆，眺望远方腾起的飞鱼滑翔在小岛之泮， 微垂的椰子树落实在金沙的海滩，蝴蝶鱼翩跹在堡礁之岸，绚烂的珊瑚五色石染，浅黛的贝壳如星河流转，翠绿的大海是奇异的鲛人之番。（韵脚）</p>
+<hr>
+<p>嘴角那抹微笑<br>不羁带着轻佻<br>神游物外惹人恼<br>看窗外悠悠云水谣<br>竹影分绿与芭蕉<br>枫岚催红了樱桃<br>流光逝水黯然憔<br>白驹过隙把人抛<br>寂寞万古豪</p>
+<p>然而我却不知道<br>岁月不老<br>即使在最黑暗的今朝<br>透过那朦胧的雾气<br>也会脱颖出你的微笑<br>你那不羁的微笑<br>在三生石和我的心上<br>又重重地刻下一刀（韵脚）</p>
+<p>关于这个，开头两句算是我妙手而得的句子，我想表达对游人的思念，友人在我心中的印象就像窗外的景物一样美好，但随即我的情绪便逐渐黯淡下来，毕竟逝者如斯，我和朋友已经分离多年。<br>于是我很容易便想到了：“流光容易把人抛，红了……”此句有写景又有对逝水流年的叹息，然后写景完结后，我便写了无限惆怅的情绪。<br>但不能总是沉湎于伤怀，便有了下一句的峰回路转。纵时光匆匆，但我对你的永恒思念不老。你为我盛开的笑靥，即使在最黑暗的年代也是不灭的风景。而且这句与开头相呼应，构成一种回环往复。但是我不知道他们说我写景写的突兀，可能是我水平不够吧，但我的确是费了一番心思的。</p>
+<hr>
+<p>当我阅读科幻的时候，由于背景的设定往往是一个文明的兴盛与覆灭，一个时代的兴衰荣辱，一个种族的进化与消亡…… 简而言之，宏大。</p>
+<p>正是这种宏大给了我一个不同的视角，让我得以站在一个全新的高度来思考观察问题，超越我个人、民族、国家、种族的狭隘的偏见。沉浸在那个世界里，我感知我倾听我思考，那真的是一种很美妙的境界。</p>
+<p>但我毕竟是人类，我是如此的热爱和痛恨这个种族，爱自不必多说，恨则是一种复杂的情感：恨铁不成钢的恨，彻底绝望，痛入骨髓的恨……</p>
+<p>我喜欢仰望那片瑰丽而璀璨的星空，繁星注视下的我是多么渺小。我希望我的思绪能飞越光年穿透星际，然而浩瀚伟大的宇宙，总是以它的博大一次次提醒我的渺小。我想，我向往大海和星空应该是出于同一原因的吧。</p>
+<p>我曾在空无一人的野外嘹望星空，每一个莹莹小点就是一只眼睛（观察者？），耳畔传入激越的虫鸣，微风拂过发际，带走我的热量，带来丝丝清凉。这就是地球大气磅礴的生态系统，无机与有机共同作用的结果。它循环，它稳定，它是如此的美丽，如此的生生不息，每一个生命，每一缕清风，每一米阳光，每一个无序的相互作用，却将宇宙整体带入高度的有序，他们竟是如此地作为宇宙的一个碎片，来抵御宇宙的敌人 — 熵增么。</p>
+<p>为什么我仰望星空，因为我渴望回归；为什么人们要攀登山峰，因为山就在那里。（语出霍金，及《群星，我的归宿》）</p>
+<p>也许那直刺寰宇苍穹的利剑，就是人类的伟大吧。</p>
+<hr>
+<p>确定要删除吗？</p>
+<p>点击取消。</p>
+<p>第一次与这款网游邂逅是因为表哥，他正全身心的投入其中，这款游戏画面精美，人物卡通可爱，而那时童年的我木讷内向，生活中几乎没有朋友，所以这游戏很快就令我迷上了。游戏中的伙伴们往往仗义而慷慨，我觉得他们比现实中的同学更让我体味到了什么是友情，现实中一无是处的我却是游戏中不可或缺的一份子。</p>
+<p>我仍然记得那一天在他们的帮助下，我转职成为圣骑士时，内心充满的神圣的使命感，我发誓要向他们帮助我一样，帮助游戏中每一个比我弱小的人。我知道这听起来很可笑，可我当时幼小的心里的确是这么想的。</p>
+<p>确定要删除吗？</p>
+<p>颤抖着点击取消。</p>
+<p>我试着回忆童年与此有关的记忆，但奇怪的是我唯一能想起来是，我在那个夏日奔跑着的身影。暑假父母不在家，我便可以整天坐在电脑桌前了，唯一的例外是三餐得到姨妈家去吃，为了不挤占游戏时间，我都是跑着去的。那种在奔跑中的期待和喜悦似乎远远超过了游戏的快乐。</p>
+<p>我记起冒着着霖霖细雨，踩踏着青翠欲滴的草地的奔跑的我；在夏日烈焰的炙烤下，快过像水纹样波澜起伏的土峦的我；在洒水车刚洒过水的岁的路面，穿过蒸腾的热气的我；在七月流火微醺夏风吹拂下匆匆回家的我；跑过紫藤花架，阳光在身上投下斑驳光栅的我……</p>
+<p>蓦然回首，方才讶然惊觉，原来那一路上不灭的风景，比游戏更加撩动我的心弦。年少的滋味，非等到时过境迁，才能品味出其中的淡淡伤感。</p>
+<p>确定要删除吗？</p>
+<p>犹豫再三，点击取消。</p>
+<p>我从这些年的游戏生涯中得到了什么呢？有友谊，有装备，有等级。可这些全都是虚拟的幻象啊，电源一关，一切烟消云散。</p>
+<p>而现实中的我收获了在及格线上徘徊的分数，度数日渐加深的眼镜，人情淡薄的交际圈…… 我想那段时间里，别人眼中的我一定是这样，一个人坐着发呆，眼神迟滞，莫名其妙的大笑，苍白而怪异。我将视线从显示屏移向窗外，窗外是一片如火残夕，燃烧在天际。</p>
+<p>确定要删除吗</p>
+<p>我平静地点击确定。</p>
+<p>我的心里只剩下灰烬。</p>
+<p><del>《哈利波特》里邓布利多所豢养的凤凰在死亡时会留下一片灰烬，但若仔细看去，便仿佛看到有伟大的生命不甘于灰烬的桎梏，跃跃欲出，当今炫目的光剑最终刺破黑暗，与过去告别的凤凰便重生了。</del></p>
+<p><del>我这时心里有一种无法言语的情感：与过去的我挥手作别，如果非要用一个词形容，我想是重生。</del></p>
+<p>（忍不住解释一下，这篇不是写的我自己……以及删除线的结尾，是为了应试故意拔高）</p>
+<hr>
+<p>最近看了秒数五厘米，初看颇有不屑，事后却生出不少感触。</p>
+<p>樱花是我相对而言最不喜欢的一部，讲两青梅竹马的孩子，分离后女主角在车站等她的小男友的故事，俗到烂透的情节，但值得称道的是导演对细节的渲染，对人物内心的刻画，细腻的笔触勾勒出双方忐忑的心。在那个大雪纷飞的冬日夜晚，不能按时赴约的心一定是无奈而焦灼的吧。然而最触动我的却是那种孤独。</p>
+<p>一辆新干线的火车，孤寂地行驶在夜雪风飘的荒原里，没有灯光，没有人烟，没有声嚣。漫天的风雪迷离了窗外的风景，能看到的只是白茫茫的一片。仿佛是白色世界里银装素裹的旅人，无心去欣赏那片银装素裹，只想着快些找到雪夜里那另一片孤寂焦灼的心，身后留下一长串迷途的脚步，而前方未知的道路何其漫长。</p>
+<p>第二话宇航员是我最喜欢的一部。讲述一个女孩暗恋我们虽未成年，但生活经历早已是他早早成熟的男主角的故事。很容易相信，散发着成熟男人魅力的男主角远野，是很容易赚得女孩子芳心的，鹤立鸡群的味道吧。但远野明白一切，他此时和我一样有着远大的理想，十分清楚女孩子是他生命中的匆匆过客，因此虽然对女孩很好，可心里并没有任何特殊的波澜。我挺为那女孩惋惜，如此执着的精神，为何要陷入这种注定没有结果的泥潭呢？女子耽兮，不可说也！</p>
+<p>但我很高兴的是，以上只是我对他们情感的一丝感慨，我并没有纠缠于其中，我只是冷静的分析，最打动我的是，是两人所具有的那种精神。</p>
+<p>就像片中人类发射火箭，远野有那种渴望走向更高处的精神，还有 never give up 的执着毅力。虽然影片中并没有详写他为理想付出过多少，但有着相似经历的我很容易就能看见他洒下的每一滴不为人知的汗水。女孩那种与海浪搏击的精神也使我感动。</p>
+<p>我记得他们坐在路边的堤上仰望星空，紫色瑰丽的银河缓缓流转，星簇明灭震撼人心，起起落落的飞机光斑像是人类驶向未来的太空港。风轻轻地吹过他们的衣襟，吹过身边青涩的麦田，青色的麦芒翻滚出碧绿的浪。</p>
+<p>青涩得一如远野成熟却未熟透的心。</p>
+<p>秒数五厘米，讲述远野有坚定到疲乏到迷茫的故事。这却与我更相近了。</p>
+<p>秒数五厘米，无论是飘零美丽的樱花在风中的纷舞逝去—— 一如随幻彩时光匆匆逝去的年少单纯美好；抑或十年时间的天各一方，山高水长，在地球的两极孤独地守望。无论哪一个都是一段动人的故事。</p>
+<hr>
+<p>千寻初入结界之时，油屋门前是异样的苍凉与繁华：苍凉是因为没有人声鼎沸的生机；繁华是因为那些个性鲜明的妖怪们分明表示着另一个迥异于人界的喧闹。</p>
+<p>同样是模仿人类的“冠盖满京华”的喧嚣，喧嚣的背后又何尝不是寄托了一种妖怪们无奈的寂寞呢？日漫《萤火之森》中与此相似的场景，夏日祭是妖怪们一年一度宣泄压抑了的自己的盛典，不过在《萤火之森》中，导演也许并未想到表达这么多，这些琐思，更可能是我牵强附会的推断吧：</p>
+<p>明明不是人类，却想要模仿人类；明明相爱，两人却注定永生无法在一起。想用触碰，感受对方身体温暖的刹那，却也是无可挽回的别离之始。</p>
+<p>在这里，白龙与与《萤火之森》的女主 – 萤倒是有相似之处，白龙帮助千寻治好父母之时，却也正是标志着别离的最终到来。但是千寻要远比萤幸福，千寻不仅可以感受到恋人手心的暖意，更能用心体味到恋人对自己的呵护（这其实是每个女孩子都梦想着的吧）。我是男人，我喜欢白龙，我愿与他做一个交心知己、君子之交淡如水的朋友；若是女生的话，我想会爱上白龙吧。</p>
+<p>在《千与千寻》之中，结局离别的悲伤明显被弱化，因为这部电影动漫是橘黄色的温暖治愈系，这也是宫崎骏的一贯风格呢。</p>
+<p>何况，白龙与千寻还在分离之时，许下了一定再次相见的约定。</p>
+<p>钱婆婆的小木屋，充溢着木黄、微红的暖系色调，让人回忆起大雪纷飞的夜晚，在外婆家火炉前安然逗趣的静谧时光，这里是像家一样的避风港湾，小千也正是在这里重新拿回了千寻的名字。“绿蚁新醅酒，红泥暖火炉”，在宫崎骏的作品中，我分明看到了唐国诗圣的意境。</p>
+<p>心之懵懂的少女初次在心中萌生出对某人朦胧的爱的依恋。千寻在这个异世界里飞速地成长着，从一开始的不敢下悬崖边的楼梯，到后来为了救治白龙而冒险走过半空中晃荡的空管道；从影片伊始的嫌弃微微凋谢的花瓣，到后来为了救回父母而忍辱负重（这个词用的好严重）清洗腐烂神身上无人愿意忍受的淤泥：与其说是因为她对白龙的爱情的激励，我却更愿意相信这是千寻这个女孩内心中来自坚强与上进的力量。</p>
+<p>她的善良，与无脸男的邂逅，看得我心中一悸。原本是素不相识的人，无脸男在与千寻相识前，连存在都只是若有若无被人忽视的幽魂，却会特意为它半掩着门，好方便它进来休憩。这是何等的单纯善良与美好。我愿与这样的人相伴，但是我另一方面却又害怕与这样美好的人相伴，我害怕自己的接触都是对这样一种美好的亵渎。无脸男是怎样的低微卑贱者，但在千寻心里，仍有为弱者永远保留的位置。这样高贵的善良，我愿撷取其一段香。这样的女主几乎是理想人格的化身，或许在这样的性格之中又寄托着宫崎骏的某种内心思恋也说不定呢。</p>
+<p>犹记得白龙牵手带她走过繁密花丛的那个场景，画面色泽明丽，音乐活泼轻快。风拂花甸，花圃中荡开淡绿色的波纹，这又是谁的伊甸园。空气中漂浮和弦，幻听般想起久石让的《夏天》。<br>（未完）</p>
+<hr>
+<p>那快门定格的一瞬<br>青春浓缩成记忆的年轮</p>
+<hr>
+<p>（上面所有这些文字写成于高中的不同时期，但并未按照时间顺序整理。因为是记忆碎片，故名为《记忆碎片》。以上。）</p>
+]]></content>
+      <tags>
+        <tag>chaos</tag>
+      </tags>
+  </entry>
+</search>

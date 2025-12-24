@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"darcysail.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.26.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":"default"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="工作环境推荐笔者的工作环境是Ubuntu-16.04.1 + Neovim + zsh + oh-my-zsh + tmux + oh-my-tmux，使用到图形界面的时候主要是阅读 pdf 文档以及浏览网页。 身为一个重度 Vim 使用者，我交换了 ESC 键和 Caps Lock 键，使用 zsh 的 Vi 模式，并尝试在一切可能的地方使用Vim-like的方式来操控机器。  网页浏览：Chr">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Share my dotfile">
+<meta property="og:url" content="https://darcysail.github.io/2018/05/31/Share-my-dotfile/index.html">
+<meta property="og:site_name" content="Valyria">
+<meta property="og:description" content="工作环境推荐笔者的工作环境是Ubuntu-16.04.1 + Neovim + zsh + oh-my-zsh + tmux + oh-my-tmux，使用到图形界面的时候主要是阅读 pdf 文档以及浏览网页。 身为一个重度 Vim 使用者，我交换了 ESC 键和 Caps Lock 键，使用 zsh 的 Vi 模式，并尝试在一切可能的地方使用Vim-like的方式来操控机器。  网页浏览：Chr">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-05-31T08:06:35.000Z">
+<meta property="article:modified_time" content="2025-12-24T05:50:11.606Z">
+<meta property="article:author" content="Darcy">
+<meta property="article:tag" content="vim">
+<meta property="article:tag" content="zsh">
+<meta property="article:tag" content="terminal">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://darcysail.github.io/2018/05/31/Share-my-dotfile/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"default","comments":true,"permalink":"https://darcysail.github.io/2018/05/31/Share-my-dotfile/","path":"2018/05/31/Share-my-dotfile/","title":"Share my dotfile"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Share my dotfile | Valyria</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Valyria</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E7%8E%AF%E5%A2%83%E6%8E%A8%E8%8D%90"><span class="nav-number">1.</span> <span class="nav-text">工作环境推荐</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#To-be-tested"><span class="nav-number">2.</span> <span class="nav-text">To be tested</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%AA%E6%9D%A5%E7%9B%AE%E6%A0%87"><span class="nav-number">3.</span> <span class="nav-text">未来目标</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Darcy</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="https://darcysail.github.io/2018/05/31/Share-my-dotfile/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Darcy">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Valyria">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Share my dotfile | Valyria">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Share my dotfile
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2018-05-31 16:06:35" itemprop="dateCreated datePublished" datetime="2018-05-31T16:06:35+08:00">2018-05-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-12-24 13:50:11" itemprop="dateModified" datetime="2025-12-24T13:50:11+08:00">2025-12-24</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h4 id="工作环境推荐"><a href="#工作环境推荐" class="headerlink" title="工作环境推荐"></a>工作环境推荐</h4><p>笔者的工作环境是<code>Ubuntu-16.04.1 + Neovim + zsh + oh-my-zsh + tmux + oh-my-tmux</code>，使用到图形界面的时候主要是阅读 pdf 文档以及浏览网页。</p>
+<p>身为一个重度 Vim 使用者，我交换了 ESC 键和 Caps Lock 键，使用 zsh 的 <code>Vi</code> 模式，并尝试在一切可能的地方使用<code>Vim-like</code>的方式来操控机器。</p>
+<ul>
+<li>网页浏览：Chrome + cVim(Chrome 插件）</li>
+<li>PDF 阅读： Evince（测试过所有 <code>Vim-like</code> 的阅读器之后，发现或多或少存在问题，Evince 只能算是差强人意的选择） (2018.12.09 更新：配置好 Zathura 后挺好用的）</li>
+<li>PDF 制作： Neovim + Typora</li>
+<li>PPT 制作： Neovim + nodePPT</li>
+<li>Overwall： VPS + Shadowsocks</li>
+<li>文件管理： VPS + Git（这里强烈批评坚果云，居然能 24 小时吃掉我 100% 的 CPU 资源，对富文本格式文件解析能力非常差）</li>
+<li>文件共享： VPS + Git</li>
+<li>下载： VPS + aria2c</li>
+<li>终端模拟器： Tilix</li>
+<li>键鼠 + 剪贴板共享： Synergy</li>
+</ul>
+<p>折腾过很久的 Vim 插件，所走的这些路，应该是大多数被 Vim 哲学所吸引的人都走过的。<br>在这里分享 dotfile，以飨后来人。希望或多或少能帮到你。</p>
+<span id="more"></span>
+
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://github.com/DarcySail/dotfile">https://github.com/DarcySail/dotfile</a><br><a target="_blank" rel="noopener" href="https://xaizek.github.io/2016-08-13/big-list-of-vim-like-software/">https://xaizek.github.io/2016-08-13/big-list-of-vim-like-software/</a></p>
+</blockquote>
+<p>本仓库会持续更新，除了去掉敏感的隐私内容之外，会尽量与我实际使用的 dotfile 保持一致。</p>
+<h4 id="To-be-tested"><a href="#To-be-tested" class="headerlink" title="To be tested"></a>To be tested</h4><ul>
+<li>文件浏览： 的确有 <code>Vim-like</code> 的文件系统管理器，但我对此心存疑虑，zsh 组合拳似乎对我已经非常够用了</li>
+</ul>
+<h4 id="未来目标"><a href="#未来目标" class="headerlink" title="未来目标"></a>未来目标</h4><ul>
+<li>将 dotfile 中的所有英文整理为中文（本博客的定位是创造价值以及帮助后来者，所以会照顾大多数 newcomer）；</li>
+<li>测试完所有 Github 上面排名前十的 dotfile 仓库，整合到我自己的内容中来；</li>
+<li>排版格式</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/vim/" rel="tag"># vim</a>
+              <a href="/tags/zsh/" rel="tag"># zsh</a>
+              <a href="/tags/terminal/" rel="tag"># terminal</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/05/31/How-to-crack-synergy/" rel="prev" title="How to crack Synergy">
+                  <i class="fa fa-angle-left"></i> How to crack Synergy
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/06/06/Build-OpenVpn-Server-on-53-port-the-easiest-way/" rel="next" title="Build OpenVPN Server on 53 port - The Easiest Way">
+                  Build OpenVPN Server on 53 port - The Easiest Way <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Darcy</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

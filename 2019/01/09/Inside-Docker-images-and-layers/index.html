@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"darcysail.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.26.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":"default"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="原文地址：https:&#x2F;&#x2F;windsock.io&#x2F;explaining-docker-image-ids&#x2F;Author：Nigel BrownTranslator：SU Hang经原作者 Nigel Brown 授权翻译 | Translator authorized by the Nigel Brown 当 Docker v1.10 发布时，Docker Engine 处理镜像的方式发生了相当大">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入解析 Docker 镜像机制 -- 为何 Docker 镜像 ID 会显示 missing ?『译』">
+<meta property="og:url" content="https://darcysail.github.io/2019/01/09/Inside-Docker-images-and-layers/index.html">
+<meta property="og:site_name" content="Valyria">
+<meta property="og:description" content="原文地址：https:&#x2F;&#x2F;windsock.io&#x2F;explaining-docker-image-ids&#x2F;Author：Nigel BrownTranslator：SU Hang经原作者 Nigel Brown 授权翻译 | Translator authorized by the Nigel Brown 当 Docker v1.10 发布时，Docker Engine 处理镜像的方式发生了相当大">
+<meta property="og:locale">
+<meta property="og:image" content="https://darcysail.github.io/2019/01/09/Inside-Docker-images-and-layers/Historical_Image.png">
+<meta property="og:image" content="https://darcysail.github.io/2019/01/09/Inside-Docker-images-and-layers/Content_Addressable_Image.png">
+<meta property="article:published_time" content="2019-01-09T08:57:40.000Z">
+<meta property="article:modified_time" content="2025-12-24T05:50:11.604Z">
+<meta property="article:author" content="Darcy">
+<meta property="article:tag" content="Docker">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://darcysail.github.io/2019/01/09/Inside-Docker-images-and-layers/Historical_Image.png">
+
+
+<link rel="canonical" href="https://darcysail.github.io/2019/01/09/Inside-Docker-images-and-layers/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"default","comments":true,"permalink":"https://darcysail.github.io/2019/01/09/Inside-Docker-images-and-layers/","path":"2019/01/09/Inside-Docker-images-and-layers/","title":"深入解析 Docker 镜像机制 -- 为何 Docker 镜像 ID 会显示 missing ?『译』"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>深入解析 Docker 镜像机制 -- 为何 Docker 镜像 ID 会显示 missing ?『译』 | Valyria</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Valyria</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%86%E5%8F%B2%E9%81%97%E7%95%99"><span class="nav-number">2.</span> <span class="nav-text">历史遗留</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%85%E5%AE%B9%E5%8F%AF%E5%AF%BB%E5%9D%80-ID"><span class="nav-number">3.</span> <span class="nav-text">内容可寻址 ID</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%AC%E5%9C%B0%E6%9E%84%E5%BB%BA%E9%95%9C%E5%83%8F"><span class="nav-number">4.</span> <span class="nav-text">本地构建镜像</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%80%E5%90%8E%E7%9A%84%E2%80%9D%E5%B0%8F%E5%88%AB%E6%89%AD%E2%80%9D"><span class="nav-number">5.</span> <span class="nav-text">最后的”小别扭”</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Darcy</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="https://darcysail.github.io/2019/01/09/Inside-Docker-images-and-layers/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Darcy">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Valyria">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="深入解析 Docker 镜像机制 -- 为何 Docker 镜像 ID 会显示 missing ?『译』 | Valyria">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          深入解析 Docker 镜像机制 -- 为何 Docker 镜像 ID 会显示 missing ?『译』
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2019-01-09 16:57:40" itemprop="dateCreated datePublished" datetime="2019-01-09T16:57:40+08:00">2019-01-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-12-24 13:50:11" itemprop="dateModified" datetime="2025-12-24T13:50:11+08:00">2025-12-24</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><em>原文地址：<a target="_blank" rel="noopener" href="https://windsock.io/explaining-docker-image-ids/">https://windsock.io/explaining-docker-image-ids/</a></em><br><em>Author：Nigel Brown</em><br><em>Translator：SU Hang</em><br><em>经原作者 Nigel Brown 授权翻译 | Translator authorized by the Nigel Brown</em></p>
+<p>当 Docker v1.10 发布时，Docker Engine 处理镜像的方式发生了相当大的变化。虽然这种<a target="_blank" rel="noopener" href="https://blog.docker.com/2016/01/docker-1-10-rc/">新的处理机制</a> 被解释得很清楚，并且对 Docker 的常规使用（除了镜像迁移之外）几乎没有影响，但是有一些 UI 变动还是引起了一些<a target="_blank" rel="noopener" href="https://github.com/moby/moby/issues/20131">误解</a>。那么这种变化是什么，为什么 <code>docker history</code> 命令会显示一些镜像层的 ID 为 <code>&lt;missing&gt;</code>呢？</p>
+<span id="more"></span>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ docker <span class="built_in">history</span> debian</span><br><span class="line">IMAGE               CREATED             CREATED BY                                      SIZE                COMMENT</span><br><span class="line">1742affe03b5        10 days ago         /bin/sh -c <span class="comment">#(nop) CMD [&quot;/bin/bash&quot;]             0 B</span></span><br><span class="line">&lt;missing&gt;           10 days ago         /bin/sh -c <span class="comment">#(nop) ADD file:5d8521419ad6cfb695   125.1 MB</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>首先交代一些相关背景。docker 镜像是用于创建容器的只读模板，并提供基于多层文件和目录的顺序联合的文件系统，这种<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Union_mount">联合文件系统</a> 使得 Docker 镜像得以复用。Docker 平台提供了”共享镜像层”这一基本组件，通常使用<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%AF%AB%E5%85%A5%E6%99%82%E8%A4%87%E8%A3%BD">写时复制（COW）</a> 机制来实现。在容器运行的生命周期中，如果容器需要从下层的某个只读镜像中修改文件，则在进行更改之前，它会将文件复制到其自己的专用读写层 - 即容器层。</p>
+<p>在 Docker 镜像构建过程中，会创建一个镜像或’diff’，在容器中运行的命令 - 譬如上面提到的 <code>/bin/bash</code>等等 - 会生成新的或修改过的文件和目录。这些新的或修改过的文件和目录被“提交”到容器层。<code>docker history</code> 输出显示 <code>debian</code> 镜像有两层。</p>
+<h4 id="历史遗留"><a href="#历史遗留" class="headerlink" title="历史遗留"></a>历史遗留</h4><p>历史上（在 Docker v1.10 版本之前），每次由于提交操作（译者注：<code>docker commit</code>) 而创建新镜像时，就会随机生成一个 256 位 <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Universally_unique_identifier">UUID</a> 标识来代表这唯一镜像，通常称为镜像 ID（在 UI 中显示为短 12 位十六进制字符串或长 64 位十六进制字符串）。Docker 将镜像内容存储在名称与镜像 ID 相同的目录中。在该目录内部，包括镜像的配置信息 (configuration object ) 和 镜像 ID 和镜像的父镜像的 ID 和。通过这种方式，Docker 能够为容器构建文件系统，每个镜像依次引用其父镜像内容，直到到达没有父级的基本镜像。每一层镜像也可以用有意义的名称（例如 <code>my_image:1.0</code>）标记（可选，不强制），但这通常保留用于叶子镜像。这在下图中描述：</p>
+<p><img src="/2019/01/09/Inside-Docker-images-and-layers/Historical_Image.png" alt="Historical_Image"></p>
+<p>使用 <code>docker inspect</code> 命令将输出：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ docker inspect my_image:1.0</span><br><span class="line">[</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;Id&quot;</span>: <span class="string">&quot;ca1f5f48ef431c0818d5e8797dfe707557bdc728fe7c3027c75de18f934a3b76&quot;</span>,</span><br><span class="line">        <span class="string">&quot;Parent&quot;</span>: <span class="string">&quot;91bac885982d2d564c0e1869e8b8827c435eead714c06d4c670aaae616c1542c&quot;</span></span><br><span class="line">        ...</span><br><span class="line">        ...</span><br></pre></td></tr></table></figure>
+<p>这种方法在很长一段时间都工作良好，但随着时间的推移，由于各种原因，它被认为是一种次优的选择。驱使作出改变的一个重要原因是：当从 Docker registry（如 <a target="_blank" rel="noopener" href="https://hub.docker.com/">Docker Hub</a>）中推送到或拉取时，缺乏检测镜像内容是否在被篡改的方法。这收到了整个社区的<a target="_blank" rel="noopener" href="https://github.com/moby/moby/issues/9719">强烈批评</a>，最终促使了内容可寻址 ID (content addressable IDs) 的诞生。</p>
+<h4 id="内容可寻址-ID"><a href="#内容可寻址-ID" class="headerlink" title="内容可寻址 ID"></a>内容可寻址 ID</h4><p>从 Docker v1.10 开始，镜像和层级 (images and layers) 不再是同义词。除此之外，镜像可以直接引用一个或多个层级。</p>
+<p>现在层级通过摘要来进行识别，摘要采用如下形式：<code>algorithm:hex</code> 例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sha256:fc92eec5cac70b0c324cec2933cd7db1c0eae7c9e2649e42d02e77eb6da0d15f</span><br></pre></td></tr></table></figure>
+
+<p>通过将 <a target="_blank" rel="noopener" href="https://github.com/moby/moby/issues/9719">SHA256</a> 算法应用于镜像的内容之上，来计算十六进制 hash 值。如果内容发生变化，则计算的摘要也将发生变化，这意味着 Docker 可以使用其发布的摘要来检查镜像的内容，以验证其是否被篡改。层级不同于”镜像”这个概念，也不属于”镜像”这个概念的一部分，它只是文件和目录的集合。</p>
+<p>现在的 Docker 镜像由一个配置对象 (configuration object) 组成，配置对象中包含了一个有序层级摘要列表，这使得 Docker Engine 能够根据层级摘要而不是父镜像来组装容器的文件系统。镜像 ID 也是一个摘要，是镜像配置对象的 SHA256 哈希值，镜像配置对象涵盖了组成该镜像文件系统的所有”层级”的 hash 摘要。下图描绘了 Docker v1.10 之后镜像和层级之间的关系：</p>
+<p><img src="/2019/01/09/Inside-Docker-images-and-layers/Content_Addressable_Image.png" alt="Content_Addressable_Image"></p>
+<p>为了便于阅读，镜像和镜像的 SHA256 hash 摘要被缩短了。</p>
+<p>用于存储层级内容的目录 <code>diff</code> , 现在以随机生成的“cache ID”命名，Docker Engine 维护层级与其 cache ID 之间的关联性，以便它在磁盘上定位层级内容的位置。</p>
+<p>因此，当从 registery 中提取 Docker 镜像时，<code>docker history</code> 命令用于显示其内容，其输出类似于这样：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ docker <span class="built_in">history</span> swarm</span><br><span class="line">IMAGE               CREATED             CREATED BY                                      SIZE                COMMENT</span><br><span class="line">c54bba046158        9 days ago          /bin/sh -c <span class="comment">#(nop) CMD [&quot;--help&quot;]                0 B</span></span><br><span class="line">&lt;missing&gt;           9 days ago          /bin/sh -c <span class="comment">#(nop) ENTRYPOINT &amp;&#123;[&quot;/swarm&quot;]&#125;      0 B</span></span><br><span class="line">&lt;missing&gt;           9 days ago          /bin/sh -c <span class="comment">#(nop) VOLUME [/.swarm]              0 B</span></span><br><span class="line">&lt;missing&gt;           9 days ago          /bin/sh -c <span class="comment">#(nop) EXPOSE 2375/tcp               0 B</span></span><br><span class="line">&lt;missing&gt;           9 days ago          /bin/sh -c <span class="comment">#(nop) ENV SWARM_HOST=:2375          0 B</span></span><br><span class="line">&lt;missing&gt;           9 days ago          /bin/sh -c <span class="comment">#(nop) COPY dir:b76b2255a3b423981a   0 B</span></span><br><span class="line">&lt;missing&gt;           9 days ago          /bin/sh -c <span class="comment">#(nop) COPY file:5acf949e76228329d   277.2 kB</span></span><br><span class="line">&lt;missing&gt;           9 days ago          /bin/sh -c <span class="comment">#(nop) COPY file:a2157cec2320f541a   19.06 MB</span></span><br></pre></td></tr></table></figure>
+
+<p>该命令提供具体镜像及其层级的详细组成信息。除了镜像的最上面一个层级之外（译者注：这不一定）, 所有 <code>IMAGE</code> 字段中的值都是<code>&lt;missing&gt;</code>, 很不幸，这个值极具误导性，因为它给人一种错误的暗示。但严格来说这么做没错，因为层级不再与镜像同义。我认为把这个领域留空是更恰当的（译者在这里表示赞同）。此外，镜像 ID 似乎仅仅与最上层相关联，但实际上，镜像 ID 不属于任何层。相反，这些层级共同属于该镜像。</p>
+<h4 id="本地构建镜像"><a href="#本地构建镜像" class="headerlink" title="本地构建镜像"></a>本地构建镜像</h4><p>虽然这个内容可寻址镜像的描述适用于 Docker v1.10 版本 之后的所有 Docker 镜像，但 Docker 主机上的本地构建镜像的方式略有不同。本地构建的镜像保持不变 - 它是包含配置项的配置对象，包括层级摘要的有序列表。</p>
+<p>但是，当本地 Docker 主机上构建的层级提交给镜像时，会同时创建“中间”镜像。与所有其他镜像一样，”中间镜像”也具有配置项，该配置项是组成镜像的层级摘要列表，并且其 ID（或摘要）包含配置对象的 hash 值。中间镜像没有标记名 (tag name)，但是，它们有一个“父”键（译者注：原文这里有点小瑕疵，不是”父”键，在代码中是以对象成员表示的），其中包含父镜像的 ID。</p>
+<p>使用中间镜像和包含对父镜像的引用的目的，是为了便于 Docker <a target="_blank" rel="noopener" href="https://docs.docker.com/engine/reference/builder/#from">构建缓存</a> 。构建缓存是 Docker 平台的另一个重要特性，用于帮助 Docker 引擎利用预先存在的层级，以免为相同的构建命令不必要地重复生成内容。它使得构建过程更有效。在本地构建镜像时，该 <code>docker history</code> 命令可能提供类似于以下内容的输出：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ docker <span class="built_in">history</span> jbloggs/my_image:latest</span><br><span class="line">IMAGE               CREATED             CREATED BY                                      SIZE                COMMENT</span><br><span class="line">26cca5b0c787        52 seconds ago      /bin/sh -c <span class="comment">#(nop) CMD [&quot;/bin/sh&quot; &quot;-c&quot; &quot;/bin/b   0 B</span></span><br><span class="line">97e47fb9e0a6        52 seconds ago      /bin/sh -c apt-get update &amp;&amp;     apt-get inst   16.98 MB</span><br><span class="line">1742affe03b5        13 days ago         /bin/sh -c <span class="comment">#(nop) CMD [&quot;/bin/bash&quot;]             0 B</span></span><br><span class="line">&lt;missing&gt;           13 days ago         /bin/sh -c <span class="comment">#(nop) ADD file:5d8521419ad6cfb695   125.1 MB</span></span><br></pre></td></tr></table></figure>
+
+<p>在此示例中，上面两个层级是在本地镜像构建期间创建的，而底层是来自基本镜像（例如 <a target="_blank" rel="noopener" href="https://docs.docker.com/engine/reference/builder/#from">Dockerfile 指令</a> <code>FROM debian</code>）。我们可以使用 <code>docker inspect</code> 命令查看与该镜像关联的层级摘要：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">$ docker inspect jboggs/my_image:latest</span><br><span class="line">[</span><br><span class="line">    &#123;</span><br><span class="line">        ...</span><br><span class="line">        ...</span><br><span class="line">        &quot;RootFS&quot;: &#123;</span><br><span class="line">            &quot;Type&quot;: &quot;layers&quot;,</span><br><span class="line">            &quot;Layers&quot;: [</span><br><span class="line">                &quot;sha256:4dcab49015d47e8f300ec33400a02cebc7b54cadd09c37e49eccbc655279da90&quot;,</span><br><span class="line">                &quot;sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef&quot;,</span><br><span class="line">                &quot;sha256:f22bfbc1df820c465d94215e45bf9b1f0ae0fe3435a90dc5296a4b55712f46e7&quot;</span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p><code>docker history</code> 命令显示镜像具有四个层级，但 <code>docker inspect</code> 显示仅包含三个镜像。这是因为两条 <code>CMD</code> 指令仅为镜像生成元数据，不添加任何实质性内容，因此’diff’为空。摘要 5f70bf18a08a 是空镜像的 SHA256 哈希值，由两个相关层共享。</p>
+<p>被推送到 registry 的本地构建镜像，是仅有的”叶子镜像”, 与它的组成层级一同上传，并随后由另一个 Docker 主机拉取，这过程将不会产生任何中间父镜像。这是因为一旦借助 registry 将镜像提供给不同 Docker 主机上的其他潜在用户时，它的属性将变为只读，并且不再需要构建缓存 (build cache) 组件的支持。所以此时，<code>&lt;missing&gt;</code>值将被插入到其相应位置。</p>
+<p>将镜像推送到 registry 可能会产生如下输出：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ docker push jbloggs/my_image:latest</span><br><span class="line">The push refers to a repository [docker.io/jbloggs/my_image]</span><br><span class="line">f22bfbc1df82: Pushed</span><br><span class="line">5f70bf18a086: Layer already exists</span><br><span class="line">4dcab49015d4: Layer already exists</span><br><span class="line">latest: digest: sha256:7f63e3661b1377e2658e458ac1ff6d5e0079f0cfd9ff2830786d1b45ae1bb820 size: 3147</span><br></pre></td></tr></table></figure>
+
+<p>在此示例中，仅推送了一个层级，因为 registry 中已存在两个层级，这两个层级可能被一个或多个其他镜像引用。</p>
+<h4 id="最后的”小别扭”"><a href="#最后的”小别扭”" class="headerlink" title="最后的”小别扭”"></a>最后的”小别扭”</h4><p>Docker 的层级“diffs”摘要，包含 <code>diff</code>目录 的 tar 包的 sha256 hash 值。在将镜像上传到 registry 之前，会对其进行压缩以提高带宽效率。除此之外，还会创建清单 (manifest) 来描述镜像的内容，它包含压缩层级内容的摘要。因此，清单中的层级摘要与在其未压缩状态下生成的摘要不同。该清单也会被推送到 registry。</p>
+<p>压缩层 diff 的摘要可以被称为“分发摘要”，而未压缩层 diff 的摘要可以被称为“内容摘要”。因此，当我们在不同的 Docker 主机上提取示例镜像时，<code>docker pull</code> 命令会提供以下输出：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ docker pull jbloggs/my_image</span><br><span class="line">Using default tag: latest</span><br><span class="line">latest: Pulling from jbloggs/my_image</span><br><span class="line"></span><br><span class="line">51f5c6a04d83: Pull complete</span><br><span class="line">a3ed95caeb02: Pull complete</span><br><span class="line">9a246d793396: Pull complete</span><br><span class="line">Digest: sha256:7f63e3661b1377e2658e458ac1ff6d5e0079f0cfd9ff2830786d1b45ae1bb820</span><br><span class="line">Status: Downloaded newer image <span class="keyword">for</span> jbloggs/my_image:latest</span><br></pre></td></tr></table></figure>
+
+<p><code>docker pull</code> 命令输出中的分发摘要，与<code>docker push</code>命令输出的摘要非常不同 。但是，pull 将解压缩层级，<code>docker inspect</code> 命令的输出将与我们在构建镜像后看到的内容摘要相同。</p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>在 Docker v1.10 中更改镜像和镜像处理机制之后：</p>
+<ul>
+<li>Docker 镜像基于它存储到层级差异 (diffs) 的引用为派生容器提供文件系统；</li>
+<li>使用摘要引用层级差异 (diffs)，摘要包含差异 (diffs) 内容归档（译者注：就是 tar 包）的 SHA256 hash 值；</li>
+<li>Docker 镜像的 ID 是一个摘要，其中包含镜像的 JSON 配置对象的 SHA256 哈希值；</li>
+<li>为了维护构建缓存，Docker 在本地镜像构建期间会创建中间镜像；</li>
+<li>镜像清单会在推送镜像时一并推送到 Docker registry;</li>
+<li>镜像清单包含镜像层级的摘要，其中包含压缩的归档差异内容的 SHA256 哈希值；</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Docker/" rel="tag"># Docker</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/08/20/Atypical-solution-for-Vim-Chinese-garbled/" rel="prev" title="Vim 中文乱码的非典型解决方案">
+                  <i class="fa fa-angle-left"></i> Vim 中文乱码的非典型解决方案
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/01/29/%E6%9D%82%E5%BF%B5/" rel="next" title="杂念">
+                  杂念 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Darcy</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

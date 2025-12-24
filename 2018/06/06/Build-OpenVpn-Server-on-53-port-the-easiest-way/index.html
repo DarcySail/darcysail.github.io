@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"darcysail.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.26.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":"default"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="序言本文旨在教会对 Linux 稍有基础的同学，以__最简单__的方式在拥有__公网 IP__ Ubuntu 主机上搭建一个监听 UDP 53(67、68) 端口 OpenVPN 服务器，并配置好 Linux client 端，以实现绕过__Portal 认证__的目的。  加黑的每个关键词要么可以搜出大量相关资料，要么是接下来的步骤的关键。本文不会告诉你为什么要这么做，上面给出的关键词已经是充足">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Build OpenVPN Server on 53 port - The Easiest Way">
+<meta property="og:url" content="https://darcysail.github.io/2018/06/06/Build-OpenVpn-Server-on-53-port-the-easiest-way/index.html">
+<meta property="og:site_name" content="Valyria">
+<meta property="og:description" content="序言本文旨在教会对 Linux 稍有基础的同学，以__最简单__的方式在拥有__公网 IP__ Ubuntu 主机上搭建一个监听 UDP 53(67、68) 端口 OpenVPN 服务器，并配置好 Linux client 端，以实现绕过__Portal 认证__的目的。  加黑的每个关键词要么可以搜出大量相关资料，要么是接下来的步骤的关键。本文不会告诉你为什么要这么做，上面给出的关键词已经是充足">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-06-06T15:19:59.000Z">
+<meta property="article:modified_time" content="2025-12-24T05:50:11.601Z">
+<meta property="article:author" content="Darcy">
+<meta property="article:tag" content="OpenVPN">
+<meta property="article:tag" content="crack">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://darcysail.github.io/2018/06/06/Build-OpenVpn-Server-on-53-port-the-easiest-way/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"default","comments":true,"permalink":"https://darcysail.github.io/2018/06/06/Build-OpenVpn-Server-on-53-port-the-easiest-way/","path":"2018/06/06/Build-OpenVpn-Server-on-53-port-the-easiest-way/","title":"Build OpenVPN Server on 53 port - The Easiest Way"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Build OpenVPN Server on 53 port - The Easiest Way | Valyria</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Valyria</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BA%8F%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">序言</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A3%E6%96%87"><span class="nav-number">2.</span> <span class="nav-text">正文</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%92%A4%E9%94%80%E6%93%8D%E4%BD%9C"><span class="nav-number">3.</span> <span class="nav-text">撤销操作</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Darcy</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="https://darcysail.github.io/2018/06/06/Build-OpenVpn-Server-on-53-port-the-easiest-way/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Darcy">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Valyria">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Build OpenVPN Server on 53 port - The Easiest Way | Valyria">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Build OpenVPN Server on 53 port - The Easiest Way
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2018-06-06 23:19:59" itemprop="dateCreated datePublished" datetime="2018-06-06T23:19:59+08:00">2018-06-06</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-12-24 13:50:11" itemprop="dateModified" datetime="2025-12-24T13:50:11+08:00">2025-12-24</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h4 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h4><p>本文旨在教会对 Linux 稍有基础的同学，以__最简单__的方式在拥有__公网 IP__ Ubuntu 主机上搭建一个监听 <strong>UDP 53(67、68) 端口</strong> <strong>OpenVPN</strong> 服务器，并配置好 Linux client 端，以实现绕过__Portal 认证__的目的。</p>
+<blockquote>
+<p>加黑的每个关键词要么可以搜出大量相关资料，要么是接下来的步骤的关键。<br>本文不会告诉你为什么要这么做，上面给出的关键词已经是充足的暗示。</p>
+</blockquote>
+<span id="more"></span>
+
+<h4 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h4><ol>
+<li><p>使用 ssh 登录你的 Ubuntu 服务器，在命令行中输入：<code>netstat -anup | grep 53</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">udp        0      0 0.0.0.0:5355            0.0.0.0:*                           446/systemd-resolve</span><br><span class="line">udp        0      0 127.0.0.1:53            0.0.0.0:*                           543/dnsmasq</span><br><span class="line">udp        0      0 127.0.0.53:53           0.0.0.0:*                           446/systemd-resolve</span><br><span class="line">.</span><br><span class="line">.</span><br><span class="line">udp6       0      0 :::5355                 :::*                                446/systemd-resolve</span><br><span class="line">udp6       0      0 ::1:53                  :::*                                543/dnsmasq</span><br></pre></td></tr></table></figure>
+<p> 倘若上面这条命令输出大量结果，请先暂时离开这篇文章，去调研如何先关闭你机器上监听 53 端口的服务。因为倘若有别的服务占用了 53 端口，会与我们接下来的步骤产生冲突。<br> 倘若没有任何结果输入，恭喜，进入下一步骤。</p>
+</li>
+<li><p>继续在命令行中输入：</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget https://git.io/vpn -O openvpn-install.sh &amp;&amp; bash openvpn-install.sh</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>参考资料：<a target="_blank" rel="noopener" href="https://github.com/Nyr/openvpn-install">https://github.com/Nyr/openvpn-install</a></p>
+</blockquote>
+<p> 得到如下结果：</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">Welcome to this OpenVPN <span class="string">&quot;road warrior&quot;</span> installer!</span><br><span class="line"></span><br><span class="line">I need to ask you a few questions before starting the setup.</span><br><span class="line">You can leave the default options and just press enter <span class="keyword">if</span> you are ok with them.</span><br><span class="line"></span><br><span class="line">First, provide the IPv4 address of the network interface you want OpenVPN</span><br><span class="line">listening to.</span><br><span class="line">IP address: XX.XX.XX.XX <span class="comment">#此处隐匿的是笔者机器的公网 IP，不用做任何修改，直接回车</span></span><br><span class="line"></span><br><span class="line">Which protocol <span class="keyword">do</span> you want <span class="keyword">for</span> OpenVPN connections?</span><br><span class="line">   1) UDP (recommended)</span><br><span class="line">   2) TCP</span><br><span class="line">Protocol [1-2]: 1</span><br><span class="line"></span><br><span class="line">What port <span class="keyword">do</span> you want OpenVPN listening to?</span><br><span class="line">Port: 53 <span class="comment">#注意此处一定要修改为 53，这是最为关键的一步</span></span><br><span class="line"></span><br><span class="line">Which DNS <span class="keyword">do</span> you want to use with the VPN?</span><br><span class="line">   1) Current system resolvers</span><br><span class="line">   2) 1.1.1.1</span><br><span class="line">   3) Google</span><br><span class="line">   4) OpenDNS</span><br><span class="line">   5) Verisign</span><br><span class="line">DNS [1-5]: 3 <span class="comment">#此处修改为 3</span></span><br><span class="line"></span><br><span class="line">Finally, tell me your name <span class="keyword">for</span> the client certificate.</span><br><span class="line">Please, use one word only, no special characters.</span><br><span class="line">Client name: client</span><br><span class="line"></span><br><span class="line">Okay, that was all I needed. We are ready to <span class="built_in">set</span> up your OpenVPN server now.</span><br><span class="line">Press any key to <span class="built_in">continue</span>...</span><br></pre></td></tr></table></figure></li>
+<li><p>此时耐心等待脚本安装软件包，以及配置服务器 config 文件。根据机器性能不同，等待时间从几十秒到十几分钟不等。所幸不用任何操作，可以去喝杯咖啡再回来。<br>待到看到如下字样时，OpenVPN 安装并配置成功，而且已经默认跑起来了。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Finished!</span><br><span class="line"></span><br><span class="line">Your client configuration is available at: /root/client.ovpn</span><br><span class="line">If you want to add more clients, you simply need to run this script again!</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>注意输出的这一条语句：__&#x2F;root&#x2F;client.ovpn__，使用<code>scp</code>将改文件从服务器拷贝到你的 client 端机器上。<br>由于每个人登录的账户不同，具体的输出路径可能不一样。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scp username@XX.XX.XX.XX:yourfilepath .</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>打开你的 Ubuntu client 机器上的网络管理，选择<code>import a saved VPN configuration</code>，选中拷贝下来的__client.ovpn__文件，在弹出窗口中不用做任何修改，直接点击 saved 保存即可。</p>
+</li>
+</ol>
+<h4 id="撤销操作"><a href="#撤销操作" class="headerlink" title="撤销操作"></a>撤销操作</h4><p>如果想要撤销服务器上的操作，再次运行下面这条指令。选择__3__即可。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">wget https://git.io/vpn -O openvpn-install.sh &amp;&amp; bash openvpn-install.sh</span><br><span class="line"></span><br><span class="line">Looks like OpenVPN is already installed.</span><br><span class="line"></span><br><span class="line">What <span class="keyword">do</span> you want to <span class="keyword">do</span>?</span><br><span class="line">    1) Add a new user</span><br><span class="line">    2) Revoke an existing user</span><br><span class="line">    3) Remove OpenVPN</span><br><span class="line">    4) Exit</span><br><span class="line">Select an option [1-4]: 3</span><br><span class="line"></span><br><span class="line">Do you really want to remove OpenVPN? [y/N]: y</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/OpenVPN/" rel="tag"># OpenVPN</a>
+              <a href="/tags/crack/" rel="tag"># crack</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/05/31/Share-my-dotfile/" rel="prev" title="Share my dotfile">
+                  <i class="fa fa-angle-left"></i> Share my dotfile
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/07/09/record_LLVM_compile_error_solution/" rel="next" title="记录一次 LLVM 编译错误的解决">
+                  记录一次 LLVM 编译错误的解决 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Darcy</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

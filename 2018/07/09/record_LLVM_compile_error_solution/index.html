@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"darcysail.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.26.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":"default"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="undefined reference to &#96;llvm::orc::AsynchronousSymbolQuery::handleFullyReady()’  使用官方教程中的命令编译 1clang++ -g -rdynamic toy.cpp -L&#x2F;usr&#x2F;local&#x2F;lib -lLLVMOrcJIT &#96;llvm-config --cxxflags --ldflags --syste">
+<meta property="og:type" content="article">
+<meta property="og:title" content="记录一次 LLVM 编译错误的解决">
+<meta property="og:url" content="https://darcysail.github.io/2018/07/09/record_LLVM_compile_error_solution/index.html">
+<meta property="og:site_name" content="Valyria">
+<meta property="og:description" content="undefined reference to &#96;llvm::orc::AsynchronousSymbolQuery::handleFullyReady()’  使用官方教程中的命令编译 1clang++ -g -rdynamic toy.cpp -L&#x2F;usr&#x2F;local&#x2F;lib -lLLVMOrcJIT &#96;llvm-config --cxxflags --ldflags --syste">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-07-09T14:21:37.000Z">
+<meta property="article:modified_time" content="2025-12-24T05:50:11.606Z">
+<meta property="article:author" content="Darcy">
+<meta property="article:tag" content="LLVM">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://darcysail.github.io/2018/07/09/record_LLVM_compile_error_solution/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"default","comments":true,"permalink":"https://darcysail.github.io/2018/07/09/record_LLVM_compile_error_solution/","path":"2018/07/09/record_LLVM_compile_error_solution/","title":"记录一次 LLVM 编译错误的解决"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>记录一次 LLVM 编译错误的解决 | Valyria</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Valyria</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Darcy</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="https://darcysail.github.io/2018/07/09/record_LLVM_compile_error_solution/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Darcy">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Valyria">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="记录一次 LLVM 编译错误的解决 | Valyria">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          记录一次 LLVM 编译错误的解决
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2018-07-09 22:21:37" itemprop="dateCreated datePublished" datetime="2018-07-09T22:21:37+08:00">2018-07-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-12-24 13:50:11" itemprop="dateModified" datetime="2025-12-24T13:50:11+08:00">2025-12-24</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><blockquote>
+<p>undefined reference to &#96;llvm::orc::AsynchronousSymbolQuery::handleFullyReady()’</p>
+</blockquote>
+<p>使用官方教程中的命令编译</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">clang++ -g -rdynamic toy.cpp -L/usr/local/lib -lLLVMOrcJIT `llvm-config --cxxflags --ldflags --system-libs --libs core mcjit native` -O3 -o toy</span><br></pre></td></tr></table></figure>
+<p>会得到如下错误：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">warning: unknown warning option <span class="string">&#x27;-Wno-maybe-uninitialized&#x27;</span>; did you mean <span class="string">&#x27;-Wno-uninitialized&#x27;</span>? [-Wunknown-warning-option]</span><br><span class="line">1 warning generated.</span><br><span class="line">/tmp/toy-e5b39c.o: In <span class="keyword">function</span> `llvm::orc::RTDyldObjectLinkingLayer::ConcreteLinkedObject&lt;std::shared_ptr&lt;llvm::RuntimeDyld::MemoryManager&gt; &gt;::finalize()<span class="string">&#x27;:</span></span><br><span class="line"><span class="string">/usr/local/include/llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h:191: undefined reference to `llvm::orc::JITSymbolResolverAdapter::JITSymbolResolverAdapter(llvm::orc::ExecutionSession&amp;, llvm::orc::SymbolResolver&amp;, llvm::orc::MaterializationResponsibility*)&#x27;</span></span><br><span class="line">/tmp/toy-e5b39c.o: In <span class="keyword">function</span> `llvm::orc::JITSymbolResolverAdapter::~JITSymbolResolverAdapter()<span class="string">&#x27;:</span></span><br><span class="line"><span class="string">/usr/local/include/llvm/ExecutionEngine/Orc/Legacy.h:23: undefined reference to `vtable for llvm::orc::JITSymbolResolverAdapter&#x27;</span></span><br><span class="line">/tmp/toy-e5b39c.o: In <span class="keyword">function</span> `llvm::orc::ExecutionSessionBase::materializeOnCurrentThread(llvm::orc::VSO&amp;, std::unique_ptr&lt;llvm::orc::MaterializationUnit, std::default_delete&lt;llvm::orc::MaterializationUnit&gt; &gt;)<span class="string">&#x27;:</span></span><br><span class="line"><span class="string">/usr/local/include/llvm/ExecutionEngine/Orc/Core.h:188: undefined reference to `llvm::orc::MaterializationResponsibility::MaterializationResponsibility(llvm::orc::VSO&amp;, std::map&lt;llvm::orc::SymbolStringPtr, llvm::JITSymbolFlags, std::less&lt;llvm::orc::SymbolStringPtr&gt;, std::allocator&lt;std::pair&lt;llvm::orc::SymbolStringPtr const, llvm::JITSymbolFlags&gt; &gt; &gt;)&#x27;</span></span><br><span class="line">/usr/local/include/llvm/ExecutionEngine/Orc/Core.h:188: undefined reference to `llvm::orc::MaterializationResponsibility::~MaterializationResponsibility()<span class="string">&#x27;</span></span><br><span class="line"><span class="string">/tmp/toy-e5b39c.o: In function `std::set&lt;llvm::orc::SymbolStringPtr, std::less&lt;std::set&gt;, std::allocator&lt;std::set&gt; &gt; llvm::orc::lookupWithLegacyFn&lt;llvm::orc::KaleidoscopeJIT::KaleidoscopeJIT()::&#123;lambda(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;)#1&#125;&gt;(llvm::orc::ExecutionSession&amp;, llvm::orc::AsynchronousSymbolQuery&amp;, std::allocator&lt;std::set&gt; const&amp;, llvm::orc::KaleidoscopeJIT::KaleidoscopeJIT()::&#123;lambda(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;)#1&#125;)&#x27;</span>:</span><br><span class="line">/usr/local/include/llvm/ExecutionEngine/Orc/Legacy.h:90: undefined reference to `llvm::orc::ExecutionSessionBase::failQuery(llvm::orc::AsynchronousSymbolQuery&amp;, llvm::Error)<span class="string">&#x27;</span></span><br><span class="line"><span class="string">/usr/local/include/llvm/ExecutionEngine/Orc/Legacy.h:82: undefined reference to `llvm::orc::AsynchronousSymbolQuery::resolve(llvm::orc::SymbolStringPtr const&amp;, llvm::JITEvaluatedSymbol)&#x27;</span></span><br><span class="line">/usr/local/include/llvm/ExecutionEngine/Orc/Legacy.h:83: undefined reference to `llvm::orc::AsynchronousSymbolQuery::notifySymbolReady()<span class="string">&#x27;</span></span><br><span class="line"><span class="string">/usr/local/include/llvm/ExecutionEngine/Orc/Legacy.h:86: undefined reference to `llvm::orc::ExecutionSessionBase::failQuery(llvm::orc::AsynchronousSymbolQuery&amp;, llvm::Error)&#x27;</span></span><br><span class="line">/usr/local/include/llvm/ExecutionEngine/Orc/Legacy.h:97: undefined reference to `llvm::orc::AsynchronousSymbolQuery::handleFullyResolved()<span class="string">&#x27;</span></span><br><span class="line"><span class="string">/usr/local/include/llvm/ExecutionEngine/Orc/Legacy.h:100: undefined reference to `llvm::orc::AsynchronousSymbolQuery::handleFullyReady()&#x27;</span></span><br><span class="line">/tmp/toy-e5b39c.o:(.data.rel.ro._ZTVN4llvm3orc22LegacyLookupFnResolverIZNS0_15KaleidoscopeJITC1EvEUlRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEE_EE[_ZTVN4llvm3orc22LegacyLookupFnResolverIZNS0_15KaleidoscopeJITC1EvEUlRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEE_EE]+0x30): undefined reference to `llvm::orc::SymbolResolver::anchor()<span class="string">&#x27;</span></span><br><span class="line"><span class="string">clang-7: error: linker command failed with exit code 1 (use -v to see invocation)</span></span><br></pre></td></tr></table></figure>
+
+<p>定位到最下方的一次函数调用<code>handleFullyReady</code>，在 <code>/usr/local/lib</code> 目录下使用<code>grep handleFullyReady . -r -n</code>搜索，发现该函数位于 <code>LibLLVMOrcJIT.so</code> 文件中。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Binary file ./libLLVMOrcJIT.so.7svn matches</span><br></pre></td></tr></table></figure>
+
+<p>使用新的命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">clang++ -g -rdynamic toy.cpp -lLLVMOrcJIT `llvm-config --cxxflags --ldflags --system-libs --libs core mcjit native` -O3 -o toy</span><br></pre></td></tr></table></figure>
+<p>问题解决。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/LLVM/" rel="tag"># LLVM</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/06/06/Build-OpenVpn-Server-on-53-port-the-easiest-way/" rel="prev" title="Build OpenVPN Server on 53 port - The Easiest Way">
+                  <i class="fa fa-angle-left"></i> Build OpenVPN Server on 53 port - The Easiest Way
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/08/15/record-lfs-solution-you-cant-find-in-chinese-internet/" rel="next" title="LFS 部分问题的解决方案">
+                  LFS 部分问题的解决方案 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Darcy</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

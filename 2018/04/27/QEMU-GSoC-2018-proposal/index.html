@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"darcysail.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.26.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":"default"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="Basic Information Name: darcy IRC nickname: darcy Programming languages (fluent): C, C++ Past open source contributions:  participating write a open source technical book about ‘OpenResty’  https:&#x2F;&#x2F;gi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Using QEMU to implement micro:bit machine type emulation">
+<meta property="og:url" content="https://darcysail.github.io/2018/04/27/QEMU-GSoC-2018-proposal/index.html">
+<meta property="og:site_name" content="Valyria">
+<meta property="og:description" content="Basic Information Name: darcy IRC nickname: darcy Programming languages (fluent): C, C++ Past open source contributions:  participating write a open source technical book about ‘OpenResty’  https:&#x2F;&#x2F;gi">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-04-27T13:01:49.000Z">
+<meta property="article:modified_time" content="2025-12-24T05:50:11.606Z">
+<meta property="article:author" content="Darcy">
+<meta property="article:tag" content="QEMU">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://darcysail.github.io/2018/04/27/QEMU-GSoC-2018-proposal/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"default","comments":true,"permalink":"https://darcysail.github.io/2018/04/27/QEMU-GSoC-2018-proposal/","path":"2018/04/27/QEMU-GSoC-2018-proposal/","title":"Using QEMU to implement micro:bit machine type emulation"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Using QEMU to implement micro:bit machine type emulation | Valyria</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Valyria</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Basic-Information"><span class="nav-number">1.</span> <span class="nav-text">Basic Information</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Why-you-are-applying"><span class="nav-number">2.</span> <span class="nav-text">Why you are applying</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Summary-of-your-understanding-of-the-project-idea"><span class="nav-number">3.</span> <span class="nav-text">Summary of your understanding of the project idea</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Part-I"><span class="nav-number">3.1.</span> <span class="nav-text">Part I.</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-Differences-between-instructions"><span class="nav-number">3.1.1.</span> <span class="nav-text">1. Differences between instructions</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-Differences-between-features"><span class="nav-number">3.1.2.</span> <span class="nav-text">2. Differences between features</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Part-II"><span class="nav-number">3.2.</span> <span class="nav-text">Part II.</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Part-III"><span class="nav-number">3.3.</span> <span class="nav-text">Part III.</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Project-plan"><span class="nav-number">4.</span> <span class="nav-text">Project plan</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">5.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Darcy</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="https://darcysail.github.io/2018/04/27/QEMU-GSoC-2018-proposal/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Darcy">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Valyria">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Using QEMU to implement micro:bit machine type emulation | Valyria">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Using QEMU to implement micro:bit machine type emulation
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2018-04-27 21:01:49" itemprop="dateCreated datePublished" datetime="2018-04-27T21:01:49+08:00">2018-04-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-12-24 13:50:11" itemprop="dateModified" datetime="2025-12-24T13:50:11+08:00">2025-12-24</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="Basic-Information"><a href="#Basic-Information" class="headerlink" title="Basic Information"></a>Basic Information</h2><ul>
+<li><strong>Name:</strong> darcy</li>
+<li><strong>IRC nickname:</strong> darcy</li>
+<li><strong>Programming languages (fluent):</strong> C, C++</li>
+<li><strong>Past open source contributions:</strong><br>  participating write a open source technical book about ‘OpenResty’<br>  <a target="_blank" rel="noopener" href="https://github.com/moonbingbing/openresty-best-practices">https://github.com/moonbingbing/openresty-best-practices</a></li>
+<li><strong>Sample source code, hobby projects, GitHub, etc URLs:</strong><br>  <a target="_blank" rel="noopener" href="https://github.com/DarcySail">https://github.com/DarcySail</a></li>
+</ul>
+<h2 id="Why-you-are-applying"><a href="#Why-you-are-applying" class="headerlink" title="Why you are applying"></a>Why you are applying</h2><p>There are two reasons for participating in QEMU-GSoC:</p>
+<p>First, I’m an virtualization technology enthusiast. During my junior year at college, I’ve designed and implemented a C programming language based compiler, allowing users to directly convert native C code into a my own designed Stack-Based Instruction Set. Internally, a virtual machine to support byte-code execution is integrated into this compiler. Although this simple virtual machine prototype cannot support the full stack of virtualization technology, it’s actually the starting point for my interest in virtualization. Now, I’m pursuing my PH.D degree in University of Chinese Academy of Sciences. And I focus on low-level system software design，including virtualization technologies and AI operating systems, e.g., QEMU, Docker, etc. Thus, I want to utilize QEMU to implement the emulation of Intelligence Chip after I am familiar enough with QEMU.</p>
+<span id="more"></span>
+
+<p>First, I am greatly interested in virtualization. When I was a junior, I designed and implemented a compiler that support the subset of C language, the compiler accepted C code as input, and output Stack-based Instruction Set(also designed by myself). A virtual machine was written in order to run this bytecode.  Now, in my point of view, this amateur virtual machine is far from virtualization, but it’s actually the starting point for my interest in virtualization.  When I came to University of Chinese Academy of Sciences as a master student, most of tasks assigned to me by my school mentor are about low-level system software. And I want to utilize QEMU to implement the emulation of Intelligence Chip after I am familiar enough with QEMU.</p>
+<p>Firstly, I am greatly interested in virtualization. When I was a junior, I designed and implemented a compiler that supports the subset of C language. The compiler accepted C code as input, and output Stack-based Instruction Set(also designed by myself). A virtual machine was written in order to run this bytecode.  Now, in my point of view, this amateur virtual machine is far from virtualization, but it’s actually my starting point of the interest in virtualization.  When I came to University of Chinese Academy of Sciences as a Master student, most tasks of mine assigned by my school mentor are about low-level system software. And I want to utilize QEMU to implement the emulation of Intelligence Chip after I am familiar enough with QEMU.</p>
+<p>Secondly, when I use Linux and various open source software every day, the idea of contributing to Open Source Community naturally emerge in my deep heart. QEMU-GSoC is the best practice I could take part in. Since I have read all project ideas listed in QEMU, I thought the implementation of micro:bit is not only able to satisfy my requirement of learning peripheral emulation, but also within the capability of my skill.</p>
+<p>And I have already contributed to QEMU Community by commit 4 patchs, three of them have been merged into master branch. Here are links:<a href="#1">[1]</a> <a href="#2">[2]</a> <a href="#3">[3]</a> <a href="#4">[4]</a></p>
+<h2 id="Summary-of-your-understanding-of-the-project-idea"><a href="#Summary-of-your-understanding-of-the-project-idea" class="headerlink" title="Summary of your understanding of the project idea"></a>Summary of your understanding of the project idea</h2><p>The Project Idea of implementing micro:bit machine type provides the best testing platform for developers or kids.Besides, the implemented peripherals can be reused as modular components by future devices.</p>
+<p>What I need to do includes:</p>
+<h3 id="Part-I"><a href="#Part-I" class="headerlink" title="Part I."></a>Part I.</h3><ul>
+<li>Implementing ARM Cortex-M0 CPU support based on existing Cortex-M3 support in QEMU.</li>
+</ul>
+<p>Although the architectures are binary instructions upward compatible from Armv6-M to Armv7-M, and most(not all) binary instructions available for the Cortex-M0 can execute without modification on the Cortex-M3.<a href="#4">[4]</a> <a href="#5">[5]</a></p>
+<p>Normally, when porting from the Cortex-M3 to the Cortex-M0, I need to change the peripheral access code, and update system features like clock speed, sleep modes, and so on. And this part of the code in the qemu architecture basically does not belong to implementiion of CPU (.&#x2F;target&#x2F;arm), but is the work of the implementation of peripherals (.&#x2F;hw&#x2F;arm).<a href="#6">[6]</a></p>
+<p>However, what I need to do is to use QEMU’s support for cortex-m3 to implement a “true” virtual CPU rather than just using the existing cortex-m3 to implement the microbit machine functionality.</p>
+<p>Except for some functional differences in some of the instructions, the two CPUs still have some differences above features. Some programmers may write some code based on the characteristics of the processor. And some softwares should validate the existence of a feature before attempting to use it. When programmers write such code on Cortex-M0, it is assumed that these features are supported on qemu. In fact, in this case, if we directly replace cortex-m0 with cortex-m3, a series of unpredictable problems will happen. This is why we should trim unnecessary feature from Cortex-M3.<a href="#7">[7]</a></p>
+<h4 id="1-Differences-between-instructions"><a href="#1-Differences-between-instructions" class="headerlink" title="1. Differences between instructions"></a>1. Differences between instructions</h4><p>The Cortex-M0 contains traditional Thumb-1, not including new instructions (CBZ, CBNZ, IT) which were added in Armv7-M architecture, and a minor subset of Thumb-2 instructions (BL, DMB, DSB, ISB, MRS, MSR). The Cortex-M3 have all base Thumb-1 and Thumb-2 instructions.<a href="#8">[8]</a></p>
+<ul>
+<li>The Cortex-M0 only has 32-bit multiply instructions with a lower-32-bit result (32bit × 32bit &#x3D; lower 32bit), where as the Cortex-M3 &#x2F; M4 &#x2F; M7 &#x2F; M33 includes additional 32-bit multiply instructions with 64-bit results (32bit × 32bit &#x3D; 64bit).<a href="#8">[8]</a></li>
+</ul>
+<p>All this unsupported instructions should be trimmed from current Cortex-M3 implementation. The specific method is to utilize the following functions provided by QEMU, using <code>UNPREDICTABLE</code> or <code>UNDEFINED</code> to replace the original instructions.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> ENABLE_ARCH_V6     arm_dc_feature(s, ARM_FEATURE_V6)</span></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">disas_arm_insn</span><span class="params">(DisasContext *s, <span class="type">unsigned</span> <span class="type">int</span> insn)</span></span><br><span class="line">&#123;</span><br><span class="line">    ....</span><br><span class="line">    <span class="comment">/* for different feature that not supported by cotex-m0(armv6);</span></span><br><span class="line"><span class="comment">     * we could raise the INVSTATE UsageFault exception.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (arm_dc_feature(s, ARM_FEATURE_V6)) &#123;</span><br><span class="line">        gen_exception_insn(s, <span class="number">4</span>, EXCP_INVSTATE, syn_uncategorized(),</span><br><span class="line">                           default_exception_el(s));</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    ....</span><br><span class="line">    <span class="comment">/* for Instruction that not supported by cortex-m0(armv6), we</span></span><br><span class="line"><span class="comment">     * choose to UNDEF.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (!arm_dc_feature(s, ARM_FEATURE_NEON)) &#123;</span><br><span class="line">        <span class="keyword">goto</span> illegal_op;</span><br><span class="line">    &#125;</span><br><span class="line">illegal_op:</span><br><span class="line">        gen_exception_insn(s, <span class="number">4</span>, EXCP_UDEF, syn_uncategorized(),</span><br><span class="line">                           default_exception_el(s));</span><br><span class="line">    ....</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-Differences-between-features"><a href="#2-Differences-between-features" class="headerlink" title="2. Differences between features"></a>2. Differences between features</h4><p>The following features should be taken into consideration:</p>
+<p>ARM architecture: The Cortex-M0 implement the Armv6-M architecture, and the Cortex-M3 implements the Armv7-M architecture.</p>
+<ul>
+<li>Interrupts: 1 to 32 (Cortex-M0), 1 to 240 (Cortex-M3).</li>
+<li>Vector Table Offset Register: Not available for Cortex-M0.</li>
+<li>Number of watchpoint comparators: 0 to 2 (Cortex M0), 0 to 4 (Cortex-M3).</li>
+<li>Number of breakpoint comparators: 0 to 4 (Cortex M0), 0 to 8 (Cortex-M3).</li>
+<li>The performance efficiency: 0.9 DMIPS&#x2F;MHz 1.25 DMIPS&#x2F;MHz(this part won’t affect QEMU)<a href="#8">[8]</a></li>
+</ul>
+<p>Except for listed above, aligned access is another important different feature. An aligned access is an operation where a word-aligned address is used for a word or multiple word access, or where a halfword-aligned address is used for a halfword access. Byte accesses are always aligned.</p>
+<p>There is no support for unaligned accesses on the Cortex-M0 processor. Any attempt to perform an unaligned memory access operation results in a HardFault exception.<a href="#9">[9]</a></p>
+<p>NVIC and SCB (System Control Block) registers in the Cortex-M0 can only be accessed in word-size transfers.  While some registers in the NVIC and the SCB in the Cortex-M3 are not available in the Cortex-M0. These include the Interrupt Active Status Register, the Software Trigger Interrupt Register, the Vector Table Offset Register, and some of the fault status registers.<a href="#6">[6]</a></p>
+<p>The bit-band feature in the Cortex-M3 is not available in the Cortex-M0. If the bit-band alias access is used, it needs to return an error_id.</p>
+<p>In general, Cortex-M0 memory access must always be naturally aligned while Cortex-M3 doesn’t have this limit. The unsupported features should be trimmed to satisfy Cortex-M0.<br>(refered to <a href="#code2">[code]</a>):</p>
+<h3 id="Part-II"><a href="#Part-II" class="headerlink" title="Part II."></a>Part II.</h3><ul>
+<li>Implementing a “microbit” machine type.</li>
+<li>Implementing at least the 5x5 LED display, buttons, and UART.</li>
+<li>Stubbing out other devices as needed for the runtime to start successfully.</li>
+</ul>
+<p>Different from X86 architecture which provides port-mapped I&#x2F;O, ARM architecture uses memory-mapped I&#x2F;O to perform input&#x2F;output (I&#x2F;O) between CPU and peripheral devices. In programming of kernel module, we control peripherals by read&#x2F;write I&#x2F;O registers.  Because of the opposite behaviors, when we try to emulate peripheral device, we should read the value of I&#x2F;O register to figure out what kind of operations do users want us to achieve so that we can give feedback to users by write corresponding I&#x2F;O register. In order to specify utilize QEMU to emulate peripherals in ARM architecture, we should add a QEMU data structure named “MemoryRegion” per I&#x2F;O mapped-memory, then hook the “MemoryRegion” with two callback functions(one for responding reading behavior, one for responding writing behavior), as long as user’s code tries to access this “MemoryRegion”, no matter reading or writing, the right corresponding callback function will be called. And exactly in this callback function should we implement the concrete peripherals feature.<a href="#10">[10]</a></p>
+<p><span id = "code2"></span></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">uint64_t</span> <span class="title function_">microbit_rom_read_hook</span><span class="params">(<span class="type">void</span> *opaque, hwaddr offset, <span class="type">unsigned</span> size)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (offset &amp; <span class="number">0x1</span>) &#123;</span><br><span class="line">        qemu_log_mask(LOG_GUEST_ERROR,</span><br><span class="line">                      <span class="string">&quot;ROM: read at bad offset 0x%x\n&quot;</span>, (<span class="type">int</span>)offset);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">const</span> MemoryRegionOps microbit_rom_ops = &#123;</span><br><span class="line">    .read = microbit_rom_read,</span><br><span class="line">    .write = microbit_rom_write,</span><br><span class="line">    .endianness = DEVICE_NATIVE_ENDIAN,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>There is no big difference between stubbing a device and actually implementing a device, both of them need to allocate a MemoryRegion, and hook the access to them, expect for stubbed device hooked with almost empty functions.</p>
+<h3 id="Part-III"><a href="#Part-III" class="headerlink" title="Part III."></a>Part III.</h3><ul>
+<li>Test code.</li>
+</ul>
+<p>In order to test the correctness of emulation code, we could use online Python(or Javascript Blocks editors) to generate specific code which controls specific peripheral. According to “nRF51 Series Reference Manual”, we check whether the generated code has written right value of right address.  For example, in the emulation of LED device, we can use Python to generate “.hex” file that only controls one LED light to blink. Then we check whether the corresponding callback function has been called, and whether “.hex” code has written expected value to right I&#x2F;O registers.</p>
+<p>In addition to using these official compilers, we can also use the runtime environment provided by Lancaster University, to minimize irrelevant variables.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//This code should blink LED every 500ms.</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;mbed.h&quot;</span></span></span><br><span class="line"></span><br><span class="line">DigitalOut <span class="title function_">led1</span><span class="params">(LED1)</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        led1 = !led1;</span><br><span class="line">        wait(<span class="number">0.5</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Then use the following shell command to compile the source code.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">yotta init</span><br><span class="line">yotta target bbc-microbit-classic-gcc</span><br><span class="line">yotta install lancaster-university/microbit</span><br><span class="line">yotta build</span><br></pre></td></tr></table></figure>
+
+<p>The hex file we need to burn to flash rom will be found in project <code>LED-Blink/build/bbc-microbit-classic-gcc/source</code> and it will be called <code>LED-Blink-combined.hex</code>.</p>
+<p>In addition, assembly code, which directly controls peripherals, should also be able to test on baremetel virtual machine.</p>
+<h2 id="Project-plan"><a href="#Project-plan" class="headerlink" title="Project plan"></a>Project plan</h2><p><strong>5.15 - 5.22</strong><br>Implementing a micro:bit .hex ROM loader;</p>
+<p>(approximately 500 - 1000 line of c code)</p>
+<p><strong>5.23 - 7.11</strong><br>Implementing a “microbit” machine type;</p>
+<p>Stubbing out other devices as needed for the runtime to start successfully;</p>
+<p>Implementing at least the 5x5 LED display, buttons, and UART;</p>
+<p>(approximately 1000 - 1500 line of c code for these three tasks.)</p>
+<blockquote>
+<p><strong>6.12 - 6.13</strong><br>GSoC middle evaluations.</p>
+</blockquote>
+<p><strong>7.12 - 7.22</strong><br>Implementing ARM Cortex-M0 CPU support based on existing Cortex-M3 support in QEMU;</p>
+<p>(approximately 98 instructions need to be trimmed, approximately 98 * 5 &#x3D; 490. Include trimming feature code, approximately 500 - 800 line of c code.)</p>
+<blockquote>
+<p><strong>7.10 - 7.11</strong><br>GSoC middle evaluations.</p>
+</blockquote>
+<p><strong>7.23 - 7.31</strong><br>Finish all basic task, completely test code, prepare and start to code other peripherals and GUI;</p>
+<p><strong>8.1 - 8.14</strong><br>Implement basic GUI. Implement other meaningful peripherals;</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><span id = "1"> [1] <a target="_blank" rel="noopener" href="http://lists.nongnu.org/archive/html/qemu-devel/2018-02/msg06778.html">http://lists.nongnu.org/archive/html/qemu-devel/2018-02/msg06778.html</a></span></li>
+<li><span id = "2"> [2] <a target="_blank" rel="noopener" href="http://lists.nongnu.org/archive/html/qemu-devel/2018-03/msg01626.html">http://lists.nongnu.org/archive/html/qemu-devel/2018-03/msg01626.html</a></span></li>
+<li><span id = "3"> [3] <a target="_blank" rel="noopener" href="http://lists.nongnu.org/archive/html/qemu-devel/2018-04/msg00899.html">http://lists.nongnu.org/archive/html/qemu-devel/2018-04/msg00899.html</a></span></li>
+<li><span id = "4"> [4] <a target="_blank" rel="noopener" href="http://lists.nongnu.org/archive/html/qemu-devel/2018-04/msg03242.html">http://lists.nongnu.org/archive/html/qemu-devel/2018-04/msg03242.html</a></span></li>
+<li><span id = "5"> [4] ARMv6-M Architecture Reference Manual</span></li>
+<li><span id = "6"> [5] ARMv7-M Architecture Reference Manual</span></li>
+<li><span id = "7"> [6] The Definitive Guide to the ARM Cortex-M0</span></li>
+<li><span id = "8"> [7] Cortex-M3 Embedded Software Development</span></li>
+<li><span id = "9"> [8] <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/ARM_Cortex-M">https://en.wikipedia.org/wiki/ARM_Cortex-M</a></span></li>
+<li><span id = "10"> [9] STM32F0xxx Cortex-M0 programming manual</span></li>
+<li><span id = "11"> [10] <a target="_blank" rel="noopener" href="https://www.qemu.org/2018/02/09/understanding-qemu-devices/">https://www.qemu.org/2018/02/09/understanding-qemu-devices/</a></span></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/QEMU/" rel="tag"># QEMU</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/04/22/qemu-internals-overall-architecture/" rel="prev" title="QEMU 内部原理：整体架构和线程模型『译』">
+                  <i class="fa fa-angle-left"></i> QEMU 内部原理：整体架构和线程模型『译』
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/05/10/tmux-close-panal-without-confirm/" rel="next" title="关闭 tmux panel 无需确认">
+                  关闭 tmux panel 无需确认 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Darcy</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"darcysail.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.26.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":"default"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="TLDR 在.vimrc 或者你的相应 Vim 配置文件中删去set binanry 根据你打开的文件编码（如何查询文件格式编码，可以使用enca -L chinese filename），在 Vim 中输入，譬如:edit ++enc&#x3D;gb18030  正文前些天从用了一年多了 Linux Mint 转投 Arch Linux 门下，然后在Vim里编辑网络上下载下来的字幕文件时，发现了中文乱码的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vim 中文乱码的非典型解决方案">
+<meta property="og:url" content="https://darcysail.github.io/2018/08/20/Atypical-solution-for-Vim-Chinese-garbled/index.html">
+<meta property="og:site_name" content="Valyria">
+<meta property="og:description" content="TLDR 在.vimrc 或者你的相应 Vim 配置文件中删去set binanry 根据你打开的文件编码（如何查询文件格式编码，可以使用enca -L chinese filename），在 Vim 中输入，譬如:edit ++enc&#x3D;gb18030  正文前些天从用了一年多了 Linux Mint 转投 Arch Linux 门下，然后在Vim里编辑网络上下载下来的字幕文件时，发现了中文乱码的">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-08-20T06:01:41.000Z">
+<meta property="article:modified_time" content="2025-12-24T05:50:11.601Z">
+<meta property="article:author" content="Darcy">
+<meta property="article:tag" content="Vim">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://darcysail.github.io/2018/08/20/Atypical-solution-for-Vim-Chinese-garbled/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"default","comments":true,"permalink":"https://darcysail.github.io/2018/08/20/Atypical-solution-for-Vim-Chinese-garbled/","path":"2018/08/20/Atypical-solution-for-Vim-Chinese-garbled/","title":"Vim 中文乱码的非典型解决方案"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Vim 中文乱码的非典型解决方案 | Valyria</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Valyria</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#TLDR"><span class="nav-number">1.</span> <span class="nav-text">TLDR</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A3%E6%96%87"><span class="nav-number">2.</span> <span class="nav-text">正文</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Solution-1"><span class="nav-number">3.</span> <span class="nav-text">Solution 1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Solution-2"><span class="nav-number">4.</span> <span class="nav-text">Solution 2</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A2%98%E5%A4%96%E8%AF%9D"><span class="nav-number">5.</span> <span class="nav-text">题外话</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Darcy</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="https://darcysail.github.io/2018/08/20/Atypical-solution-for-Vim-Chinese-garbled/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Darcy">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Valyria">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Vim 中文乱码的非典型解决方案 | Valyria">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Vim 中文乱码的非典型解决方案
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2018-08-20 14:01:41" itemprop="dateCreated datePublished" datetime="2018-08-20T14:01:41+08:00">2018-08-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-12-24 13:50:11" itemprop="dateModified" datetime="2025-12-24T13:50:11+08:00">2025-12-24</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h4 id="TLDR"><a href="#TLDR" class="headerlink" title="TLDR"></a>TLDR</h4><ol>
+<li>在.vimrc 或者你的相应 Vim 配置文件中删去<code>set binanry</code></li>
+<li>根据你打开的文件编码（如何查询文件格式编码，可以使用<code>enca -L chinese filename</code>），在 Vim 中输入，譬如<code>:edit ++enc=gb18030</code></li>
+</ol>
+<h4 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h4><p>前些天从用了一年多了 Linux Mint 转投 Arch Linux 门下，然后在Vim里编辑网络上下载下来的字幕文件时，发现了中文乱码的现象。当时心态有点糟，用了这么久的Vim，居然阴沟翻船。<br>我的环境是 Arch + NeoVim，配置文件是从我自己用了很久的没出问题的 .vimrc 拷贝过来的。</p>
+<p>尝试了网上种种乱码解决方案无效之后，决定自行解决问题。</p>
+<span id="more"></span>
+
+<h4 id="Solution-1"><a href="#Solution-1" class="headerlink" title="Solution 1"></a>Solution 1</h4><p>大部分会要求你在 .vimrc中进行如下配置<a href="#1">[1]</a>：</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> encoding=utf-<span class="number">8</span></span><br><span class="line"><span class="keyword">set</span> termencoding=utf-<span class="number">8</span></span><br><span class="line"><span class="keyword">set</span> fileencodings=utf-<span class="number">8</span>,gbk,latin1</span><br></pre></td></tr></table></figure>
+<ul>
+<li><span id = "1"> [1] <a target="_blank" rel="noopener" href="https://blog.csdn.net/smstong/article/details/51279810">https://blog.csdn.net/smstong/article/details/51279810</a></span></li>
+</ul>
+<p>这些配置，我当然是有的……扶额……</p>
+<p>经检查发现是 .vimrc中的<code>set binary</code>在作祟。输入<code>:help binary</code>查看说明：</p>
+<blockquote>
+<p>The ‘fileencoding’ and ‘fileencodings’ options will not be used, the file is read without conversion.</p>
+</blockquote>
+<p>binay选项会导致fileencoding 和fileencodings失效，这就是在进行网上大部分的配置之后，仍会失效的原因。</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://superuser.com/questions/663405/consequences-of-vims-binary-mode">https://superuser.com/questions/663405/consequences-of-vims-binary-mode</a></p>
+</blockquote>
+<h4 id="Solution-2"><a href="#Solution-2" class="headerlink" title="Solution 2"></a>Solution 2</h4><p>除了取消binary选项之外，也可以在打开的文件中输入如下命令：（具体参数根据文件编码格式而异）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">:edit ++enc=gb18030</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/cnwzh/article/details/7024427">https://blog.csdn.net/cnwzh/article/details/7024427</a></p>
+</blockquote>
+<h4 id="题外话"><a href="#题外话" class="headerlink" title="题外话"></a>题外话</h4><p>关于我为什么要配置<code>set binary</code>选项，请参看stack overflow问答<br><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/16222530/why-do-i-need-vim-in-binary-mode-for-noeol-to-work">Why do I need vim in binary mode for ‘noeol’ to work?</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Vim/" rel="tag"># Vim</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/08/15/record-lfs-solution-you-cant-find-in-chinese-internet/" rel="prev" title="LFS 部分问题的解决方案">
+                  <i class="fa fa-angle-left"></i> LFS 部分问题的解决方案
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/01/09/Inside-Docker-images-and-layers/" rel="next" title="深入解析 Docker 镜像机制 -- 为何 Docker 镜像 ID 会显示 missing ?『译』">
+                  深入解析 Docker 镜像机制 -- 为何 Docker 镜像 ID 会显示 missing ?『译』 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Darcy</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
